@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createUser, createProject, ensureBase, findProject, findUserByEmail, joinProject } from '@/lib/repo';
 import { isOwnerPasscode, resolveAdmin, setSessionCookie, signSession } from '@/lib/auth';
+import { clearFailures, clientIp, recordFailure, tooManyFailures } from '@/lib/api';
 import { DEMO_CODE } from '@/lib/repo';
 import type { Role, User } from '@/lib/types';
 
@@ -20,7 +21,19 @@ export async function POST(req: Request) {
       (guest ? `Guest ${Math.floor(1000 + Math.random() * 9000)}` : '');
     const email = body.email ? String(body.email).trim().toLowerCase().slice(0, 160) : null;
     const role = (ROLES.includes(body.role) ? body.role : 'member') as Role;
+
+    // The owner passcode is the only secret a stranger could guess. Throttle it.
+    const throttleKey = `passcode:${clientIp(req)}`;
+    const wait = tooManyFailures(throttleKey);
+    if (wait) {
+      return NextResponse.json(
+        { error: `Too many passcode attempts. Try again in ${Math.ceil(wait / 60)} minute(s), or ask the owner for the link.` },
+        { status: 429, headers: { 'retry-after': String(wait) } },
+      );
+    }
     const admin = isOwnerPasscode(body.passcode);
+    if (body.passcode && !admin) recordFailure(throttleKey);
+    if (admin) clearFailures(throttleKey);
     const mode = body.mode === 'create' ? 'create' : 'join';
 
     if (!name) return NextResponse.json({ error: 'Tell us your name so the team knows who is talking.' }, { status: 400 });
@@ -34,6 +47,12 @@ export async function POST(req: Request) {
       user = await createUser({ name, email, role, isAdmin: admin });
     } else {
       let updated: User = existing;
+      // A teammate added by email joins later under their real name.
+      if (name && name !== existing.name) {
+        const { sql } = await import('@/lib/db');
+        const rows = await sql<User>('UPDATE users SET name = $2 WHERE id = $1 RETURNING *', [existing.id, name]);
+        updated = rows[0] ?? updated;
+      }
       if (admin && !existing.is_admin) {
         const { sql } = await import('@/lib/db');
         const rows = await sql<User>('UPDATE users SET is_admin = true WHERE id = $1 RETURNING *', [existing.id]);

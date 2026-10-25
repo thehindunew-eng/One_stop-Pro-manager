@@ -30,19 +30,38 @@ async function createDriver(): Promise<Driver> {
   const url = process.env.DATABASE_URL;
   if (url) {
     const { Pool } = await import('pg');
+    // Neon hands out a limited number of connections. Keep the pool small, close
+    // idle sockets, and fail fast instead of hanging a serverless invocation.
     const pool = new Pool({
       connectionString: url,
-      max: 5,
+      max: Number(process.env.PGPOOL_MAX) || 3,
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 12_000,
       ssl: /localhost|127\.0\.0\.1/.test(url) ? undefined : { rejectUnauthorized: false },
     });
+    // A pool that emits an unhandled error takes the lambda down with it.
+    pool.on('error', (err) => console.error('[db] idle Postgres connection error:', err.message));
+
+    const run = async (text: string, params: unknown[]) => {
+      try {
+        return await pool.query(text, params as any[]);
+      } catch (err) {
+        // Neon suspends idle databases; the first connection after a sleep can
+        // time out. One retry turns that into a slow request instead of a 500.
+        if (!/ECONNRESET|ETIMEDOUT|terminating connection|Connection terminated|timeout expired/i.test((err as Error).message)) throw err;
+        console.warn('[db] retrying after a transient Postgres connection error');
+        return await pool.query(text, params as any[]);
+      }
+    };
+
     return {
       kind: 'neon',
       async query(sql, params = []) {
-        const res = await pool.query(sql, params as any[]);
+        const res = await run(sql, params);
         return { rows: res.rows as Record<string, any>[] };
       },
       async exec(sql) {
-        await pool.query(sql);
+        await run(sql, []);
       },
     };
   }
@@ -120,7 +139,14 @@ async function createDriver(): Promise<Driver> {
 }
 
 async function driver(): Promise<Driver> {
-  if (!g.__ospmDriver) g.__ospmDriver = createDriver();
+  if (!g.__ospmDriver) {
+    // Never cache a rejected promise: a database that wakes up later must work
+    // without waiting for the next cold start.
+    g.__ospmDriver = createDriver().catch((err) => {
+      g.__ospmDriver = undefined;
+      throw err;
+    });
+  }
   return g.__ospmDriver;
 }
 
@@ -287,13 +313,48 @@ export async function ensureSchema(): Promise<void> {
   }
   if (!schemaReady) {
     schemaReady = (async () => {
-      await exec(SCHEMA);
+      try {
+        await exec(SCHEMA);
+      } catch (err) {
+        // Two cold serverless instances can create the same objects at the same
+        // time; Postgres reports that as duplicate_object / unique_violation on
+        // the system catalogue. Re-running is safe because every statement is
+        // IF NOT EXISTS.
+        const code = (err as { code?: string }).code;
+        if (code !== '42P07' && code !== '42710' && code !== '23505') throw err;
+        console.warn('[db] schema created concurrently by another instance — verifying');
+        await new Promise((r) => setTimeout(r, 250));
+        await exec(SCHEMA);
+      }
+      // Tables added after the first deploy: keep existing databases current.
+      await migrate();
     })().catch((err) => {
       schemaReady = null;
       throw err;
     });
   }
   return schemaReady;
+}
+
+/**
+ * Idempotent, additive migrations. Every statement must be safe to run on a
+ * database that already has the table.
+ */
+async function migrate(): Promise<void> {
+  const statements = [
+    'ALTER TABLE projects ADD COLUMN IF NOT EXISTS settings jsonb DEFAULT \'{}\'::jsonb',
+    'ALTER TABLE members ADD COLUMN IF NOT EXISTS last_seen timestamptz DEFAULT now()',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS points integer DEFAULT 3',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS position integer DEFAULT 0',
+    'ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS updated_by text',
+  ];
+  for (const statement of statements) {
+    try {
+      await exec(statement);
+    } catch (err) {
+      console.warn('[db] migration skipped:', statement.slice(0, 60), (err as Error).message);
+    }
+  }
 }
 
 export function newId(prefix = ''): string {

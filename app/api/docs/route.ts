@@ -56,8 +56,17 @@ export async function POST(req: Request) {
 
   const label = engineLabel();
   const generated: { kind: string; title: string; engine: string }[] = [];
+  const skipped: string[] = [];
+  // A stage can hold six documents and a live model can take 20s each. Stop
+  // before the serverless timeout and tell the client what is left, instead of
+  // returning a 504 with half the work silently lost.
+  const deadline = Date.now() + 42_000;
 
   for (const doc of list) {
+    if (generated.length && Date.now() > deadline) {
+      skipped.push(doc.kind);
+      continue;
+    }
     const ctx = await buildContext(g.project, doc.stageKey);
     let content: string | null = null;
     let engine = 'workspace template engine';
@@ -93,7 +102,7 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ artifacts, generated, live: label.live });
+  return NextResponse.json({ artifacts, generated, skipped, live: label.live });
 }
 
 export async function PATCH(req: Request) {

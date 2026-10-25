@@ -21,12 +21,14 @@ export async function POST(req: Request) {
   const category = String(body.category ?? '').trim();
   if (!name || !category) return bad('A tool needs a name and a category.');
   const stages: StageKey[] = Array.isArray(body.stages) ? body.stages : [];
+  const rawUrl = body.url ? String(body.url).trim().slice(0, 300) : '';
+  if (rawUrl && !/^https?:\/\//i.test(rawUrl)) return bad('A tool link must start with http:// or https://');
   const tool = await saveTool({
     id: body.id,
     name,
     category,
     stages,
-    url: body.url ? String(body.url).slice(0, 300) : '',
+    url: rawUrl,
     color: body.color ? String(body.color).replace('#', '').slice(0, 8) : '6366f1',
     description: body.description ? String(body.description).slice(0, 300) : '',
     free_tier: body.free_tier ? String(body.free_tier).slice(0, 120) : '',

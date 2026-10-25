@@ -63,13 +63,20 @@ export async function ensureBase(force = false): Promise<void> {
       }
 
       if ((await safeCount('tools')) === 0) {
-        let i = 0;
-        for (const t of TOOL_SEED) {
-          await sql(
-            `INSERT INTO tools (id, slug, name, category, stages, url, color, description, free_tier, sort, enabled)
-             VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,true)`,
-            [newId('tool'), t.slug, t.name, t.category, asJson(t.stages), t.url, t.color, t.description, t.free_tier, i++],
-          );
+        // A single atomic insert decides which instance seeds the catalogue.
+        const claim = await sql<{ key: string }>(
+          `INSERT INTO app_settings (key, value) VALUES ('tools_seeded', 'true'::jsonb)
+           ON CONFLICT (key) DO NOTHING RETURNING key`,
+        );
+        if (claim[0]) {
+          let i = 0;
+          for (const t of TOOL_SEED) {
+            await sql(
+              `INSERT INTO tools (id, slug, name, category, stages, url, color, description, free_tier, sort, enabled)
+               VALUES ($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,true)`,
+              [newId('tool'), t.slug, t.name, t.category, asJson(t.stages), t.url, t.color, t.description, t.free_tier, i++],
+            );
+          }
         }
       }
 
@@ -84,6 +91,15 @@ export async function ensureBase(force = false): Promise<void> {
         } catch (err) {
           console.error('[repo] seeding failed:', (err as Error).message);
         }
+      }
+
+      // Keep existing rooms current when a new document type is added to the
+      // blueprint. Safe to run on every boot: inserts are ON CONFLICT DO NOTHING.
+      try {
+        const projects = await sql<{ id: string }>('SELECT id FROM projects');
+        for (const p of projects) await ensureArtifacts(p.id);
+      } catch (err) {
+        console.warn('[repo] document top-up skipped:', (err as Error).message);
       }
     })().catch((err) => {
       g.__ospmBase = undefined;
@@ -204,21 +220,22 @@ async function seedDemoProject(): Promise<void> {
     isAdmin: true,
   });
 
-  const id = newId('prj');
-  const project = (
-    await sql<Project>(
-      `INSERT INTO projects (id, code, name, tagline, owner_id, stage_key, status, settings)
-       VALUES ($1,$2,$3,$4,$5,'discover','discovering',$6::jsonb) RETURNING *`,
-      [
-        id,
-        DEMO_CODE,
-        'One Stop Product Studio',
-        'From a Monday meeting to a launched product — in one room.',
-        owner.id,
-        asJson({ showDemo: true, allowMemberEdit: true }),
-      ],
-    )
-  )[0];
+  // ON CONFLICT keeps two cold serverless instances from seeding twice.
+  const demoRows = await sql<Project>(
+    `INSERT INTO projects (id, code, name, tagline, owner_id, stage_key, status, settings)
+     VALUES ($1,$2,$3,$4,$5,'discover','discovering',$6::jsonb)
+     ON CONFLICT (code) DO NOTHING RETURNING *`,
+    [
+      newId('prj'),
+      DEMO_CODE,
+      'One Stop Product Studio',
+      'From a Monday meeting to a launched product — in one room.',
+      owner.id,
+      asJson({ showDemo: true, allowMemberEdit: true }),
+    ],
+  );
+  if (!demoRows[0]) return; // the other instance is seeding it right now
+  const project = demoRows[0];
 
   const teammates: { name: string; role: Role; email: string; admin?: boolean }[] = [
     { name: 'Priya Nair', role: 'design', email: 'priya@onestop.pro' },
@@ -440,20 +457,21 @@ async function seedLiveProject(): Promise<void> {
   });
 
   const productName = process.env.PRODUCT_NAME || 'One Stop Pro Manager';
-  const project = (
-    await sql<Project>(
-      `INSERT INTO projects (id, code, name, tagline, owner_id, stage_key, status, settings)
-       VALUES ($1,$2,$3,$4,$5,'launch','launching',$6::jsonb) RETURNING *`,
-      [
-        newId('prj'),
-        PROD_CODE,
-        `${productName} — launch room`,
-        'Ship v0.1: meeting IDE → problem engine → nine-stage workspace → deployed on Vercel + Neon.',
-        owner.id,
-        asJson({ mode: 'live', demoCode: DEMO_CODE }),
-      ],
-    )
-  )[0];
+  const liveRows = await sql<Project>(
+    `INSERT INTO projects (id, code, name, tagline, owner_id, stage_key, status, settings)
+     VALUES ($1,$2,$3,$4,$5,'launch','launching',$6::jsonb)
+     ON CONFLICT (code) DO NOTHING RETURNING *`,
+    [
+      newId('prj'),
+      PROD_CODE,
+      `${productName} — launch room`,
+      'Ship v0.1: meeting IDE → problem engine → nine-stage workspace → deployed on Vercel + Neon.',
+      owner.id,
+      asJson({ mode: 'live', demoCode: DEMO_CODE }),
+    ],
+  );
+  if (!liveRows[0]) return; // the other instance is seeding it right now
+  const project = liveRows[0];
 
   await sql(`INSERT INTO members (project_id, user_id, role) VALUES ($1,$2,'pm') ON CONFLICT DO NOTHING`, [
     project.id,
@@ -653,7 +671,8 @@ export async function createProject(input: {
     input.ownerId,
   ]);
   await ensureArtifacts(project.id);
-  await seedStageTasks(project.id);
+  // A new product room has done nothing yet — do not fake progress.
+  await seedStageTasks(project.id, undefined, () => 'todo');
   return project;
 }
 
@@ -999,18 +1018,27 @@ export async function listStages(onlyEnabled = false): Promise<Stage[]> {
 }
 
 export async function saveStage(input: Partial<Stage> & { key: string; name: string }): Promise<Stage> {
+  // COALESCE keeps whatever the caller did not send, so renaming a stage can
+  // never silently erase its checklist or colour.
   const rows = await sql<Stage>(
-    `UPDATE stages SET name=$2, tagline=$3, icon=$4, color=$5, position=$6, enabled=$7, checklist=$8::jsonb
-     WHERE key=$1 RETURNING *`,
+    `UPDATE stages SET
+       name = $2,
+       tagline = COALESCE($3, tagline),
+       icon = COALESCE($4, icon),
+       color = COALESCE($5, color),
+       position = COALESCE($6, position),
+       enabled = COALESCE($7, enabled),
+       checklist = COALESCE($8::jsonb, checklist)
+     WHERE key = $1 RETURNING *`,
     [
       input.key,
       input.name,
-      input.tagline ?? '',
-      input.icon ?? 'Compass',
-      input.color ?? '#6366f1',
-      input.position ?? 0,
-      input.enabled ?? true,
-      asJson(input.checklist ?? []),
+      input.tagline ?? null,
+      input.icon ?? null,
+      input.color ?? null,
+      input.position ?? null,
+      input.enabled ?? null,
+      input.checklist ? asJson(input.checklist) : null,
     ],
   );
   return rows[0];

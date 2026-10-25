@@ -18,7 +18,7 @@ stages, tools and copy from inside the app — no redeploy, no code.
 | Signal extraction — pains, users, evidence, decisions, metrics, risks, open questions with evidence quotes and accept/dismiss | `Live signals` |
 | 9 chronological lifecycle stages (Discover → Define → Ideate → Design → Architect → Build → Test → Launch → Grow) each with docs, checklist, board and scoped tool kit | `Lifecycle` tab |
 | 24 auto-generated, editable artifacts: Problem Canvas, PRD, personas, MVP scope, concepts, solution brief, UX flows, design system, landing blueprint, tech stack, data model, API spec, repo/sprint plan, deployment runbook, engineering standards, test plan, QA checklist, GTM plan, landing copy, launch checklist, metrics plan, feedback loop… | `Documents` |
-| Kanban board with owners, priorities, drag-to-move (45 tasks pre-seeded from stage checklists) | `Board` |
+| Kanban board with owners, priorities, drag-to-move (48 tasks pre-seeded from stage checklists) | `Board` |
 | 104 curated free-tier tools with brand-coloured icons, mapped to stages, searchable | `Tools` / tool wall |
 | **Prime** — an agent you can ask about scope, risk, metrics, stack; always ends with one next action | `Ask Prime` |
 | Owner console — edit stages, icons, colours, checklists; add/retire tools; manage team roles; workspace identity | `/room/<code>/admin` |
@@ -65,7 +65,7 @@ Two rooms are seeded on first boot:
 | Room | Link | What it is |
 | --- | --- | --- |
 | **Live workspace** | `/join?code=onestop` | The real product room: your founder brief captured as 10 messages, 4 locked decisions and an **approved** problem statement; Discover → Architect closed, Build nearly done, Launch in progress. Only you are a member — the team joins by link. |
-| **Demo room** | `/join?code=studio` | A fictional Monday kickoff (5 teammates, 12 messages, 22 signals, a **draft** problem statement at 90% confidence, 24 docs, 45 tasks) so anyone can see the whole experience in 30 seconds. |
+| **Demo room** | `/join?code=studio` | A fictional Monday kickoff (5 teammates, 12 messages, 22 signals, a **draft** problem statement at 90% confidence, 30 docs, 48 tasks) so anyone can see the whole experience in 30 seconds. |
 
 Switch between them from the room header or the profile menu.
 
@@ -97,12 +97,36 @@ set `ADMIN_PASSCODE` in production). You land straight in the owner console.
    | `PRODUCT_NAME` | optional | Name used for the live room and its generated docs. |
    | `OPENAI_API_KEY` *or* `GEMINI_API_KEY` *or* `GROQ_API_KEY` *or* `ANTHROPIC_API_KEY` *or* `OPENROUTER_API_KEY` | optional | Any one switches on live drafting. |
 
-4. **Deploy**, open `/join?code=onestop`, enter the passcode, then share `/room/onestop` with the team.
+4. **Deploy**, then run the five checks below before sharing the link.
 5. **Make it yours** — rename the product, rewrite the problem statement and adjust stages/tools in the owner console,
    or create a clean room from `/join` → *Create a room* if this is a second product.
 
+### After the first deploy — five checks (2 minutes)
+
+| Check | Where | What "good" looks like |
+| --- | --- | --- |
+| Database is real | `/api/health` | `"database":"neon"` — if it says `pglite`, `DATABASE_URL` is missing and data will reset |
+| Both rooms exist | `/api/health` | `ok: true`, 104 tools, 9 stages, live + demo rooms |
+| Secrets are set | `/setup` | **Linked**, not *Running on a fallback*, for Neon and the session secret |
+| Owner access works | `/join?code=<live>` → *Owner access* | the passcode opens `/room/<live>/admin` |
+| Team can join | the invite link in a private window | the room opens with name only, no account |
+
+### Things that bite on Vercel (and how this repo handles them)
+
+- **Use the pooled Neon string** (host contains `-pooler`). Each serverless instance keeps a pool of 3 connections;
+  a direct (non-pooled) URL will exhaust Neon's connection limit under even light traffic.
+- **Cold starts seed once.** Tool catalogue and both rooms are created behind atomic `ON CONFLICT` / marker inserts,
+  so two instances booting at the same time cannot duplicate data. New document types are added to existing rooms
+  on the next request.
+- **Function duration.** AI drafting is capped per request: a stage of documents stops at ~42s and returns the
+  remaining ones so you can press *Generate* again. On the Vercel **Hobby** plan functions are limited to 10s, so
+  use the template engine (no AI key) for bulk generation, or upgrade to Pro for live-model drafting.
+- **No build-time database access.** `next build` succeeds with an empty environment; the schema is created on the
+  first request instead.
+- **Rotating `AUTH_SECRET` signs everyone out** — that is the intended way to revoke sessions.
+
 > Without `DATABASE_URL` on Vercel the app falls back to an ephemeral `/tmp` Postgres so the preview still works —
-> but data will not persist. Neon is required for a real workspace.
+> but every instance gets its own copy and data will not persist. Neon is required for a real workspace.
 
 CLI alternative:
 

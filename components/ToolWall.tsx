@@ -6,7 +6,7 @@ import {
   Sparkles, X,
 } from 'lucide-react';
 import type { StackStatus, Stage, StageKey, Task, Tool, ToolStack } from '@/lib/types';
-import { del, hostFromUrl, patch, post } from '@/lib/client';
+import { del, hostFromUrl, patch, post, safeHref } from '@/lib/client';
 import { Pill, Spinner, ToolIcon } from './ui';
 
 const STATUS: Record<StackStatus, { label: string; blurb: string; tone: string; dot: string }> = {
@@ -362,7 +362,7 @@ export default function ToolWall({
               <button type="button" className="btn-ghost px-3 py-2 text-[12px]" onClick={addSetupTask} disabled={busy !== null}>
                 {busy === 'task' ? <Spinner className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />} Setup task
               </button>
-              <a href={active.url} target="_blank" rel="noreferrer noopener" className="btn-ghost px-3 py-2 text-[12px]">
+              <a href={safeHref(active.url)} target="_blank" rel="noreferrer noopener" className="btn-ghost px-3 py-2 text-[12px]">
                 <ExternalLink className="h-3.5 w-3.5" /> Open {active.name}
               </a>
               {activeStack && (
@@ -376,7 +376,7 @@ export default function ToolWall({
                   Clear
                 </button>
               )}
-              <a href={active.url} target="_blank" rel="noreferrer noopener" className="ml-auto hidden items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 sm:flex">
+              <a href={safeHref(active.url)} target="_blank" rel="noreferrer noopener" className="ml-auto hidden items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 sm:flex">
                 {hostFromUrl(active.url)} <ArrowUpRight className="h-3 w-3" />
               </a>
             </div>

@@ -61,6 +61,13 @@ export function clockTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+/** Only http(s), mailto, anchors and local paths may become links. */
+export function safeHref(url: string | null | undefined): string {
+  const value = (url ?? '').trim();
+  if (!value) return '#';
+  return /^(https?:\/\/|mailto:|\/|#)/i.test(value) ? value : '#';
+}
+
 export function hostFromUrl(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '');

@@ -503,6 +503,11 @@ export default function AdminConsole({
 
         {tab === 'team' && (
           <div className="space-y-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+              Roles decide the playbook and the default owner for each stage. Membership is the only permission that
+              exists today: everyone in the room can edit documents, tasks, signals and the tool wall — the owner
+              console is the one restricted area.
+            </div>
             <div>
               <h2 className="text-[18px] font-semibold text-slate-900">The team</h2>
               <p className="text-[12px] text-slate-500">Roles decide the seat each member sees. Anyone with the room link can join.</p>

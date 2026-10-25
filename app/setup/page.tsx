@@ -89,10 +89,11 @@ export default function SetupPage() {
           <ul className="mt-2 grid gap-1.5 text-[12px] leading-relaxed text-slate-600 sm:grid-cols-2">
             <li>• Both rooms open and seed themselves on first request.</li>
             <li>• Team members join from one link with just a name.</li>
-            <li>• The problem engine, 24 documents, 45 tasks and 104 tools are built in.</li>
+            <li>• The problem engine, 30 documents, 48 tasks and 104 tools are built in.</li>
             <li>• Prime answers from the room using the built-in reasoner.</li>
             <li>• Tool wall, board, documents, signals and owner console are all editable.</li>
             <li>• Export downloads the whole product pack as a file.</li>
+            <li>• Existing rooms pick up new document types automatically on the next request.</li>
           </ul>
         </div>
 

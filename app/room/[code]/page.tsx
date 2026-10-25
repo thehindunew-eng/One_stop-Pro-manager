@@ -57,8 +57,8 @@ function MissingRoom({ code }: { code: string }) {
           link, or open an existing room.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <Link href="/room/onestop" className="btn-primary">Live workspace</Link>
-          <Link href="/room/studio" className="btn-ghost">Demo room</Link>
+          <Link href={`/room/${PROD_CODE}`} className="btn-primary">Live workspace</Link>
+          <Link href={`/room/${DEMO_CODE}`} className="btn-ghost">Demo room</Link>
           <Link href="/join?create=1" className="btn-subtle">Create a room</Link>
         </div>
       </div>

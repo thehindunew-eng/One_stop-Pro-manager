@@ -81,8 +81,16 @@ export default function DocView({
     setBusy('stage');
     setError(null);
     try {
-      const res = await post<{ artifacts: Artifact[] }>('/api/docs', { code, stage: stageKey });
+      const res = await post<{ artifacts: Artifact[]; generated?: unknown[]; skipped?: string[] }>('/api/docs', {
+        code,
+        stage: stageKey,
+      });
       onArtifacts(res.artifacts);
+      if (res.skipped?.length) {
+        setError(
+          `Generated ${res.generated?.length ?? 0} document(s). ${res.skipped.length} left for the next run — press “Generate this stage” again to continue.`,
+        );
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {

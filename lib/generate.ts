@@ -1056,6 +1056,244 @@ ${H('Roadmap (v0.1.1 → v0.3)')}
 ${H('Kill criteria')}
 If fewer than 3 teams run a full ideate → launch cycle in 60 days, stop adding features and talk to 20 users before writing more code.
 `;
+    case 'competitive_analysis':
+      return `# Competitive Analysis — ${project}
+
+> Where does ${project} sit, what does the buyer do today, and why would they switch?
+
+${H('The market in one paragraph')}
+${whoAll} solve this by stitching together meetings, docs, tickets and chat. The alternatives below are the ones a real buyer would compare — not a list of every tool in the category.
+
+${H('Alternatives, including “do nothing”')}
+| Option | What it is good at | Where it breaks for ${who} | Our edge |
+| --- | --- | --- | --- |
+| Do nothing (notes + memory) | Free, zero setup | Decisions evaporate by mid-sprint | One room that keeps the problem alive |
+| Generic docs (Notion, Confluence) | Flexible, cheap | The problem is never *decided*, only described | Problem statement with confidence and evidence |
+| Work trackers (Jira, Linear) | Delivery discipline | Starts at the ticket, not the problem | Starts at the conversation |
+| Meeting tools (Meet, Zoom, Fireflies) | Capture what was said | Notes are output, not a plan | Transcript → signals → plan in the same room |
+| All-in-one suites | One vendor | Expensive, heavy for a 6-person team | Free tiers, nothing to migrate |
+
+${H('What buyers actually decide on')}
+1. **Time to first useful artifact** — ours is minutes, not a setup project.
+2. **Does the team keep using it after week two?** — the stage checklist is the retention mechanic.
+3. **Will it survive our stack?** — Vercel + Neon + any LLM key, no lock-in.
+4. **Cost at 10 people** — free tiers cover a pilot; we publish the upgrade path in Pricing.
+
+${H('Positioning statement')}
+For **${whoAll}** who **${pain}**, ${project} is the workspace that turns the meeting into an approved problem, then walks the team through the nine stages to launch. Unlike ${angle.toLowerCase()}, everything stays anchored to one problem statement.
+
+${H('What we deliberately do not compete on')}
+- Not a video-call product (link out to Meet/Zoom).
+- Not a code review tool (link out to GitHub).
+- Not a design tool (link out to Figma).
+
+${H('Signals to watch')}
+- Mentioned in the same breath as a competitor (track in Signals).
+- Teams exporting the pack and leaving → we are a note-taking tool to them.
+- Teams skipping stages → the checklist is too long, not the market.
+
+${H('Research tasks')}
+- [ ] Interview 3 people who tried a docs-only workflow and gave up.
+- [ ] Price-check the paid tier of each alternative above.
+- [ ] Write the one-line answer to “why not just Notion?” and test it on a stranger.
+
+${H('Sources to keep current')}
+${stageTools}
+`;
+    case 'roadmap':
+      return `# Roadmap & Milestones — ${project}
+
+> ${statement}
+
+${H('How this roadmap works')}
+Dates are commitments to *decide*, not promises of scope. Each milestone names the evidence that lets us continue, so the team never argues about whether we are ready — the milestone says it.
+
+${H('Milestones')}
+| Milestone | Date | Ships | Exit criteria | Owner |
+| --- | --- | --- | --- | --- |
+| M0 · Problem locked | ${d(3)} | Approved problem statement, signals clustered | Problem approved by the team, confidence ≥ 70% | ${team.split(',')[0]} |
+| M1 · Scope agreed | ${d(10)} | PRD, personas, MVP scope, non-goals | Written sign-off, no open P0 questions | PM |
+| M2 · Design ready | ${d(17)} | Flows, wireframes, design system | 3 people completed the prototype unaided | Design |
+| M3 · Vertical slice live | ${d(24)} | Database → API → UI on a real URL | One real user finishes the core job | Eng |
+| M4 · Pilot | ${d(31)} | Test plan, 5 usability sessions | No P0 bugs, 4/5 users succeed | QA |
+| M5 · Launch | ${d(38)} | Pricing, launch assets, analytics | ${metric} instrumented and visible | Growth |
+| M6 · First review | ${d(52)} | Metrics review, decision log entry | Double down / pivot / kill decided in writing | PM |
+
+${H('What is in v0.1 (and what is not)')}
+**In:** the single job in the problem statement, one happy path, one integration.
+**Out:** roles and permissions, billing, mobile apps, realtime collaboration, custom templates. Each gets an explicit “not now” in the Decision Log.
+
+${H('Cadence')}
+- **Weekly:** Friday demo, something visible ships every week.
+- **Every two weeks:** milestone check — move it or change the scope, never both silently.
+- **Every month:** re-read the problem statement. If it changed, the roadmap is wrong.
+
+${H('Critical path')}
+Problem approval → PRD sign-off → data model → first deploy. Anything that blocks one of those four outranks everything else on the board, regardless of priority label.
+
+${H('If we slip')}
+Cut scope, not quality: drop M4's second usability round, ship the pilot to 3 users, keep the launch date. A late launch with no evidence is worse than a small launch with real usage.
+
+${H('Tooling')}
+${stageTools}
+`;
+    case 'risk_register':
+      return `# Risk Register — ${project}
+
+> The risks that could stop **${metric}** from moving. Reviewed every Monday, owned by a name, not by “the team”.
+
+${H('Top risks')}
+| # | Risk | Type | Likelihood | Impact | Score | Mitigation | Owner | Review |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| R1 | ${unknown0} stays unanswered and we build the wrong thing | Product | High | High | 9 | Interview 3 users this week; block scope until answered | PM | ${d(7)} |
+| R2 | ${unknown1} | Market | Medium | High | 6 | Pull public numbers, write the assumption down, timebox | PM | ${d(14)} |
+| R3 | Scope grows past one happy path | Delivery | High | Medium | 6 | Non-goals in the PRD; every new ask goes to the Decision Log | PM | Weekly |
+| R4 | Free-tier limits hit during the pilot (DB connections, LLM quota) | Technical | Medium | Medium | 4 | Pool connections, cap generations per room, alert at 80% | Eng | ${d(21)} |
+| R5 | One person holds all the context | Team | Medium | High | 6 | Docs are generated in the room, not in DMs; rotate demo duty | PM | Weekly |
+| R6 | A P0 bug lands on launch day | Launch | Low | High | 3 | Rollback plan in the Launch Checklist, feature flag the risky path | Eng | ${d(35)} |
+| R7 | Nobody returns after week two | Retention | Medium | High | 6 | Stage checklist + weekly demo; measure weekly active teammates | Growth | ${d(28)} |
+
+${H('Assumptions we are betting on')}
+${(p?.assumptions ?? []).length ? (p?.assumptions ?? []).map((a, i) => `${i + 1}. ${a} — test by ${d(7 + i * 7)}`).join('\n') : '1. The pain is frequent enough to pay for a fix.\n2. The buyer is the same person who runs the meeting.\n3. A one-room workflow beats a suite of best-of-breed tools.'}
+
+${H('What would make us stop')}
+- The problem is real but not frequent (users shrug after the first session).
+- The work is already solved inside a tool the team cannot leave.
+- We cannot reach the buyer without a sales team.
+
+${H('How this register stays alive')}
+1. Every Monday: 10 minutes, re-score, close what is dead.
+2. Any new risk found in a meeting becomes a Signal of type **risk** and lands here.
+3. When a risk fires, write what actually happened in the Decision Log — that is how the next estimate gets better.
+
+${H('Evidence we already have')}
+${evidence.map((e) => `- ${e}`).join('\n')}
+`;
+    case 'decision_log':
+      return `# Decision Log — ${project}
+
+> One line per decision, with the reason and the date. This is the document that stops the team re-litigating the same argument two weeks later.
+
+${H('How to use it')}
+- Log the **decision**, not the discussion.
+- Always write the **why** and what we gave up (the trade-off).
+- Never rewrite history: if a decision changes, add a new entry that supersedes the old one.
+- Anything that costs more than a day of work needs an entry.
+
+${H('Decisions')}
+| Date | Decision | Why | Alternatives rejected | Owner | Revisit |
+| --- | --- | --- | --- | --- | --- |
+| ${d(-14)} | Solve **${statement}** before anything else | It is the only problem with evidence from more than one team | A generic meeting-notes tool | PM | After 5 interviews |
+| ${d(-10)} | One room per product, not one workspace for everything | Context switching was the actual pain | Org-wide workspace | PM | Post-pilot |
+| ${d(-7)} | Nine stages, fixed | The checklist is the retention mechanic; a blank canvas gets abandoned | Free-form projects | PM | Never |
+| ${d(-5)} | Free tiers only for v0.1 | Zero procurement friction, proves value before cost | Paid infra from day one | Eng | At 25 teams |
+| ${d(-2)} | Any one LLM key, built-in reasoner without one | The platform must never be dead on arrival | OpenAI-only | Eng | — |
+| ${d(0)} | ${metric} is the launch metric | It moves weekly and needs no dashboard project | Feature count, NPS | PM | Monthly |
+
+${H('Open questions that need a decision')}
+1. Who signs off a launch — the room owner or the whole team?
+2. Do we charge per seat or per active product room?
+3. What do we do with a room that has been silent for 60 days?
+
+${H('Decision template (copy this)')}
+\`\`\`
+Date:
+Decision:
+Why:
+Alternatives rejected:
+What it costs us:
+Owner:
+Revisit on:
+\`\`\`
+
+${H('Where decisions come from')}
+Every message marked **Decision** in the meeting room is a candidate for this log. Prime surfaces them as signals; the PM promotes the real ones here.
+`;
+    case 'pricing':
+      return `# Pricing & Packaging — ${project}
+
+> What a team pays, when they start paying, and what they get for it. Free until the value is obvious.
+
+${H('Principles')}
+1. The pilot is free and always will be — no credit card to start.
+2. Charge per **active product room**, not per seat: the value is the product, not the person.
+3. Never charge for the thing that decides whether the product works (the problem engine, the docs).
+4. Price against the cost of a wasted sprint, not against other tools.
+
+${H('Packages')}
+| Plan | Price | Who it is for | Includes | Limit |
+| --- | --- | --- | --- | --- |
+| Free | ₹0 | One team proving the workflow | 1 room, unlimited members, all 9 stages, built-in reasoner | 3 AI generations / day |
+| Team | ₹1,500 / room / month | A team shipping continuously | Unlimited generations, export to PDF, history, priority support | 10 rooms |
+| Studio | ₹6,000 / month | An agency or product studio | White-label, client read-only links, SSO on request | 40 rooms |
+| Enterprise | Talk to us | Compliance-heavy orgs | Custom hosting, DPA, audit log | — |
+
+${H('Why this shape')}
+- A room is the unit of value: one product, one problem, one launch.
+- Generations cost us money; seats do not. So we meter the thing that costs.
+- Team plan pays for itself if it saves **one day of rework** a month.
+
+${H('What we will not do')}
+- No per-seat pricing that punishes inviting the team.
+- No feature held hostage that the free plan needs to prove value.
+- No annual lock-in in the first year.
+
+${H('Launch offer')}
+First 20 teams: 3 months of Team free, in exchange for a 20-minute call and permission to use the story. Tracked in the Decision Log.
+
+${H('Numbers to verify before launch')}
+- [ ] Cost per active room per month (DB + LLM).
+- [ ] Willingness to pay: ask 5 pilot teams the price question directly.
+- [ ] Break-even rooms at current infra cost.
+
+${H('How we will charge')}
+Razorpay or Stripe (free-tier friendly) with a manual invoice fallback for the first 10 customers. Nothing in the product blocks on billing in v0.1.
+`;
+    case 'release_notes':
+      return `# Release Notes — ${project}
+
+> Written for the person using the product, not for the person who wrote it. One screen, plain language, no internal ticket numbers.
+
+${H('v0.1 — first release (${d(0)})')}
+**What is new**
+- One room per product: the meeting, the problem, the documents, the board and the tools in one place.
+- The problem engine reads the conversation and proposes the real question, with confidence, assumptions and unknowns.
+- Nine stages from Discover to Grow, each with a checklist, the documents that stage needs and the free tools for the job.
+- Ask Prime answers from your own room — problem, documents, board, signals and stack.
+
+**Fixed**
+- Joining from a shared link no longer needs an account: name only.
+- Exporting the product pack no longer drops documents with no owner.
+
+**Known limits**
+- Collaboration is a 14-second refresh, not live cursors yet.
+- Voice capture is browser dictation, not a call bot.
+- The built-in reasoner is rules-based; add an AI key for sharper drafts.
+
+${H('How to tell users')}
+| Channel | Message | Owner |
+| --- | --- | --- |
+| In-app banner | “Your room now keeps the problem, the plan and the launch in one place.” | PM |
+| Email to pilots | Short note + 60-second Loom of one problem going from meeting to launch | Growth |
+| LinkedIn / X | The before/after: notes → approved problem → shipped | Growth |
+| Support macros | Answers to “where do I start?” and “can I import my Notion docs?” | QA |
+
+${H('Template for the next release')}
+\`\`\`
+## vX.Y — <theme> (<date>)
+**What is new** — one line per user-visible change.
+**Improved** — what got faster, clearer or safer.
+**Fixed** — the bug in the user's words.
+**Known limits** — honest, with the workaround.
+**Upgrade notes** — anything the user must do.
+\`\`\`
+
+${H('Checklist before publishing')}
+- [ ] Every line is understandable without internal context.
+- [ ] Screenshots or a 30-second clip for the headline feature.
+- [ ] Support knows the answers before users ask.
+- [ ] Changelog published in the room, not only on the marketing site.
+`;
     default:
       return `# ${title} — ${project}
 

@@ -9,7 +9,7 @@ import { ProgressRing, Pill, StageIcon, ToolIcon } from './ui';
 import DocView from './DocView';
 import Board from './Board';
 import ToolWall from './ToolWall';
-import { post } from '@/lib/client';
+import { post, safeHref } from '@/lib/client';
 
 type Tab = 'plan' | 'docs' | 'board' | 'tools';
 
@@ -94,6 +94,14 @@ export default function StageView({
 
   async function advance() {
     if (!next) return;
+    // Advancing with most of the stage open is legitimate, but it should be a
+    // decision the PM makes on purpose rather than a click that feels free.
+    if (pct < 50) {
+      const ok = window.confirm(
+        `${pct}% of ${stage.name} is done. Moving to ${next.name} keeps the open items on the board but takes them out of the current stage.\n\nAdvance anyway?`,
+      );
+      if (!ok) return;
+    }
     const res = await post<{ project: Project }>('/api/project', { code, stage_key: next.key });
     onProject(res.project);
     await onStage(next.key);
@@ -101,7 +109,23 @@ export default function StageView({
 
   async function toggleChecklist(title: string) {
     const task = stageTasks.find((t) => t.title === title);
-    if (!task) return;
+    if (!task) {
+      // The checklist is the template; an item without a board task (a stage
+      // edited in the owner console) becomes one the first time it is ticked.
+      try {
+        const created = await post<{ tasks: Task[] }>('/api/tasks', {
+          code,
+          title,
+          stage_key: stage.key,
+          status: 'done',
+          priority: 'P1',
+        });
+        onTasks(created.tasks);
+      } catch {
+        /* the poll will reconcile */
+      }
+      return;
+    }
     const status = task.status === 'done' ? 'todo' : 'done';
     onTasks(tasks.map((t) => (t.id === task.id ? { ...t, status } : t)));
     const { patch } = await import('@/lib/client');
@@ -187,7 +211,7 @@ export default function StageView({
           </div>
           <div className="flex items-center gap-1.5">
             {stageTools.slice(0, 5).map((t) => (
-              <a key={t.id} href={t.url} target="_blank" rel="noreferrer noopener" title={`${t.name} · ${t.free_tier}`}>
+              <a key={t.id} href={safeHref(t.url)} target="_blank" rel="noreferrer noopener" title={`${t.name} · ${t.free_tier}`}>
                 <ToolIcon name={t.name} color={t.color} size={26} rounded={7} />
               </a>
             ))}

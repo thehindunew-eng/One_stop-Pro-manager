@@ -4,7 +4,34 @@ import { sql } from './db';
 import type { Access, Role, User } from './types';
 
 const COOKIE = 'ospm_session';
-const SECRET = process.env.AUTH_SECRET || 'one-stop-pro-manager-dev-secret-change-in-production';
+
+/**
+ * Session signing key.
+ *
+ * Set AUTH_SECRET and this is exactly that value. If it is missing on a real
+ * deployment we derive the key from DATABASE_URL instead of falling back to a
+ * constant that is published in this repository — that constant would let
+ * anyone mint a session for any user id they can see in a room.
+ */
+const DEV_SECRET = 'one-stop-pro-manager-dev-secret-change-in-production';
+const secretSource = (): 'explicit' | 'database' | 'development' => {
+  if (process.env.AUTH_SECRET?.trim()) return 'explicit';
+  if (process.env.DATABASE_URL?.trim()) return 'database';
+  return 'development';
+};
+const SECRET = (() => {
+  const source = secretSource();
+  if (source === 'explicit') return process.env.AUTH_SECRET!.trim();
+  if (source === 'database') {
+    return crypto.createHash('sha256').update(`ospm-session:${process.env.DATABASE_URL}`).digest('hex');
+  }
+  return DEV_SECRET;
+})();
+
+export const sessionSecretStatus = () => ({
+  source: secretSource(),
+  strong: secretSource() !== 'development',
+});
 
 export interface SessionPayload {
   uid: string;
@@ -97,9 +124,14 @@ const adminEmails = () =>
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
+/** True when the owner passcode is still the documented default. */
+export const usingDefaultPasscode = (): boolean => !process.env.ADMIN_PASSCODE?.trim();
+
 export const isOwnerPasscode = (passcode: string | undefined | null): boolean => {
-  const expected = process.env.ADMIN_PASSCODE || 'amar-admin';
-  return !!passcode && passcode.trim() === expected;
+  const expected = process.env.ADMIN_PASSCODE?.trim() || 'amar-admin';
+  if (!passcode || passcode.trim().length !== expected.length) return false;
+  // constant-time compare so the passcode cannot be timed out
+  return crypto.timingSafeEqual(Buffer.from(passcode.trim()), Buffer.from(expected));
 };
 
 export function resolveAdmin(user: Pick<User, 'email' | 'is_admin'>): boolean {

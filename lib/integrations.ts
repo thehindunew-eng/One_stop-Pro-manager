@@ -1,4 +1,5 @@
 import { aiConfig } from './ai';
+import { sessionSecretStatus, usingDefaultPasscode } from './auth';
 
 export type IntegrationNeed = 'required' | 'recommended' | 'optional';
 export type IntegrationState = 'on' | 'off' | 'fallback';
@@ -24,6 +25,8 @@ export function integrations(): Integration[] {
   const cfg = aiConfig();
   const has = (k: string) => Boolean(process.env[k]?.trim());
   const onVercel = Boolean(process.env.VERCEL);
+  const secret = sessionSecretStatus();
+  const defaultPasscode = usingDefaultPasscode();
 
   const list: Integration[] = [
     {
@@ -34,14 +37,15 @@ export function integrations(): Integration[] {
       state: has('DATABASE_URL') ? 'on' : 'fallback',
       variable: 'DATABASE_URL',
       without:
-        'Runs on an embedded Postgres file inside the deployment. Fine for a single preview, but on Vercel the file system is temporary — data resets on redeploy.',
+        'Runs on an embedded Postgres file inside the deployment. Fine for a single preview, but on Vercel the file system is temporary and every instance gets its own copy — data resets and the team sees different rooms.',
       withIt: 'Every meeting, document, task and tool you add is stored permanently and shared by the whole team in real time.',
       docs: 'https://neon.tech',
       how: [
         'Create a free Neon project (free tier: 0.5 GB storage).',
-        'Copy the pooled connection string (it ends with ?sslmode=require).',
-        'Add it to Vercel → Project → Settings → Environment Variables as DATABASE_URL.',
-        'Redeploy once. The schema and both rooms are created automatically on first request.',
+        'Copy the **pooled** connection string (the host contains -pooler) and keep ?sslmode=require on the end.',
+        'Add it to Vercel → Project → Settings → Environment Variables as DATABASE_URL for Production, Preview and Development.',
+        'Redeploy once. The schema, both starter rooms and the 30-document blueprint are created on the first request.',
+        'The app keeps its own pool small (3 connections) and retries once if Neon has put the database to sleep.',
       ],
     },
     {
@@ -49,11 +53,11 @@ export function integrations(): Integration[] {
       name: 'Session secret',
       category: 'Security',
       need: 'required',
-      state: has('AUTH_SECRET') ? 'on' : 'fallback',
+      state: secret.source === 'explicit' ? 'on' : secret.strong ? 'fallback' : 'off',
       variable: 'AUTH_SECRET',
       without:
-        'Sessions still work using a development default, but every deploy invalidates them and any instance could forge a session.',
-      withIt: 'Signed sessions that survive deploys, so people stay in their room with their own name and role.',
+        'Without AUTH_SECRET the signing key is derived from DATABASE_URL: sessions still work and cannot be forged from the public repo, but rotating the database password signs everyone out. With neither value set, the key is a public development constant — never leave it that way on a real URL.',
+      withIt: 'Sessions signed with a key only you control. Changing the value signs everybody out, which is also how you revoke access.',
       docs: 'https://nextjs.org/docs/app/building-your-application/authentication',
       how: [
         'Generate a long random string (32+ characters).',
@@ -100,15 +104,17 @@ export function integrations(): Integration[] {
       name: 'Owner passcode',
       category: 'Security',
       need: 'recommended',
-      state: has('ADMIN_PASSCODE') ? 'on' : 'fallback',
+      state: defaultPasscode ? 'fallback' : 'on',
       variable: 'ADMIN_PASSCODE',
-      without:
-        'Falls back to the default passcode, so anyone who has read the repo could unlock the owner console.',
-      withIt: 'Only Amar (the owner) can open the owner console to add tools, rename stages or manage members.',
+      without: defaultPasscode
+        ? 'Right now the passcode is the documented default, so anyone who has read this repo could unlock the owner console. Attempts are throttled to 8 per 10 minutes, but change it before you share the link.'
+        : 'Falls back to a documented default, which is not safe on a public URL.',
+      withIt: 'Only you can open the owner console to add tools, rename stages, edit checklists or manage members.',
       how: [
-        'Pick a private passcode and set ADMIN_PASSCODE.',
-        'The owner enters it once under “Owner access” on the join card.',
-        'Optionally list permanent admin emails in ADMIN_EMAILS.',
+        'Pick a private passcode and set ADMIN_PASSCODE in Vercel.',
+        'The owner enters it once under “Owner access” on the join card — the session then keeps admin rights.',
+        'Optionally list permanent admin emails in ADMIN_EMAILS so you never need the passcode.',
+        'Forgot it? Changing the variable in Vercel is enough; no database edit needed.',
       ],
     },
     {
@@ -153,7 +159,7 @@ export function integrationSummary() {
   return {
     total: all.length,
     on: all.filter((i) => i.state === 'on').length,
-    requiredMissing: required.filter((i) => i.state === 'fallback').length,
+    requiredMissing: required.filter((i) => i.state !== 'on').length,
     usingFallback: all.filter((i) => i.state === 'fallback').map((i) => i.name),
   };
 }

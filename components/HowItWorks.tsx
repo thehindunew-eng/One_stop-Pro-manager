@@ -118,6 +118,10 @@ export default function HowItWorks({
             <CircleDollarSign className="h-2.5 w-2.5 text-mint" /> Every tool on the wall has a free tier. Nothing here
             needs a paid account to start.
           </p>
+          <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
+            Roles shape your playbook and who usually owns a task — everyone in the room can edit documents, the board,
+            the signals and the tool wall. Only the owner console is restricted.
+          </p>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import { safeHref } from '@/lib/client';
 import React, { useState } from 'react';
 import {
   Compass, ClipboardList, Lightbulb, Palette, Boxes, Code2, FlaskConical, Rocket, TrendingUp,
@@ -217,7 +218,7 @@ function inline(text: string, keyPrefix: string): React.ReactNode[] {
     else if (tok.startsWith('[')) {
       const mm = /\[([^\]]+)\]\(([^)]+)\)/.exec(tok);
       nodes.push(
-        <a key={key} href={mm?.[2] ?? '#'} target="_blank" rel="noreferrer noopener">
+        <a key={key} href={safeHref(mm?.[2])} target="_blank" rel="noreferrer noopener">
           {mm?.[1] ?? tok}
         </a>,
       );
