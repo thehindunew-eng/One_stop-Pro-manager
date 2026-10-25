@@ -10,7 +10,7 @@ import {
   listTasks,
   listTools,
 } from '@/lib/repo';
-import { askAgent, type AgentContext } from '@/lib/ai';
+import { askAgent, rankByRelevance, type AgentContext } from '@/lib/ai';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,6 +34,12 @@ export async function POST(req: Request) {
     listTools(true),
   ]);
 
+  // With a local embedding model installed, give the agent the documents that
+  // actually relate to the question instead of the first eight in stage order.
+  const withContent = artifacts.filter((a) => (a.content ?? '').trim().length > 80);
+  const ranked = withContent.length > 6 ? await rankByRelevance(question, withContent, 6) : null;
+  const contextDocs = ranked ?? artifacts.slice(0, 8);
+
   const toolById = new Map(tools.map((t) => [t.id, t]));
   const stageName = (key: string) => stages.find((s) => s.key === key)?.name ?? key;
 
@@ -52,7 +58,7 @@ export async function POST(req: Request) {
         total: mine.length,
       };
     }),
-    artifacts: artifacts.map((a) => ({
+    artifacts: contextDocs.map((a) => ({
       kind: a.kind,
       title: a.title,
       status: a.status,

@@ -93,11 +93,24 @@ export async function ensureBase(force = false): Promise<void> {
         }
       }
 
-      // Keep existing rooms current when a new document type is added to the
-      // blueprint. Safe to run on every boot: inserts are ON CONFLICT DO NOTHING.
+      // Keep existing rooms current when the document blueprint grows. The marker
+      // means a warm deploy does no work; a new blueprint version tops every room
+      // up once, and inserts are ON CONFLICT DO NOTHING so nothing is overwritten.
       try {
-        const projects = await sql<{ id: string }>('SELECT id FROM projects');
-        for (const p of projects) await ensureArtifacts(p.id);
+        const version = `${Object.values(ARTIFACT_BLUEPRINTS).reduce((n, list) => n + list.length, 0)}-fill`;
+        const marker = await sql<{ value: number }>("SELECT value FROM app_settings WHERE key = 'artifacts_version'");
+        if (String(marker[0]?.value ?? '') !== version) {
+          const projects = await sql<{ id: string }>('SELECT id FROM projects');
+          for (const p of projects) {
+            await ensureArtifacts(p.id);
+            await fillEmptyArtifacts(p.id);
+          }
+          await sql(
+            `INSERT INTO app_settings (key, value) VALUES ('artifacts_version', $1::jsonb)
+             ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+            [asJson(version)],
+          );
+        }
       } catch (err) {
         console.warn('[repo] document top-up skipped:', (err as Error).message);
       }
@@ -698,6 +711,49 @@ export async function listProjectsForUser(userId: string): Promise<Project[]> {
   );
 }
 
+
+/**
+ * When a new document type is added to the blueprint, rooms that are already
+ * filled (the seeded demo and launch rooms) get the same starter text so the
+ * demo never shows an empty card. Rooms the team created itself stay empty —
+ * generating them is the point of the Documents tab.
+ */
+async function fillEmptyArtifacts(projectId: string): Promise<void> {
+  const filled = await sql<{ count: string }>(
+    `SELECT count(*)::text AS count FROM artifacts WHERE project_id = $1 AND content <> ''`,
+    [projectId],
+  );
+  if (!Number(filled[0]?.count ?? 0)) return;
+
+  const empties = await sql<Artifact>(
+    `SELECT * FROM artifacts WHERE project_id = $1 AND (content IS NULL OR content = '')`,
+    [projectId],
+  );
+  if (!empties.length) return;
+
+  const project = (await sql<Project>('SELECT * FROM projects WHERE id = $1', [projectId]))[0];
+  if (!project) return;
+  const members = (await listMembers(projectId)).map((m) => ({ name: m.name, role: m.role }));
+  const tools = await listTools();
+
+  for (const a of empties) {
+    const stage = STAGE_SEED.find((s) => s.key === a.stage_key);
+    const content = generateDoc(a.kind, a.title, {
+      project,
+      problem: project.problem,
+      members,
+      tools,
+      stageName: stage?.name ?? a.stage_key,
+      stageKey: a.stage_key,
+    } as any);
+    if (!content) continue;
+    await sql(
+      `UPDATE artifacts SET content = $3, status = $4, updated_at = now() WHERE project_id = $1 AND kind = $2`,
+      [projectId, a.kind, content, a.kind === 'problem_canvas' || a.kind === 'prd' ? 'ready' : 'draft'],
+    );
+  }
+}
+
 export async function ensureArtifacts(projectId: string): Promise<void> {
   for (const [stageKey, docs] of Object.entries(ARTIFACT_BLUEPRINTS) as [StageKey, typeof ARTIFACT_BLUEPRINTS[StageKey]][]) {
     for (const doc of docs) {
@@ -1090,7 +1146,7 @@ export async function getWorkspace(code: string, user: User): Promise<WorkspaceS
     stacks,
     stages,
     me: accessFor(user, project.owner_id),
-    ai: engineLabel(),
+    ai: await engineLabel(),
   };
 }
 

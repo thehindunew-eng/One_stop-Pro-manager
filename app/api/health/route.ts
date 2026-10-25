@@ -22,7 +22,7 @@ export async function GET() {
       live ? listMembers(live.id) : Promise.resolve([]),
       demo ? listMembers(demo.id) : Promise.resolve([]),
     ]);
-    const ai = engineLabel();
+    const ai = await engineLabel();
     return NextResponse.json({
       ok: Boolean(live && demo),
       database: await engineKind(),

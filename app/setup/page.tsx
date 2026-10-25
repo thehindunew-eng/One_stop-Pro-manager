@@ -29,9 +29,9 @@ const CATEGORY_ICON: Record<Integration['category'], any> = {
   'Team tools': Server,
 };
 
-export default function SetupPage() {
-  const all = integrations();
-  const summary = integrationSummary();
+export default async function SetupPage() {
+  const all = await integrations();
+  const summary = await integrationSummary();
   const categories = [...new Set(all.map((i) => i.category))];
 
   return (

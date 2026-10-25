@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   const list = target ? [target] : body.all ? allDocs : stageFilter ? allDocs.filter((d) => d.stageKey === stageFilter) : [];
   if (!list.length) return bad('Unknown document kind.');
 
-  const label = engineLabel();
+  const label = await engineLabel();
   const generated: { kind: string; title: string; engine: string }[] = [];
   const skipped: string[] = [];
   // A stage can hold six documents and a live model can take 20s each. Stop

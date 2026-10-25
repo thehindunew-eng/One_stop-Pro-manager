@@ -196,7 +196,15 @@ export interface WorkspaceState {
   stacks: ToolStack[];
   stages: Stage[];
   me: { id: string; name: string; role: Role; isAdmin: boolean; canEdit: boolean; canAdmin: boolean };
-  ai: { engine: string; provider: string | null; model: string | null; live: boolean };
+  ai: {
+    engine: string;
+    provider: string | null;
+    model: string | null;
+    live: boolean;
+    local?: boolean;
+    baseUrl?: string | null;
+    embedModel?: string | null;
+  };
 }
 
 export interface AnalysisResult {

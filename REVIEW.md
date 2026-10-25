@@ -29,7 +29,8 @@ version history, a read-only client view. None of it blocks a first team; all of
 | 3 | `ADMIN_PASSCODE` | a private passcode | Owner console access. The default is documented in the repo — change it before sharing the link |
 
 Then, optionally: `ADMIN_EMAILS` (always-admin emails), `OWNER_NAME` / `OWNER_EMAIL` (choose **before the first boot**),
-`PRODUCT_NAME`, `PROD_PROJECT_CODE` / `DEMO_PROJECT_CODE`, and any one AI key (`GEMINI_API_KEY` is the free path).
+`PRODUCT_NAME`, `PROD_PROJECT_CODE` / `DEMO_PROJECT_CODE`, a local model (`OLLAMA_BASE_URL` + `OLLAMA_MODEL`, see
+section 8) or any one hosted AI key (`GEMINI_API_KEY` is the free path).
 
 ### After the first deploy — five checks
 
@@ -51,7 +52,9 @@ Then, optionally: `ADMIN_EMAILS` (always-admin emails), `OWNER_NAME` / `OWNER_EM
   `INSERT … ON CONFLICT` / marker rows, so two lambdas booting together cannot create duplicates.
 - **Schema races** — creating the schema tolerates `duplicate_object` / `unique_violation` on the system catalogue and
   retries; additive `ALTER TABLE … ADD COLUMN IF NOT EXISTS` migrations run on every boot.
-- **New document types reach old rooms** — the blueprint is topped up against every existing project on boot.
+- **New document types reach old rooms** — the blueprint is topped up against every existing project on boot, versioned
+  by a marker row so a warm deploy does no work. Seeded rooms get starter text for the new documents; rooms the team
+  created keep them empty for on-demand generation.
 - **Function duration** — AI drafting stops at a 42-second budget and returns the documents it did not reach, so the
   UI can continue instead of the request dying. On Vercel **Hobby** (10s limit) use the template engine for bulk
   generation; the live model is best on Pro or one document at a time.
@@ -206,3 +209,43 @@ What changed:
 Guard rails for future work: use the primitives in `app/globals.css` (`.panel`, `.btn*`, `.chip`, `.field`, `.label`,
 `.tab`, `.section-label`) and the type scale in `tailwind.config.ts`. A new `text-[9.5px]` or `bg-gradient-to-*` should
 be treated as a regression.
+
+---
+
+## 8. Local models (Ollama) — what is supported now
+
+Local inference is a first-class provider, not an afterthought. It is the cheapest way to run this platform: no key,
+no quota, no document ever leaving the machine.
+
+| Layer | Behaviour |
+| --- | --- |
+| Detection | `OLLAMA_BASE_URL` / `OLLAMA_MODEL` env, **or** an automatic probe of `http://127.0.0.1:11434` on first use. Start Ollama and the app uses it without any configuration. `DISABLE_LOCAL_AI=1` forces the built-in reasoner back. |
+| Switching | Owner console → *Workspace* → **Local AI models**: lists everything pulled (`/api/tags`), shows size and parameter count, saves the choice in Postgres. No redeploy, no env edit, whole team follows. Members can see it; only the owner can change it. |
+| Transport | Prefers Ollama's OpenAI-compatible `/v1/chat/completions`, falls back to native `/api/chat` on older builds. 120s default timeout (`OLLAMA_TIMEOUT_MS`) because local models are slower than APIs. |
+| Qwen 3 | Appends `/no_think` by default; `OLLAMA_THINKING=on` keeps the reasoning trace if you prefer quality over latency. |
+| Embeddings | `nomic-embed-text` is used to rank the room's documents against the question, so Prime reads the six most relevant docs instead of the first eight. Vectors are cached per document; without the model it falls back to stage order. |
+| Guardrails | Server URLs are validated (scheme, no link-local/metadata addresses), the model must exist on the server, and a dead server returns a clear 503 instead of a silent downgrade. |
+
+### Which model to use
+
+| Model | Size | Use it for |
+| --- | --- | --- |
+| `qwen3:4b` | 2.5 GB | Default. Fast enough for a PM to use interactively; fine for structured problem extraction. |
+| `llama3.1:8b` | 4.9 GB | Better prose in documents; roughly 2× slower on CPU. |
+| `qwen3:14b` | 9.3 GB | Best structure for PRDs and pricing tables if you have the RAM/GPU. |
+| `qwen2.5-coder:14b` | 9.0 GB | Keep for code-shaped documents (API spec, data model, runbook); weaker at product writing. |
+| `nomic-embed-text` | 274 MB | Document ranking for Ask Prime. Cheap; pull it. |
+
+### The honest limits
+
+- **A Vercel function cannot reach your laptop.** `127.0.0.1:11434` inside a deploy is Vercel's sandbox. Local models
+  work when you run the app locally, or when Ollama is exposed (`OLLAMA_HOST=0.0.0.0`) on a LAN address, Tailscale or
+  a tunnel — then set `OLLAMA_BASE_URL` to that address. The owner console refuses a URL it cannot reach, so this fails
+  loudly.
+- **Timeouts.** A 14B model on CPU can take longer than a serverless function is allowed to live. On Hobby, prefer
+  `qwen3:4b` or run locally; on Pro, 60s covers most prompts at 4B.
+- **Quality.** Local 4B models write acceptable internal drafts but are noticeably weaker than a frontier model at
+  judgement calls (scope cuts, pricing). Use them for the work, keep a hosted model for the decisions that matter.
+- **Tested against a protocol stand-in, not your hardware.** This pass verified the full path (discovery, switching,
+  permissions, chat, JSON extraction, embeddings, fallbacks) against a fake Ollama server (`npm run test:ollama`)
+  matching the documented API; actual token throughput and JSON reliability depend on the model and machine.

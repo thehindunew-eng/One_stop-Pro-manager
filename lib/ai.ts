@@ -1,20 +1,54 @@
 import type { AnalysisResult, Message, ProblemStatement, Project } from './types';
 import { buildProblem, localChatAnswer } from './intel';
+import { AI_SETTING_KEY, getSetting, type AISetting } from './settings';
 
 /**
  * Provider-agnostic LLM layer. Any ONE of the keys in .env.example turns the
  * local reasoner into a live agent. Every call degrades gracefully: if the key
  * is missing, the model errors, or the network is unavailable, the platform keeps
  * working on its built-in engine.
+ *
+ * Local models are first-class: point OLLAMA_BASE_URL at an Ollama server (or
+ * just start Ollama on the default port) and any installed model can be selected
+ * from the owner console — no redeploy, no key, no request leaving the machine.
  */
 
-type Provider = 'openai' | 'anthropic' | 'gemini' | 'groq' | 'openrouter' | 'local';
+type Provider = 'openai' | 'anthropic' | 'gemini' | 'groq' | 'openrouter' | 'ollama' | 'local';
 
-interface AIConfig {
+export interface AIConfig {
   provider: Provider;
   model: string | null;
   key: string | null;
   live: boolean;
+  baseUrl?: string;
+  embedModel?: string;
+}
+
+export const DEFAULT_OLLAMA_BASE = 'http://127.0.0.1:11434';
+export const DEFAULT_OLLAMA_MODEL = 'qwen3:4b';
+export const DEFAULT_OLLAMA_EMBED = 'nomic-embed-text';
+
+export function ollamaBaseUrl(): string {
+  const raw = process.env.OLLAMA_BASE_URL?.trim() || DEFAULT_OLLAMA_BASE;
+  return raw.replace(/\/+$/, '');
+}
+
+/** Ollama is used when it is named explicitly, or when its env vars are present. */
+function ollamaRequested(): boolean {
+  const explicit = process.env.AI_PROVIDER?.trim().toLowerCase();
+  if (explicit) return explicit === 'ollama';
+  return Boolean(process.env.OLLAMA_MODEL?.trim() || process.env.OLLAMA_BASE_URL?.trim());
+}
+
+function ollamaConfig(overrides: { model?: string; baseUrl?: string; embedModel?: string } = {}): AIConfig {
+  return {
+    provider: 'ollama',
+    model: overrides.model?.trim() || process.env.OLLAMA_MODEL?.trim() || DEFAULT_OLLAMA_MODEL,
+    key: null,
+    live: true,
+    baseUrl: overrides.baseUrl?.trim() || ollamaBaseUrl(),
+    embedModel: overrides.embedModel?.trim() || process.env.OLLAMA_EMBED_MODEL?.trim() || DEFAULT_OLLAMA_EMBED,
+  };
 }
 
 export function aiConfig(): AIConfig {
@@ -23,18 +57,80 @@ export function aiConfig(): AIConfig {
     if (!key) return null;
     return { provider: p, key, model: process.env[modelVar]?.trim() || fallback, live: true };
   };
-  return (
+
+  if (ollamaRequested()) return ollamaConfig();
+
+  const explicit = process.env.AI_PROVIDER?.trim().toLowerCase();
+  const hosted = () =>
     pick('openai', 'OPENAI_API_KEY', 'OPENAI_MODEL', 'gpt-4o-mini') ||
     pick('anthropic', 'ANTHROPIC_API_KEY', 'ANTHROPIC_MODEL', 'claude-3-5-sonnet-latest') ||
     pick('gemini', 'GEMINI_API_KEY', 'GEMINI_MODEL', 'gemini-2.0-flash') ||
     pick('groq', 'GROQ_API_KEY', 'GROQ_MODEL', 'llama-3.3-70b-versatile') ||
-    pick('openrouter', 'OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'meta-llama/llama-3.1-70b-instruct') || {
+    pick('openrouter', 'OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'meta-llama/llama-3.1-70b-instruct');
+
+  if (explicit) {
+    const named = hosted();
+    if (named && named.provider === explicit) return named;
+  }
+
+  return (
+    hosted() || {
       provider: 'local',
       model: 'built-in reasoner',
       key: null,
       live: false,
     }
   );
+}
+
+/**
+ * If nothing is configured but Ollama is running on this machine, use it. That is
+ * the whole setup for a local-first team: install Ollama, pull a model, done.
+ * Set DISABLE_LOCAL_AI=1 to stay on the built-in reasoner regardless.
+ */
+let probeMemo: { at: number; reachable: boolean; model: string | null } | null = null;
+
+async function autoDetectOllama(): Promise<AIConfig | null> {
+  if (process.env.DISABLE_LOCAL_AI === '1') return null;
+  if (!probeMemo || Date.now() - probeMemo.at > 30_000) {
+    const probe = await listLocalModels(ollamaBaseUrl(), 800);
+    const usable = probe.models.filter((m) => !/embed/i.test(m.name));
+    probeMemo = { at: Date.now(), reachable: probe.reachable, model: usable[0]?.name ?? null };
+  }
+  if (!probeMemo.reachable) return null;
+  return ollamaConfig({ model: process.env.OLLAMA_MODEL?.trim() || probeMemo.model || DEFAULT_OLLAMA_MODEL });
+}
+
+/**
+ * The effective config is the env config plus whatever the owner last chose in
+ * the UI. Cached for a few seconds because every LLM call reads it.
+ */
+let effectiveCache: { at: number; value: AIConfig } | null = null;
+
+export async function effectiveAIConfig(): Promise<AIConfig> {
+  if (effectiveCache && Date.now() - effectiveCache.at < 5_000) return effectiveCache.value;
+
+  let cfg = aiConfig();
+  const stored = await getSetting<AISetting>(AI_SETTING_KEY);
+  if (stored?.provider === 'ollama') {
+    const envOllama = cfg.provider === 'ollama' ? cfg : ollamaConfig();
+    cfg = {
+      ...envOllama,
+      model: stored.model?.trim() || envOllama.model,
+      baseUrl: stored.baseUrl?.trim() || envOllama.baseUrl,
+      embedModel: stored.embedModel?.trim() || envOllama.embedModel,
+    };
+  } else if (cfg.provider === 'local') {
+    const auto = await autoDetectOllama();
+    if (auto) cfg = auto;
+  }
+
+  effectiveCache = { at: Date.now(), value: cfg };
+  return cfg;
+}
+
+export function invalidateAIConfig(): void {
+  effectiveCache = null;
 }
 
 async function fetchJson(url: string, init: RequestInit, ms = 45000): Promise<any> {
@@ -61,17 +157,22 @@ export async function callLLM(
   prompt: string,
   opts: { json?: boolean; maxTokens?: number; temperature?: number } = {},
 ): Promise<string | null> {
-  const cfg = aiConfig();
-  if (!cfg.live || !cfg.key) return null;
+  const cfg = await effectiveAIConfig();
+  if (!cfg.live) return null;
+  if (!cfg.key && cfg.provider !== 'ollama') return null;
   const maxTokens = opts.maxTokens ?? 1400;
   const temperature = opts.temperature ?? 0.35;
+
+  if (cfg.provider === 'ollama') {
+    return callOllama(cfg, system, prompt, { maxTokens, temperature, json: opts.json });
+  }
 
   if (cfg.provider === 'anthropic') {
     const data = await fetchJson('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': cfg.key,
+        'x-api-key': cfg.key ?? '',
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
@@ -131,6 +232,218 @@ export async function callLLM(
   return data?.choices?.[0]?.message?.content ?? null;
 }
 
+/* ------------------------------------------------------------------------- */
+/* Local models (Ollama)                                                     */
+/* ------------------------------------------------------------------------- */
+
+const OLLAMA_TIMEOUT = Number(process.env.OLLAMA_TIMEOUT_MS) || 120_000;
+
+/** Qwen 3 reasons before answering unless told not to; that doubles latency. */
+function withThinkingHint(system: string, model: string | null): string {
+  const thinking = (process.env.OLLAMA_THINKING || '').trim().toLowerCase();
+  if (thinking === 'on' || thinking === '1' || thinking === 'true') return system;
+  if (model && /qwen3/i.test(model)) return `${system}\n\n/no_think`;
+  return system;
+}
+
+async function callOllama(
+  cfg: AIConfig,
+  system: string,
+  prompt: string,
+  opts: { maxTokens: number; temperature: number; json?: boolean },
+): Promise<string | null> {
+  const base = (cfg.baseUrl || DEFAULT_OLLAMA_BASE).replace(/\/+$/, '');
+  const messages = [
+    { role: 'system', content: withThinkingHint(system, cfg.model) },
+    { role: 'user', content: prompt },
+  ];
+
+  // Ollama exposes an OpenAI-compatible route; prefer it, then fall back to the
+  // native /api/chat shape for older builds.
+  const compat = await fetchJson(
+    `${base}/v1/chat/completions`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: cfg.model,
+        temperature: opts.temperature,
+        max_tokens: opts.maxTokens,
+        ...(opts.json ? { response_format: { type: 'json_object' } } : {}),
+        messages,
+      }),
+    },
+    OLLAMA_TIMEOUT,
+  );
+  const fromCompat = compat?.choices?.[0]?.message?.content;
+  if (typeof fromCompat === 'string' && fromCompat.trim()) return fromCompat;
+
+  const native = await fetchJson(
+    `${base}/api/chat`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: cfg.model,
+        messages,
+        stream: false,
+        ...(opts.json ? { format: 'json' } : {}),
+        options: { temperature: opts.temperature, num_predict: opts.maxTokens },
+      }),
+    },
+    OLLAMA_TIMEOUT,
+  );
+  const fromNative = native?.message?.content;
+  return typeof fromNative === 'string' && fromNative.trim() ? fromNative : null;
+}
+
+export interface LocalModel {
+  name: string;
+  size: number | null;
+  params: string | null;
+  family: string | null;
+  modified: string | null;
+}
+
+export interface LocalModelProbe {
+  reachable: boolean;
+  base: string;
+  models: LocalModel[];
+  error?: string;
+}
+
+/** Ask the local server which models are pulled. Never throws. */
+export async function listLocalModels(base?: string, ms = 1_500): Promise<LocalModelProbe> {
+  const url = (base || ollamaBaseUrl()).replace(/\/+$/, '');
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(`${url}/api/tags`, { signal: ctrl.signal, cache: 'no-store' });
+    if (!res.ok) return { reachable: false, base: url, models: [], error: `HTTP ${res.status}` };
+    const data = (await res.json()) as { models?: any[] };
+    const models: LocalModel[] = (data.models ?? []).map((m) => ({
+      name: String(m.name ?? m.model ?? ''),
+      size: typeof m.size === 'number' ? m.size : null,
+      params: m.details?.parameter_size ?? null,
+      family: m.details?.family ?? null,
+      modified: m.modified_at ?? null,
+    })).filter((m) => m.name);
+    return { reachable: true, base: url, models };
+  } catch (err) {
+    return { reachable: false, base: url, models: [], error: (err as Error).name === 'AbortError' ? 'timed out' : 'not running' };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function embedTexts(texts: string[], cfg?: AIConfig): Promise<number[][] | null> {
+  if (!texts.length) return null;
+  const conf = cfg ?? (await effectiveAIConfig());
+  if (conf.provider !== 'ollama') return null;
+  const base = (conf.baseUrl || DEFAULT_OLLAMA_BASE).replace(/\/+$/, '');
+  const model = conf.embedModel || DEFAULT_OLLAMA_EMBED;
+
+  const batch = await fetchJson(
+    `${base}/api/embed`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model, input: texts }),
+    },
+    60_000,
+  );
+  const embeddings = batch?.embeddings;
+  if (Array.isArray(embeddings) && embeddings.length === texts.length && Array.isArray(embeddings[0])) {
+    return embeddings as number[][];
+  }
+
+  // Older Ollama: one prompt per call.
+  const out: number[][] = [];
+  for (const text of texts) {
+    const one = await fetchJson(
+      `${base}/api/embeddings`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ model, prompt: text }),
+      },
+      60_000,
+    );
+    if (!Array.isArray(one?.embedding)) return null;
+    out.push(one.embedding as number[]);
+  }
+  return out.length === texts.length ? out : null;
+}
+
+export function cosine(a: number[], b: number[]): number {
+  const len = Math.min(a.length, b.length);
+  let dot = 0;
+  let na = 0;
+  let nb = 0;
+  for (let i = 0; i < len; i += 1) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
+  if (!na || !nb) return 0;
+  return dot / Math.sqrt(na * nb);
+}
+
+/** Small hash so unchanged documents are not re-embedded on every question. */
+function digest(text: string): string {
+  let h = 5381;
+  for (let i = 0; i < text.length; i += 1) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  return `${h}:${text.length}`;
+}
+
+const embeddingCache = new Map<string, number[]>();
+
+/**
+ * Rank documents against a question using the local embedding model.
+ * Returns null when embeddings are unavailable so callers keep their old order.
+ */
+export async function rankByRelevance<T extends { title: string; content: string }>(
+  question: string,
+  docs: T[],
+  limit: number,
+): Promise<T[] | null> {
+  if (docs.length <= limit) return null;
+  const cfg = await effectiveAIConfig();
+  if (cfg.provider !== 'ollama') return null;
+
+  const candidates = docs.slice(0, 40).map((doc) => {
+    const text = `${doc.title}\n${doc.content.slice(0, 800)}`;
+    return { doc, key: digest(text), text };
+  });
+
+  const missing = candidates.filter((c) => !embeddingCache.has(c.key));
+  if (missing.length) {
+    const vecs = await embedTexts([question, ...missing.map((m) => m.text)], cfg);
+    if (!vecs) return null;
+    missing.forEach((m, i) => {
+      const vec = vecs[i + 1];
+      if (vec) {
+        if (embeddingCache.size > 400) embeddingCache.clear();
+        embeddingCache.set(m.key, vec);
+      }
+    });
+    embeddingCache.set(`q:${digest(question)}`, vecs[0]);
+  } else {
+    const vecs = await embedTexts([question], cfg);
+    if (!vecs) return null;
+    embeddingCache.set(`q:${digest(question)}`, vecs[0]);
+  }
+
+  const questionVec = embeddingCache.get(`q:${digest(question)}`);
+  if (!questionVec) return null;
+
+  const scored = candidates
+    .map((c) => ({ doc: c.doc, score: cosine(questionVec, embeddingCache.get(c.key) ?? []) }))
+    .sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, limit).map((s) => s.doc);
+}
+
 function parseJson<T>(text: string | null): T | null {
   if (!text) return null;
   const cleaned = text.replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
@@ -174,7 +487,7 @@ const PROBLEM_SHAPE = `{
 
 export async function analyzeConversation(messages: Message[], project: Project): Promise<AnalysisResult> {
   const local = buildProblem(messages);
-  const cfg = aiConfig();
+  const cfg = await effectiveAIConfig();
   if (!cfg.live) {
     return { problem: local, signals: [], engine: 'built-in reasoner (no API key configured)' };
   }
@@ -216,7 +529,7 @@ Rules:
     solutionAngles: list(parsed.solutionAngles, local.solutionAngles),
     productType: parsed.productType || local.productType,
     tags: list(parsed.tags, local.tags),
-    engine: `${cfg.provider}:${cfg.model}`,
+    engine: engineName(cfg),
     updatedAt: new Date().toISOString(),
   };
 
@@ -233,7 +546,7 @@ Rules:
       evidence: [],
     }));
 
-  return { problem, signals, engine: `${cfg.provider}:${cfg.model}` };
+  return { problem, signals, engine: engineName(cfg) };
 }
 
 const DOC_SYSTEM = `You are a senior product operator writing an internal working document for a small, fast product team.
@@ -249,7 +562,7 @@ export async function draftDocument(kind: string, title: string, ctx: {
   members: { name: string; role: string }[];
   freeTools: string[];
 }): Promise<{ content: string; engine: string } | null> {
-  const cfg = aiConfig();
+  const cfg = await effectiveAIConfig();
   if (!cfg.live) return null;
   const p = ctx.problem;
   const prompt = `DOCUMENT TO WRITE: ${title}
@@ -271,7 +584,7 @@ Be opinionated and specific to THIS problem.`;
 
   const content = await callLLM(DOC_SYSTEM, prompt, { maxTokens: 1600, temperature: 0.5 });
   if (!content || content.length < 120) return null;
-  return { content: content.trim(), engine: `${cfg.provider}:${cfg.model}` };
+  return { content: content.trim(), engine: engineName(cfg) };
 }
 
 const CHAT_SYSTEM = `You are "Prime", the operating partner inside One Stop Pro Manager, a meeting IDE for product teams.
@@ -338,7 +651,7 @@ export async function askAgent(
   question: string,
   ctx: AgentContext,
 ): Promise<{ content: string; engine: string; actions: AgentAction[] }> {
-  const cfg = aiConfig();
+  const cfg = await effectiveAIConfig();
   const actions = suggestedActions(ctx);
   const fallbackCtx = {
     problem: ctx.problem,
@@ -411,15 +724,33 @@ THE PM ASKS: ${question}`;
       actions,
     };
   }
-  return { content, engine: `${cfg.provider}:${cfg.model}`, actions };
+  return { content, engine: engineName(cfg), actions };
 }
 
-export function engineLabel(): { engine: string; provider: string | null; model: string | null; live: boolean } {
-  const cfg = aiConfig();
+export function engineName(cfg: AIConfig): string {
+  if (!cfg.live) return 'built-in reasoner';
+  return `${cfg.provider === 'ollama' ? 'local' : cfg.provider} · ${cfg.model}`;
+}
+
+export interface EngineLabel {
+  engine: string;
+  provider: string | null;
+  model: string | null;
+  live: boolean;
+  local?: boolean;
+  baseUrl?: string | null;
+  embedModel?: string | null;
+}
+
+export async function engineLabel(): Promise<EngineLabel> {
+  const cfg = await effectiveAIConfig();
   return {
-    engine: cfg.live ? `${cfg.provider} · ${cfg.model}` : 'built-in reasoner',
+    engine: engineName(cfg),
     provider: cfg.live ? cfg.provider : null,
     model: cfg.model,
     live: cfg.live,
+    local: cfg.provider === 'ollama',
+    baseUrl: cfg.provider === 'ollama' ? cfg.baseUrl ?? ollamaBaseUrl() : null,
+    embedModel: cfg.provider === 'ollama' ? cfg.embedModel ?? DEFAULT_OLLAMA_EMBED : null,
   };
 }

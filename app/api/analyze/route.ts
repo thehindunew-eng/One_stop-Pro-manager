@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   await replaceSignals(g.project.id, signals.map((s) => ({ ...s, evidence: s.evidence ?? [] })));
   const problem = await recordProblem(g.project.id, { ...result.problem, status: 'draft' });
   const members = await listMembers(g.project.id);
-  const label = engineLabel();
+  const label = await engineLabel();
 
   await addMessage({
     projectId: g.project.id,

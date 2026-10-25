@@ -323,7 +323,7 @@ export default function StageView({
                   {stageTools.slice(0, 8).map((t) => (
                     <a
                       key={t.id}
-                      href={t.url}
+                      href={safeHref(t.url)}
                       target="_blank"
                       rel="noreferrer noopener"
                       className="panel-flat card-hover flex items-center gap-2 p-2"

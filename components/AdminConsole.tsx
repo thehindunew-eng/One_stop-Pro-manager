@@ -9,6 +9,7 @@ import type { Member, Stage, Tool, WorkspaceState, StageKey } from '@/lib/types'
 import { api, del, patch, post, setAuthToken } from '@/lib/client';
 import { stageAccent } from '@/lib/defaults';
 import { Avatar, Pill, StageIcon, STAGE_ICONS, Spinner, ToolIcon, Wordmark } from './ui';
+import LocalAI from './LocalAI';
 
 const ICON_NAMES = Object.keys(STAGE_ICONS);
 const ROLES = ['pm', 'design', 'eng', 'qa', 'growth', 'member'];
@@ -626,6 +627,11 @@ export default function AdminConsole({
                 </div>
               </div>
             </div>
+
+            <LocalAI
+              code={code}
+              onEngine={(label) => setState((prev) => ({ ...prev, ai: { ...prev.ai, ...label } }))}
+            />
 
             <div className="panel p-4">
               <h2 className="mb-2 flex items-center gap-2 text-[16px] font-semibold text-slate-900">

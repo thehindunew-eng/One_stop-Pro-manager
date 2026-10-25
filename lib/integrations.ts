@@ -1,4 +1,4 @@
-import { aiConfig } from './ai';
+import { effectiveAIConfig, listLocalModels, ollamaBaseUrl, DEFAULT_OLLAMA_MODEL } from './ai';
 import { sessionSecretStatus, usingDefaultPasscode } from './auth';
 
 export type IntegrationNeed = 'required' | 'recommended' | 'optional';
@@ -21,8 +21,11 @@ export interface Integration {
  * Everything the platform can talk to outside itself, whether it is switched on
  * right now, and what happens if you leave it off. Read on the server only.
  */
-export function integrations(): Integration[] {
-  const cfg = aiConfig();
+export async function integrations(): Promise<Integration[]> {
+  const cfg = await effectiveAIConfig();
+  const local = await listLocalModels(cfg.provider === 'ollama' ? cfg.baseUrl : ollamaBaseUrl(), 1_200);
+  const localNames: string[] = local.models.map((m) => m.name);
+  const embedInstalled = localNames.some((name) => /embed/i.test(name));
   const has = (k: string) => Boolean(process.env[k]?.trim());
   const onVercel = Boolean(process.env.VERCEL);
   const secret = sessionSecretStatus();
@@ -93,10 +96,45 @@ export function integrations(): Integration[] {
       withIt: 'Ask Prime reads the whole room and writes specific, product-aware answers and drafts; documents read like a senior PM wrote them.',
       docs: 'https://aistudio.google.com/app/apikey',
       how: [
-        'Cheapest/free path: Google AI Studio → create a key (Gemini has a free tier) and set GEMINI_API_KEY.',
-        'Alternative free-ish path: Groq → create a key and set GROQ_API_KEY.',
-        'OpenAI or Anthropic keys work too — the platform picks the first key it finds.',
-        'One key is enough. No key is also a valid setup.',
+        'Run a model on your own machine: install Ollama, then `ollama pull qwen3:4b` — no key, no cost, nothing leaves the computer.',
+        'Pick the model in Owner console → Workspace → Local AI, or set OLLAMA_MODEL in the environment.',
+        'Prefer a hosted model? Google AI Studio (Gemini free tier) or Groq are the free paths: set GEMINI_API_KEY or GROQ_API_KEY.',
+        'OpenAI, Anthropic and OpenRouter keys work too. One provider is enough; no provider is also valid.',
+      ],
+    },
+    {
+      id: 'ollama',
+      name: 'Local AI models (Ollama)',
+      category: 'AI',
+      need: 'optional',
+      state: local.reachable ? (localNames.length ? 'on' : 'fallback') : cfg.provider === 'ollama' ? 'fallback' : 'off',
+      variable: 'OLLAMA_BASE_URL / OLLAMA_MODEL / OLLAMA_EMBED_MODEL',
+      without: local.reachable
+        ? 'The server is running but no model is pulled yet. Run `ollama pull qwen3:4b` (2.5 GB) to give the room a live model.'
+        : 'Everything still works on the built-in reasoner. Start Ollama (`ollama serve`) and the platform finds it on 127.0.0.1:11434 — nothing else to configure.',
+      withIt: local.reachable
+        ? `${localNames.length} model(s) installed: ${localNames.slice(0, 5).join(', ')}${localNames.length > 5 ? '…' : ''}. Switch models from the owner console; no redeploy.`
+        : 'Analysis, documents and Ask Prime run on your own GPU/CPU: no API key, no rate limits, no data leaving the machine.',
+      how: [
+        'Install Ollama, then pull a model: `ollama pull qwen3:4b` (fast), `llama3.1:8b` (balanced) or `qwen3:14b` / `qwen2.5-coder:14b` (better, slower).',
+        'Optional embeddings: `ollama pull nomic-embed-text` — Ask Prime then ranks documents by meaning, not order.',
+        'Open Owner console → Workspace → Local AI and pick a model. It is stored in Postgres, so the whole team uses it.',
+        'Serving the app on Vercel? The function cannot reach your laptop — set OLLAMA_BASE_URL to a reachable host (LAN IP, Tailscale or a tunnel) or use a hosted provider.',
+      ],
+    },
+    {
+      id: 'embeddings',
+      name: 'Local embeddings (nomic-embed-text)',
+      category: 'AI',
+      need: 'optional',
+      state: embedInstalled ? 'on' : 'off',
+      variable: `OLLAMA_EMBED_MODEL (currently ${cfg.embedModel ?? 'nomic-embed-text'})`,
+      without: 'Ask Prime falls back to stage order when choosing which documents to read. Still correct, just less relevant on large rooms.',
+      withIt: 'Each question is matched against every document by meaning, so the agent reads the six most relevant docs instead of the first eight.',
+      how: [
+        '`ollama pull nomic-embed-text` (274 MB).',
+        'Keep Ollama running; the app batches embeddings and caches them per document.',
+        'Embeddings never leave the machine and cost nothing.',
       ],
     },
     {
@@ -153,8 +191,8 @@ export function integrations(): Integration[] {
   return list;
 }
 
-export function integrationSummary() {
-  const all = integrations();
+export async function integrationSummary() {
+  const all = await integrations();
   const required = all.filter((i) => i.need === 'required');
   return {
     total: all.length,

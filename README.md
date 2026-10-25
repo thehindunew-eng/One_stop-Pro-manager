@@ -41,6 +41,7 @@ a regression.
 | Kanban board with owners, priorities, drag-to-move (48 tasks pre-seeded from stage checklists) | `Board` |
 | 104 curated free-tier tools with flat brand-tinted marks, mapped to stages, searchable | `Tools` / tool wall |
 | **Prime** — an agent you can ask about scope, risk, metrics, stack; always ends with one next action | `Ask Prime` |
+| **Local AI** — any Ollama model (qwen3, llama3.1, qwen2.5-coder…), switchable from the owner console, plus optional `nomic-embed-text` document ranking | `/room/<code>/admin` → Workspace |
 | Owner console — edit stages, icons, colours, checklists; add/retire tools; manage team roles; workspace identity | `/room/<code>/admin` |
 | Export the whole product pack as Markdown | profile menu → *Download product pack* |
 | Share by link, role-aware seats, live presence, 14s auto-refresh | Header |
@@ -49,11 +50,44 @@ a regression.
 
 The built-in reasoner (`lib/intel.ts`) tokenises the conversation, detects pains/users/evidence/decisions/metrics,
 merges near-duplicates, scores confidence and assembles the problem question. It is deterministic, private and free.
-Add **one** provider key and the same pipeline upgrades to a live LLM (`lib/ai.ts`):
+Add **one** provider — a local model or a key — and the same pipeline upgrades to a live LLM (`lib/ai.ts`):
 
-`OPENAI_API_KEY` · `ANTHROPIC_API_KEY` · `GEMINI_API_KEY` · `GROQ_API_KEY` · `OPENROUTER_API_KEY`
+`OLLAMA_*` (local, free) · `OPENAI_API_KEY` · `ANTHROPIC_API_KEY` · `GEMINI_API_KEY` · `GROQ_API_KEY` · `OPENROUTER_API_KEY`
 
 Every call degrades gracefully — if the model errors or times out, the room keeps working.
+
+### Local models (Ollama) — first-class
+
+Any model pulled on your machine works for problem extraction, document drafting and Ask Prime. No key, no quotas,
+nothing leaves the computer.
+
+```bash
+ollama serve                       # already running if you use the desktop app
+ollama pull qwen3:4b               # 2.5 GB — fastest, good enough for drafts
+ollama pull llama3.1:8b            # 4.9 GB — balanced
+ollama pull qwen3:14b              # 9.3 GB — better structure, slower
+ollama pull nomic-embed-text       # 274 MB — optional, ranks documents for Ask Prime
+```
+
+Then either set the environment, or open **Owner console → Workspace → Local AI** and pick from the models the app
+found. That choice is stored in Postgres, so the whole team uses it and no redeploy is needed.
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Where the Ollama server listens |
+| `OLLAMA_MODEL` | `qwen3:4b` | Model used when nobody has chosen one in the UI |
+| `OLLAMA_EMBED_MODEL` | `nomic-embed-text` | Embeddings for document ranking (optional) |
+| `OLLAMA_TIMEOUT_MS` | `120000` | Local models are slow; function timeout must allow it |
+| `OLLAMA_THINKING` | `off` | `on` keeps Qwen 3's reasoning trace (slower, better JSON sometimes) |
+| `AI_PROVIDER` | auto | Force one provider: `ollama`, `openai`, `anthropic`, `gemini`, `groq`, `openrouter` |
+
+**The one catch:** a Vercel deployment runs in the cloud, so `127.0.0.1:11434` there is Vercel's own machine, not
+yours. Local models therefore apply when the app runs on the same machine (`npm run dev`), or when you point
+`OLLAMA_BASE_URL` at a reachable address (LAN IP with `OLLAMA_HOST=0.0.0.0`, Tailscale, or a tunnel). The owner
+console says this plainly and refuses to save a model it cannot reach. Model switching also works for hosted
+providers: choose the provider in env, the model in the env file.
+
+`npm run test:ollama` (below) starts a fake Ollama server so the whole path can be checked without a GPU.
 
 ---
 
@@ -92,9 +126,6 @@ Switch between them from the room header or the profile menu.
 **Owner access:** expand *Owner passcode* on the join screen and enter the passcode (default `amar-admin`,
 set `ADMIN_PASSCODE` in production). You land straight in the owner console.
 
-**Owner access:** expand *Owner passcode* on the join screen and enter the passcode (default `amar-admin`,
-set `ADMIN_PASSCODE` in production). You land straight in the owner console.
-
 ---
 
 ## Deploy: Vercel + Neon (free)
@@ -116,6 +147,7 @@ set `ADMIN_PASSCODE` in production). You land straight in the owner console.
    | `PROD_PROJECT_CODE` / `DEMO_PROJECT_CODE` | optional | Room slugs, default `onestop` / `studio`. |
    | `PRODUCT_NAME` | optional | Name used for the live room and its generated docs. |
    | `OPENAI_API_KEY` *or* `GEMINI_API_KEY` *or* `GROQ_API_KEY` *or* `ANTHROPIC_API_KEY` *or* `OPENROUTER_API_KEY` | optional | Any one switches on live drafting. |
+   | `OLLAMA_BASE_URL` + `OLLAMA_MODEL` | optional | Local models. Only useful on Vercel if the URL is publicly reachable — see the local-model section. |
 
 4. **Deploy**, then run the five checks below before sharing the link.
 5. **Make it yours** — rename the product, rewrite the problem statement and adjust stages/tools in the owner console,
@@ -132,6 +164,11 @@ set `ADMIN_PASSCODE` in production). You land straight in the owner console.
 | Team can join | the invite link in a private window | the room opens with name only, no account |
 
 ### Things that bite on Vercel (and how this repo handles them)
+
+- **Local models do not cross the internet by default.** `http://127.0.0.1:11434` inside a Vercel function is
+  Vercel's own sandbox. Run the app locally for local models, expose Ollama with `OLLAMA_HOST=0.0.0.0` on your LAN
+  (then use `http://<lan-ip>:11434`), or put it behind Tailscale/a tunnel. The owner console tests the URL before
+  saving it, so a bad address fails loudly instead of silently falling back.
 
 - **Use the pooled Neon string** (host contains `-pooler`). Each serverless instance keeps a pool of 3 connections;
   a direct (non-pooled) URL will exhaust Neon's connection limit under even light traffic.
