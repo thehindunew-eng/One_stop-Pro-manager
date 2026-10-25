@@ -350,3 +350,13 @@ export const STAGE_TOOL_CATEGORIES: Record<StageKey, string[]> = {
 };
 
 export const LIFECYCLE_KEYS: StageKey[] = STAGE_SEED.map((s) => s.key);
+
+/**
+ * Two rooms ship with the platform:
+ *  - demo: a fictional kickoff so anyone can see the full experience in 30 seconds
+ *  - live: the real workspace where this product itself is being shipped
+ */
+export const ROOM_CODES = {
+  demo: process.env.DEMO_PROJECT_CODE || 'studio',
+  live: process.env.PROD_PROJECT_CODE || 'onestop',
+};

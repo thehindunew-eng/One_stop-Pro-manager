@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { currentUser } from '@/lib/auth';
-import { ensureBase, getWorkspace } from '@/lib/repo';
+import { DEMO_CODE, PROD_CODE, ensureBase, getWorkspace } from '@/lib/repo';
 import Workspace from '@/components/Workspace';
 
 export const dynamic = 'force-dynamic';
@@ -30,5 +30,5 @@ export default async function RoomPage({ params }: { params: { code: string } })
     );
   }
 
-  return <Workspace initialState={state} />;
+  return <Workspace initialState={state} siblings={{ demo: DEMO_CODE, live: PROD_CODE }} />;
 }

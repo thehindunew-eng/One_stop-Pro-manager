@@ -1,5 +1,5 @@
 import { asJson, ensureSchema, newId, sql } from './db';
-import { ARTIFACT_BLUEPRINTS, STAGE_SEED, TOOL_SEED } from './defaults';
+import { ARTIFACT_BLUEPRINTS, ROOM_CODES, STAGE_SEED, TOOL_SEED } from './defaults';
 import { buildProblem, extractSignals } from './intel';
 import { generateDoc } from './generate';
 import { DEMO_OWNER_EMAIL } from './auth';
@@ -20,7 +20,8 @@ import type {
   WorkspaceState,
 } from './types';
 
-export const DEMO_CODE = process.env.DEMO_PROJECT_CODE || 'studio';
+export const DEMO_CODE = ROOM_CODES.demo;
+export const PROD_CODE = ROOM_CODES.live;
 
 const g = globalThis as unknown as { __ospmBase?: Promise<void> };
 
@@ -55,6 +56,7 @@ export async function ensureBase(): Promise<void> {
       }
 
       await seedDemoProject();
+      await seedLiveProject();
     })().catch((err) => {
       g.__ospmBase = undefined;
       throw err;
@@ -284,8 +286,272 @@ async function seedDemoProject(): Promise<void> {
 }
 
 
+/* ------------------------------------------------------------------ */
+/* the live workspace — the real product, real decisions               */
+/* ------------------------------------------------------------------ */
+
+const LIVE_BRIEF: { kind: MessageKind; content: string }[] = [
+  {
+    kind: 'chat',
+    content:
+      'This is the live room for One Stop Pro Manager itself. The product exists for one reason: a product manager should be able to ideate a problem statement and take it all the way to launch without leaving the meeting.',
+  },
+  {
+    kind: 'chat',
+    content:
+      'The process we are replacing: a meeting produces notes, the notes produce tickets, and the problem everyone agreed on has disappeared by mid-sprint. The meeting itself has to become the input, not a summary of the input.',
+  },
+  {
+    kind: 'chat',
+    content:
+      'The copilot has to understand what the team is actually saying and end the meeting with the real problem question — users, pains, evidence, unknowns and a confidence score. A human approves it before any solution work starts.',
+  },
+  {
+    kind: 'decision',
+    content:
+      'Decision: nine stages from Discover to Grow. Each one ships with its documents, checklist, board tasks and free tools, so nobody ever starts from a blank page.',
+  },
+  {
+    kind: 'decision',
+    content:
+      'Decision: free platforms only for v0.1 — Vercel for hosting, Neon for Postgres, GitHub for code, one LLM API with a free tier. Zero fixed monthly cost until real teams are using it.',
+  },
+  {
+    kind: 'decision',
+    content:
+      'Decision: I keep full edit control. Stages, checklists, tool tiles, copy and team roles must be editable inside the platform, with no code change and no redeploy.',
+  },
+  {
+    kind: 'chat',
+    content:
+      'The team experience has to be one link, role-aware seats, and everyone looking at the same problem, plan and next action. During the meeting the room should feel alive, not like a form.',
+  },
+  {
+    kind: 'decision',
+    content:
+      'Decision: the owner signs in with a passcode, members join by link. Only the owner and platform admins can change the platform itself.',
+  },
+  {
+    kind: 'note',
+    content:
+      'Non-goals for v0.1: no built-in video (Meet and Zoom links are enough), no native app, no billing until ten teams have completed a full ideate-to-launch cycle.',
+  },
+  {
+    kind: 'chat',
+    content:
+      'Launch bar: a new team can go from an empty workspace to an approved problem statement and a deployed plan in one sitting, unassisted. If they cannot, v0.1 is not done.',
+  },
+];
+
+/** The live room is seeded from the founder brief and reviewed by hand. */
+function liveProblem(): ProblemStatement {
+  return {
+    title: 'Product teams lose the thread between the meeting and the launch',
+    statement:
+      'How might we help product teams keep one problem statement — with its evidence, scope and next action — alive from the first conversation all the way to a deployed, measured product?',
+    summary:
+      'A team runs a kickoff, leaves with notes, turns the notes into tickets, and by mid-sprint nobody agrees which problem they are solving. ' +
+      'Every hand-off — meeting to doc to ticket to build to launch — strips context, so scope is re-litigated and launch copy is written the night before. ' +
+      'The platform makes the meeting itself the source of truth: one approved problem statement that every stage, document and decision builds against. ' +
+      'Confidence is high on the problem; the unproven part is whether a team will change its meeting habit to adopt it.',
+    confidence: 88,
+    status: 'approved',
+    users: ['Product managers', 'Product teams (design, engineering, QA)', 'Founders shipping a v0.1 without a PM'],
+    pains: [
+      'The problem agreed in the meeting is never written down, so it gets re-decided every sprint.',
+      'Work is duplicated across notes, docs, tickets and chat; nobody can trace a ticket back to a validated problem.',
+      'Requirements arrive as vague scope and the rework lands on engineering.',
+      'Launch copy and positioning are written last, without the original problem or its evidence.',
+    ],
+    evidence: [
+      'Founder brief: the meeting produces notes, the notes produce tickets, and the agreed problem has disappeared by mid-sprint.',
+      'Founder brief: launch messaging is written last, without the original problem or evidence attached.',
+      'Constraint accepted up front: v0.1 must run on free tiers, so adoption — not infrastructure cost — is the risk.',
+      'Four requirements locked in the brief: nine stages, free platforms, owner-editable without deploys, one link for the team.',
+    ],
+    assumptions: [
+      'A team will accept one extra habit — approving the problem statement — if it removes rework later.',
+      'A free-tier stack (Vercel, Neon, one LLM API) is enough for the first ten teams.',
+      'Typed chat and pasted transcripts are sufficient input; built-in video is not needed for v0.1.',
+      'The owner-editable console replaces the need for a developer on every change.',
+    ],
+    unknowns: [
+      'What proof shows the pain costs a team more than switching costs?',
+      'Which segment adopts first — solo founders or 4–10 person product teams?',
+      'What is the smallest artifact set that brings a PM back to the room on day two?',
+      'Which retention number justifies integrations (Slack, Jira) in v0.2?',
+    ],
+    successMetrics: [
+      'A new team reaches an approved problem statement in its first session (target: 60% of rooms created)',
+      'Room created to deployed plan in under 14 days for the first five teams',
+      'Day-7 return rate of the room owner after the first meeting (target: 40%)',
+      'Ten teams complete a full ideate-to-launch cycle before billing is built',
+    ],
+    solutionAngles: [
+      'The meeting is the IDE: extraction, approval and every artifact live in one room.',
+      'Nine stages pre-loaded with free tools, checklists and generated documents so nobody starts from a blank page.',
+      'Owner-editable stages, tools and copy — the lifecycle changes without a deploy.',
+      'Prime answers from the approved problem and always ends with one next action.',
+    ],
+    productType: 'Collaboration workspace / AI copilot',
+    tags: ['meeting ide', 'problem statement', 'product lifecycle', 'free tier', 'vercel', 'neon', 'product teams', 'launch'],
+    engine: 'founder brief · reviewed by the owner',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function seedLiveProject(): Promise<void> {
+  const existing = await sql<Project>('SELECT * FROM projects WHERE code = $1', [PROD_CODE]);
+  if (existing[0]) return;
+
+  const owner = await upsertUser({
+    name: process.env.OWNER_NAME || 'Amar Tripathi',
+    email: process.env.OWNER_EMAIL || DEMO_OWNER_EMAIL,
+    role: 'pm',
+    isAdmin: true,
+  });
+
+  const productName = process.env.PRODUCT_NAME || 'One Stop Pro Manager';
+  const project = (
+    await sql<Project>(
+      `INSERT INTO projects (id, code, name, tagline, owner_id, stage_key, status, settings)
+       VALUES ($1,$2,$3,$4,$5,'launch','launching',$6::jsonb) RETURNING *`,
+      [
+        newId('prj'),
+        PROD_CODE,
+        `${productName} — launch room`,
+        'Ship v0.1: meeting IDE → problem engine → nine-stage workspace → deployed on Vercel + Neon.',
+        owner.id,
+        asJson({ mode: 'live', demoCode: DEMO_CODE }),
+      ],
+    )
+  )[0];
+
+  await sql(`INSERT INTO members (project_id, user_id, role) VALUES ($1,$2,'pm') ON CONFLICT DO NOTHING`, [
+    project.id,
+    owner.id,
+  ]);
+
+  const base = Date.now() - 1000 * 60 * 60 * 72;
+  const messages: Message[] = [];
+  let i = 0;
+  for (const m of LIVE_BRIEF) {
+    const row = (
+      await sql<Message>(
+        `INSERT INTO messages (id, project_id, user_id, author, role, kind, content, created_at)
+         VALUES ($1,$2,$3,$4,'pm',$5,$6, to_timestamp($7 / 1000.0)) RETURNING *`,
+        [newId('msg'), project.id, owner.id, owner.name, m.kind, m.content, base + i * 1000 * 60 * 37],
+      )
+    )[0];
+    messages.push(row);
+    i++;
+  }
+
+  const problem = liveProblem();
+  await sql('UPDATE projects SET problem = $2::jsonb WHERE id = $1', [project.id, asJson(problem)]);
+
+  const signals = extractSignals(messages).map((sig) => ({ ...sig, status: 'accepted' as const }));
+  const manual: typeof signals = [
+    {
+      type: 'metric',
+      label: 'A new team approves its problem statement in the first session — 60% of rooms created',
+      detail: 'Activation metric for v0.1 from the founder brief.',
+      score: 88,
+      status: 'accepted',
+      evidence: [],
+    },
+    {
+      type: 'evidence',
+      label: 'Brief: the agreed problem has disappeared by mid-sprint — the hand-off strips the context',
+      detail: 'Founder brief, captured verbatim in this room.',
+      score: 86,
+      status: 'accepted',
+      evidence: [],
+    },
+    {
+      type: 'evidence',
+      label: 'Brief: launch copy is written last, without the original problem or evidence attached',
+      detail: 'Founder brief, captured verbatim in this room.',
+      score: 80,
+      status: 'accepted',
+      evidence: [],
+    },
+    {
+      type: 'blocker',
+      label: 'Adoption is the real risk, not infrastructure — the free tier removes the cost excuse',
+      detail: 'The team has to change one habit: approving the problem before building.',
+      score: 82,
+      status: 'accepted',
+      evidence: [],
+    },
+  ];
+  for (const sig of [...manual, ...signals]) {
+    await sql(
+      `INSERT INTO signals (id, project_id, type, label, detail, score, status, evidence)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb)`,
+      [newId('sig'), project.id, sig.type, sig.label, sig.detail, sig.score, 'accepted', asJson(sig.evidence)],
+    );
+  }
+
+  await ensureArtifacts(project.id);
+  const tools = await listTools();
+  const members = [{ name: owner.name, role: owner.role }];
+  const closed = new Set<StageKey>(['discover', 'define', 'ideate', 'design', 'architect']);
+  for (const [stageKey, docs] of Object.entries(ARTIFACT_BLUEPRINTS) as [StageKey, typeof ARTIFACT_BLUEPRINTS[StageKey]][]) {
+    const stage = STAGE_SEED.find((s) => s.key === stageKey)!;
+    for (const doc of docs) {
+      const content = generateDoc(doc.kind, doc.title, {
+        project,
+        problem,
+        members,
+        tools,
+        stageName: stage.name,
+        stageKey,
+      } as any);
+      await sql('UPDATE artifacts SET content = $3, status = $4 WHERE project_id = $1 AND kind = $2', [
+        project.id,
+        doc.kind,
+        content,
+        closed.has(stageKey) ? 'approved' : 'ready',
+      ]);
+    }
+  }
+
+  const solo = new Map<Role, User>([
+    ['pm', owner],
+    ['design', owner],
+    ['eng', owner],
+    ['qa', owner],
+    ['growth', owner],
+  ]);
+  await seedStageTasks(project.id, solo, (stage, idx) => {
+    if (closed.has(stage as StageKey)) return 'done';
+    if (stage === 'build') return idx < 4 ? 'done' : idx === 4 ? 'doing' : 'todo';
+    if (stage === 'test') return idx === 0 ? 'doing' : 'todo';
+    return 'todo';
+  });
+
+  await sql(
+    `INSERT INTO messages (id, project_id, user_id, author, role, kind, content, meta)
+     VALUES ($1,$2,$3,$4,'assistant','system',$5,$6::jsonb)`,
+    [
+      newId('msg'),
+      project.id,
+      null,
+      'Prime',
+      'This is the live workspace for the product itself. The brief is captured, the problem statement is approved at 88% confidence, ' +
+        'Discover through Architect are closed and Build is nearly done. The next real action is the launch checklist: production deploy on Vercel + Neon, analytics, then the announcement.',
+      asJson({ seeded: true, live: true }),
+    ],
+  );
+}
+
 /** Every stage checklist item becomes a board task, so a new room is never empty. */
-async function seedStageTasks(projectId: string, contacts?: Map<Role, User>): Promise<void> {
+async function seedStageTasks(
+  projectId: string,
+  contacts?: Map<Role, User>,
+  statusFor?: (stage: StageKey, index: number) => string,
+): Promise<void> {
   const ownerFor = (role: Role) => contacts?.get(role)?.name ?? null;
   const ownerByStage: Record<string, string | null> = {
     discover: ownerFor('pm'),
@@ -301,8 +567,13 @@ async function seedStageTasks(projectId: string, contacts?: Map<Role, User>): Pr
   let pos = (await sql<{ max: number | null }>('SELECT max(position) AS max FROM tasks WHERE project_id = $1', [projectId]))[0]?.max ?? 0;
   for (const stage of STAGE_SEED) {
     for (const [idx, item] of stage.checklist.entries()) {
-      const done = stage.key === 'discover' && idx === 0 && contacts;
-      const doing = stage.key === 'discover' && idx === 1 && contacts;
+      const status = statusFor
+        ? statusFor(stage.key, idx)
+        : stage.key === 'discover' && idx === 0
+          ? 'done'
+          : stage.key === 'discover' && idx === 1
+            ? 'doing'
+            : 'todo';
       await sql(
         `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
@@ -312,7 +583,7 @@ async function seedStageTasks(projectId: string, contacts?: Map<Role, User>): Pr
           item,
           `Checklist item from the ${stage.name} stage.`,
           stage.key,
-          done ? 'done' : doing ? 'doing' : 'todo',
+          status,
           ownerByStage[stage.key] ?? null,
           idx === 0 ? 'P0' : idx < 3 ? 'P1' : 'P2',
           [2, 3, 5][idx % 3],

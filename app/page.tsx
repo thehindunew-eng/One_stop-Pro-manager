@@ -3,10 +3,11 @@ import {
   ArrowRight, AudioLines, BadgeCheck, Blocks, Braces, CircleDollarSign, Database, Gauge,
   Github, Layers, Rocket, ShieldCheck, Sparkles, Users, Wand2, Zap, GitBranch, Globe2,
 } from 'lucide-react';
-import { STAGE_SEED, TOOL_SEED, ROLES } from '@/lib/defaults';
+import { STAGE_SEED, TOOL_SEED, ROLES, ROOM_CODES } from '@/lib/defaults';
 import { Logo, Pill, StageIcon, ToolIcon } from '@/components/ui';
 
-const DEMO_LINK = '/join?code=studio';
+const LIVE_LINK = `/join?code=${ROOM_CODES.live}`;
+const DEMO_LINK = `/join?code=${ROOM_CODES.demo}`;
 
 const CATEGORY_ORDER = [
   'Meetings & Docs', 'Whiteboard & Ideation', 'Research & Validation', 'Design & Prototype',
@@ -32,8 +33,8 @@ export default function LandingPage() {
             <Link href="#lifecycle" className="btn-subtle hidden md:inline-flex">Lifecycle</Link>
             <Link href="#tools" className="btn-subtle hidden md:inline-flex">Tool wall</Link>
             <Link href="#owner" className="btn-subtle hidden md:inline-flex">Owner console</Link>
-            <Link href={DEMO_LINK} className="btn-primary">
-              Open the room <ArrowRight className="h-4 w-4" />
+            <Link href={LIVE_LINK} className="btn-primary">
+              Open the live room <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
@@ -63,11 +64,11 @@ export default function LandingPage() {
                 tools already loaded — {toolCount}+ of them, icons side by side.
               </p>
               <div className="mt-7 flex flex-wrap items-center gap-3">
-                <Link href={DEMO_LINK} className="btn-primary px-5 py-3 text-[14px]">
-                  <AudioLines className="h-4 w-4" /> Join the live room
+                <Link href={LIVE_LINK} className="btn-primary px-5 py-3 text-[14px]">
+                  <AudioLines className="h-4 w-4" /> Open your live workspace
                 </Link>
-                <Link href="/join" className="btn-ghost px-5 py-3 text-[14px]">
-                  <Users className="h-4 w-4" /> Create a room for your team
+                <Link href={DEMO_LINK} className="btn-ghost px-5 py-3 text-[14px]">
+                  <Users className="h-4 w-4" /> Explore the demo room
                 </Link>
               </div>
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-[12px] text-slate-500">
@@ -196,7 +197,7 @@ export default function LandingPage() {
               </p>
             </div>
             <Link href={DEMO_LINK} className="btn-ghost">
-              See it in the room <ArrowRight className="h-4 w-4" />
+              See a worked example <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -378,11 +379,11 @@ export default function LandingPage() {
             Open the room, invite the team, and leave the meeting with an approved problem statement, a plan and a URL.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link href={DEMO_LINK} className="btn-primary px-5 py-3 text-[14px]">
-              <Sparkles className="h-4 w-4" /> Enter the studio room
+            <Link href={LIVE_LINK} className="btn-primary px-5 py-3 text-[14px]">
+              <Sparkles className="h-4 w-4" /> Open the live workspace
             </Link>
-            <Link href="/join" className="btn-ghost px-5 py-3 text-[14px]">
-              Start a fresh product room
+            <Link href={DEMO_LINK} className="btn-ghost px-5 py-3 text-[14px]">
+              Walk through the demo first
             </Link>
           </div>
         </div>
@@ -394,9 +395,9 @@ export default function LandingPage() {
             <Logo size={20} /> One Stop Pro Manager · built for Amar Tripathi&apos;s team
           </div>
           <div className="flex items-center gap-4">
-            <span>Meeting IDE</span>
+            <Link href={LIVE_LINK} className="hover:text-slate-300">Live workspace</Link>
             <span>·</span>
-            <span>Problem engine</span>
+            <Link href={DEMO_LINK} className="hover:text-slate-300">Demo room</Link>
             <span>·</span>
             <span>Vercel + Neon</span>
           </div>

@@ -11,7 +11,17 @@ const ROLE_ICONS: Record<string, string> = {
   pm: '🎯', design: '🎨', eng: '⚙️', qa: '🧪', growth: '📈', member: '🧩',
 };
 
-export default function JoinForm({ defaultCode, defaultCreate }: { defaultCode: string; defaultCreate: boolean }) {
+export default function JoinForm({
+  defaultCode,
+  defaultCreate,
+  liveCode = 'onestop',
+  demoCode = 'studio',
+}: {
+  defaultCode: string;
+  defaultCreate: boolean;
+  liveCode?: string;
+  demoCode?: string;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<'join' | 'create'>(defaultCreate ? 'create' : 'join');
   const [name, setName] = useState('');
@@ -152,8 +162,12 @@ export default function JoinForm({ defaultCode, defaultCreate }: { defaultCode: 
                   <span className="rounded-lg border border-white/10 bg-ink-900/70 px-2.5 py-2.5 text-[12px] text-slate-500">/room/</span>
                   <input id="code" className="field" value={code} onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="studio" required />
                 </div>
-                <p className="mt-1.5 text-[11px] text-slate-500">
-                  The demo studio room is <button type="button" className="link" onClick={() => setCode('studio')}>studio</button> — it comes loaded with a real kickoff transcript.
+                <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">
+                  Your live workspace is{' '}
+                  <button type="button" className="link" onClick={() => setCode(liveCode)}>{liveCode}</button>.{' '}
+                  Want to look before you type? The demo room{' '}
+                  <button type="button" className="link" onClick={() => setCode(demoCode)}>{demoCode}</button>{' '}
+                  is pre-loaded with a full kickoff.
                 </p>
               </div>
             ) : (

@@ -17,7 +17,13 @@ import { ProblemModal, ProblemPanel } from './ProblemPanel';
 
 type View = 'meeting' | 'stage';
 
-export default function Workspace({ initialState }: { initialState: WorkspaceState }) {
+export default function Workspace({
+  initialState,
+  siblings,
+}: {
+  initialState: WorkspaceState;
+  siblings: { demo: string; live: string };
+}) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [view, setView] = useState<View>('meeting');
   const [stageKey, setStageKey] = useState<StageKey>(initialState.project.stage_key);
@@ -34,6 +40,8 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
   const pollRef = useRef<number | null>(null);
 
   const { project, me, members, messages, signals, artifacts, tasks, tools, stages, ai } = state;
+  const isDemo = project.code === siblings.demo;
+  const otherRoom = isDemo ? siblings.live : siblings.demo;
   const stage = stages.find((s) => s.key === stageKey) ?? stages[0];
   const currentStage = stages.find((s) => s.key === project.stage_key) ?? stages[0];
 
@@ -140,6 +148,15 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
               <Pill tone="electric" className="hidden md:inline-flex">
                 <StageIcon name={currentStage.icon} className="h-2.5 w-2.5" /> {currentStage.name}
               </Pill>
+              <Pill tone={isDemo ? 'amber' : 'mint'} className="hidden lg:inline-flex">
+                {isDemo ? 'demo room' : 'live'}
+              </Pill>
+              <Link
+                href={`/room/${otherRoom}`}
+                className="hidden items-center gap-1 text-[10.5px] text-slate-500 transition hover:text-slate-200 lg:inline-flex"
+              >
+                {isDemo ? 'live workspace' : 'demo room'} <ArrowRight className="h-2.5 w-2.5" />
+              </Link>
             </div>
             <p className="truncate text-[10.5px] text-slate-500">{project.tagline || 'One room, one thread, one launch.'}</p>
           </div>
@@ -221,6 +238,24 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
                       <ShieldCheck className="h-3.5 w-3.5" /> Owner console
                     </Link>
                   )}
+                  <div className="mt-1 flex gap-1 border-t border-white/[0.07] px-2 pb-1 pt-2">
+                    <Link
+                      href={`/room/${siblings.live}`}
+                      className={`flex-1 rounded-md px-1.5 py-1 text-center text-[10px] font-medium ${
+                        isDemo ? 'text-slate-400 hover:bg-white/[0.05]' : 'bg-mint/15 text-mint'
+                      }`}
+                    >
+                      Live
+                    </Link>
+                    <Link
+                      href={`/room/${siblings.demo}`}
+                      className={`flex-1 rounded-md px-1.5 py-1 text-center text-[10px] font-medium ${
+                        isDemo ? 'bg-amber/15 text-amber' : 'text-slate-400 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      Demo
+                    </Link>
+                  </div>
                   <div className="mt-1 border-t border-white/[0.07] px-2 pb-1 pt-2 text-[9.5px] uppercase tracking-[0.14em] text-slate-600">
                     My rooms
                   </div>

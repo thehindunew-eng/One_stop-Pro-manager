@@ -45,8 +45,18 @@ npm run dev          # http://localhost:3000
 ```
 
 No database setup required: without `DATABASE_URL` the app boots an **embedded Postgres (PGlite)** in `./.data`.
-Open `/join?code=studio` — the demo studio room is seeded with a real kickoff transcript, 12 messages, 23 signals,
-a draft problem statement, 24 generated docs and 45 tasks.
+
+Two rooms are seeded on first boot:
+
+| Room | Link | What it is |
+| --- | --- | --- |
+| **Live workspace** | `/join?code=onestop` | The real product room: your founder brief captured as 10 messages, 4 locked decisions and an **approved** problem statement; Discover → Architect closed, Build nearly done, Launch in progress. Only you are a member — the team joins by link. |
+| **Demo room** | `/join?code=studio` | A fictional Monday kickoff (5 teammates, 12 messages, 22 signals, a **draft** problem statement at 90% confidence, 24 docs, 45 tasks) so anyone can see the whole experience in 30 seconds. |
+
+Switch between them from the room header or the profile menu.
+
+**Owner access:** expand *Owner passcode* on the join screen and enter the passcode (default `amar-admin`,
+set `ADMIN_PASSCODE` in production). You land straight in the owner console.
 
 **Owner access:** expand *Owner passcode* on the join screen and enter the passcode (default `amar-admin`,
 set `ADMIN_PASSCODE` in production). You land straight in the owner console.
@@ -69,10 +79,13 @@ set `ADMIN_PASSCODE` in production). You land straight in the owner console.
    | `ADMIN_PASSCODE` | yes | Your owner passcode. |
    | `ADMIN_EMAILS` | recommended | `you@company.com` — always admin on sign-in. |
    | `OWNER_NAME` / `OWNER_EMAIL` | optional | Defaults to Amar Tripathi / `amar@onestop.pro`. |
+   | `PROD_PROJECT_CODE` / `DEMO_PROJECT_CODE` | optional | Room slugs, default `onestop` / `studio`. |
+   | `PRODUCT_NAME` | optional | Name used for the live room and its generated docs. |
    | `OPENAI_API_KEY` *or* `GEMINI_API_KEY` *or* `GROQ_API_KEY` *or* `ANTHROPIC_API_KEY` *or* `OPENROUTER_API_KEY` | optional | Any one switches on live drafting. |
 
-4. **Deploy**, open `/join?code=studio`, enter the passcode, then share `/room/studio` with the team.
-5. **Rename the demo** in the owner console → Workspace, or create a fresh room from `/join` → *Create a room*.
+4. **Deploy**, open `/join?code=onestop`, enter the passcode, then share `/room/onestop` with the team.
+5. **Make it yours** — rename the product, rewrite the problem statement and adjust stages/tools in the owner console,
+   or create a clean room from `/join` → *Create a room* if this is a second product.
 
 > Without `DATABASE_URL` on Vercel the app falls back to an ephemeral `/tmp` Postgres so the preview still works —
 > but data will not persist. Neon is required for a real workspace.
