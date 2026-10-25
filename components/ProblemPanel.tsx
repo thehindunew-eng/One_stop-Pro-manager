@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BadgeCheck, Check, CircleHelp, Pencil, RefreshCw, Save, Sparkles, Target, X } from 'lucide-react';
-import type { ProblemStatement } from '@/lib/types';
+import type { ProblemStatement, Signal } from '@/lib/types';
 import { patch } from '@/lib/client';
 import { Pill, Spinner } from './ui';
 
@@ -137,6 +137,7 @@ export function ProblemModal({
   onClose,
   onProblem,
   onAnalyze,
+  signals = [],
 }: {
   code: string;
   problem: ProblemStatement | null;
@@ -146,6 +147,7 @@ export function ProblemModal({
   onClose: () => void;
   onProblem: (p: ProblemStatement) => void;
   onAnalyze: () => Promise<void>;
+  signals?: Signal[];
 }) {
   const [draft, setDraft] = useState<ProblemStatement | null>(problem);
   const [saving, setSaving] = useState(false);
@@ -194,6 +196,21 @@ export function ProblemModal({
 
         <div className="scroll-thin max-h-[70vh] overflow-y-auto p-4">
           {error && <div className="mb-3 rounded-lg border border-rose/30 bg-rose/10 px-3 py-2 text-[11.5px] text-rose">{error}</div>}
+
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-2 text-[10.5px] text-slate-500">
+            <span className="font-semibold uppercase tracking-[0.12em] text-slate-400">How I read the room</span>
+            <span>{signals.filter((s) => s.type === 'pain').length} pains</span>
+            <span>·</span>
+            <span>{signals.filter((s) => s.type === 'user').length} user cues</span>
+            <span>·</span>
+            <span>{signals.filter((s) => s.type === 'evidence').length} evidence</span>
+            <span>·</span>
+            <span>{signals.filter((s) => s.type === 'decision').length} decisions</span>
+            <span>·</span>
+            <span>{signals.filter((s) => s.type === 'metric').length} metrics</span>
+            <span className="ml-auto">confidence {draft.confidence}%</span>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className="label">Title</label>

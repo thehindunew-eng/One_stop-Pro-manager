@@ -30,6 +30,7 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
   const [error, setError] = useState<string | null>(null);
   const [shareUrl, setShareUrl] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [rooms, setRooms] = useState<{ code: string; name: string; stage: string }[]>([]);
   const pollRef = useRef<number | null>(null);
 
   const { project, me, members, messages, signals, artifacts, tasks, tools, stages, ai } = state;
@@ -109,6 +110,13 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
     ? members.filter((m) => m.last_seen && Date.now() - new Date(m.last_seen).getTime() < 6 * 60 * 1000)
     : [];
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    api<{ projects: { code: string; name: string; stage: string }[] }>('/api/me')
+      .then((res) => setRooms(res.projects ?? []))
+      .catch(() => setRooms([]));
+  }, [menuOpen]);
+
   async function logout() {
     await post('/api/auth/logout', {});
     window.location.href = '/';
@@ -184,7 +192,7 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
                 <ChevronDown className="hidden h-3 w-3 text-slate-500 sm:block" />
               </button>
               {menuOpen && (
-                <div className="panel absolute right-0 top-10 z-40 w-56 p-2" onMouseLeave={() => setMenuOpen(false)}>
+                <div className="panel scroll-thin absolute right-0 top-10 z-40 max-h-[72vh] w-60 overflow-y-auto p-2" onMouseLeave={() => setMenuOpen(false)}>
                   <div className="border-b border-white/[0.07] px-2 py-1.5">
                     <div className="text-[12px] font-semibold text-white">{me.name}</div>
                     <div className="text-[10.5px] text-slate-500">{me.role} · {me.isAdmin ? 'platform admin' : 'member'}</div>
@@ -213,6 +221,28 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
                       <ShieldCheck className="h-3.5 w-3.5" /> Owner console
                     </Link>
                   )}
+                  <div className="mt-1 border-t border-white/[0.07] px-2 pb-1 pt-2 text-[9.5px] uppercase tracking-[0.14em] text-slate-600">
+                    My rooms
+                  </div>
+                  {rooms.slice(0, 5).map((r) => (
+                    <Link
+                      key={r.code}
+                      href={`/room/${r.code}`}
+                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] ${
+                        r.code === project.code ? 'text-white' : 'text-slate-400 hover:bg-white/[0.05]'
+                      }`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${r.code === project.code ? 'bg-mint' : 'bg-slate-600'}`} />
+                      <span className="truncate">{r.name}</span>
+                      <span className="ml-auto text-[9px] uppercase tracking-wider text-slate-600">{r.stage}</span>
+                    </Link>
+                  ))}
+                  <Link
+                    href="/join?create=1"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-electric-soft hover:bg-white/[0.05]"
+                  >
+                    + New product room
+                  </Link>
                   <button
                     type="button"
                     onClick={logout}
@@ -446,6 +476,7 @@ export default function Workspace({ initialState }: { initialState: WorkspaceSta
         onClose={() => setProblemOpen(false)}
         onProblem={(p) => setState((s) => ({ ...s, project: { ...s.project, problem: p } }))}
         onAnalyze={analyze}
+        signals={signals}
       />
     </div>
   );
