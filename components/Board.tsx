@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, GripVertical, Loader2, Flag } from 'lucide-react';
+import { Plus, Trash2, GripVertical, ChevronRight, User, Info } from 'lucide-react';
 import type { Member, Stage, StageKey, Task, TaskStatus } from '@/lib/types';
 import { del, patch, post } from '@/lib/client';
 import { Avatar, Pill, Spinner } from './ui';
@@ -22,6 +22,7 @@ export default function Board({
   stages,
   stageKey,
   canEdit,
+  me,
   onTasks,
 }: {
   code: string;
@@ -30,6 +31,7 @@ export default function Board({
   stages: Stage[];
   stageKey: StageKey;
   canEdit: boolean;
+  me: { name: string; role: string };
   onTasks: (t: Task[]) => void;
 }) {
   const [scope, setScope] = useState<'stage' | 'all'>('stage');
@@ -45,9 +47,6 @@ export default function Board({
   );
 
   const move = async (task: Task, status: TaskStatus) => {
-    if (!canEdit && task.owner !== undefined) {
-      /* members can move their own work */
-    }
     onTasks(tasks.map((t) => (t.id === task.id ? { ...t, status } : t)));
     try {
       const res = await patch<{ tasks: Task[] }>('/api/tasks', { code, id: task.id, status });
@@ -56,6 +55,20 @@ export default function Board({
       setError((e as Error).message);
     }
   };
+
+  /** Anyone in the room can hand work to anyone else — that is how teams actually work. */
+  const assign = async (task: Task, owner: string | null) => {
+    onTasks(tasks.map((t) => (t.id === task.id ? { ...t, owner } : t)));
+    try {
+      const res = await patch<{ tasks: Task[] }>('/api/tasks', { code, id: task.id, owner });
+      onTasks(res.tasks);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
+  const nextStatus = (s: TaskStatus): TaskStatus =>
+    s === 'todo' ? 'doing' : s === 'doing' ? 'review' : s === 'review' ? 'done' : 'todo';
 
   const add = async (status: TaskStatus) => {
     if (!draft.title.trim()) return;
@@ -96,17 +109,17 @@ export default function Board({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-ink-900/60 p-0.5">
-          <button type="button" onClick={() => setScope('stage')} className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'stage' ? 'bg-white/[0.09] text-white' : 'text-slate-400'}`}>
+        <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-ink-900/60 p-0.5">
+          <button type="button" onClick={() => setScope('stage')} className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'stage' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
             This stage
           </button>
-          <button type="button" onClick={() => setScope('all')} className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'all' ? 'bg-white/[0.09] text-white' : 'text-slate-400'}`}>
+          <button type="button" onClick={() => setScope('all')} className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
             Whole product
           </button>
         </div>
         <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
           <span>{done}/{total} done</span>
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-white/10">
+          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
             <div className="h-full rounded-full bg-mint transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
           </div>
         </div>
@@ -120,7 +133,7 @@ export default function Board({
           return (
             <div
               key={col.key}
-              className="flex min-h-[160px] flex-col rounded-xl border border-white/[0.07] bg-white/[0.015] p-2"
+              className="flex min-h-[160px] flex-col rounded-xl border border-slate-200/90 bg-slate-50/70 p-2"
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => {
                 const t = tasks.find((x) => x.id === dragging);
@@ -130,8 +143,8 @@ export default function Board({
             >
               <div className="mb-2 flex items-center gap-2 px-1">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: col.tone }} />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400">{col.label}</span>
-                <span className="ml-auto text-[10px] text-slate-600">{items.length}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">{col.label}</span>
+                <span className="ml-auto text-[10px] text-slate-500">{items.length}</span>
               </div>
 
               <div className="flex-1 space-y-2">
@@ -141,36 +154,69 @@ export default function Board({
                     draggable
                     onDragStart={() => setDragging(t.id)}
                     onDragEnd={() => setDragging(null)}
-                    className={`group cursor-grab rounded-lg border border-white/[0.07] bg-ink-800/80 p-2.5 active:cursor-grabbing ${
+                    className={`group cursor-grab rounded-lg border border-slate-200/90 bg-ink-800/80 p-2.5 active:cursor-grabbing ${
                       dragging === t.id ? 'opacity-40' : ''
                     } ${t.status === 'done' ? 'opacity-70' : ''}`}
                   >
                     <div className="flex items-start gap-1.5">
-                      <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-700 group-hover:text-slate-500" />
+                      <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400 group-hover:text-slate-500" />
                       <div className="min-w-0 flex-1">
-                        <p className={`text-[12px] leading-snug ${t.status === 'done' ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
+                        <p className={`text-[12px] leading-snug ${t.status === 'done' ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
                           {t.title}
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <Pill tone={PRIORITY_TONE[t.priority] ?? 'slate'} className="!px-1.5 !py-0 !text-[9px]">{t.priority}</Pill>
                           {scope === 'all' && (
-                            <span className="rounded bg-white/[0.05] px-1 py-0.5 text-[9px] uppercase tracking-wider text-slate-500">
+                            <span className="rounded bg-slate-100 px-1 py-0.5 text-[9px] uppercase tracking-wider text-slate-500">
                               {stages.find((s) => s.key === t.stage_key)?.name ?? t.stage_key}
                             </span>
                           )}
-                          {t.owner && <span className="text-[9.5px] text-slate-500">{t.owner.split(' ')[0]}</span>}
+                          <select
+                            value={t.owner ?? ''}
+                            onChange={(e) => assign(t, e.target.value || null)}
+                            title="Who owns this?"
+                            className={`max-w-[92px] cursor-pointer truncate rounded px-1 py-0.5 text-[9.5px] outline-none ${
+                              t.owner ? 'bg-slate-100 text-slate-600' : 'bg-amber/10 text-amber'
+                            }`}
+                          >
+                            <option value="">Unassigned</option>
+                            {members.map((m) => (
+                              <option key={m.user_id} value={m.name}>{m.name}</option>
+                            ))}
+                            {t.owner && !members.some((m) => m.name === t.owner) && (
+                              <option value={t.owner}>{t.owner}</option>
+                            )}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => assign(t, me.name)}
+                            title={`Assign to me (${me.name})`}
+                            className="rounded p-0.5 text-slate-400 opacity-0 transition hover:bg-electric/10 hover:text-electric group-hover:opacity-100"
+                          >
+                            <User className="h-2.5 w-2.5" />
+                          </button>
                         </div>
                       </div>
-                      {canEdit && (
+                      <div className="flex flex-col items-center gap-0.5">
                         <button
                           type="button"
-                          onClick={() => remove(t.id)}
-                          className="rounded p-1 text-slate-700 opacity-0 transition hover:bg-rose/10 hover:text-rose group-hover:opacity-100"
-                          aria-label="Delete task"
+                          onClick={() => move(t, nextStatus(t.status))}
+                          title={`Move to ${nextStatus(t.status)}`}
+                          className="rounded p-0.5 text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-800 group-hover:opacity-100"
                         >
-                          <Trash2 className="h-3 w-3" />
+                          <ChevronRight className="h-3 w-3" />
                         </button>
-                      )}
+                        {(canEdit || t.owner === me.name) && (
+                          <button
+                            type="button"
+                            onClick={() => remove(t.id)}
+                            className="rounded p-0.5 text-slate-400 opacity-0 transition hover:bg-rose/10 hover:text-rose group-hover:opacity-100"
+                            aria-label="Delete task"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -216,7 +262,7 @@ export default function Board({
                     setAdding(col.key);
                     setDraft((d) => ({ ...d, stage_key: stageKey }));
                   }}
-                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-white/10 py-1.5 text-[11px] text-slate-500 transition hover:border-white/25 hover:text-slate-300"
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[11px] text-slate-500 transition hover:border-slate-300 hover:text-slate-400"
                 >
                   <Plus className="h-3 w-3" /> Add task
                 </button>
@@ -226,9 +272,10 @@ export default function Board({
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-[10.5px] text-slate-600">
-        <Flag className="h-3 w-3" />
-        Drag cards between columns. Every stage checklist item is pre-loaded as a task, so nothing gets skipped.
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-[10.5px] text-slate-500">
+        <Info className="h-3 w-3" />
+        Drag cards between columns — or use the arrow for one-tap moves on a phone. Click a name to reassign; anyone in the
+        room can hand work to anyone else.
         <div className="ml-auto flex items-center gap-1">
           {members.slice(0, 5).map((m) => (
             <Avatar key={m.user_id} name={m.name} size={18} />

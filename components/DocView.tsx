@@ -19,6 +19,7 @@ export default function DocView({
   canEdit,
   live,
   engine,
+  focusKind,
 }: {
   code: string;
   artifacts: Artifact[];
@@ -28,6 +29,7 @@ export default function DocView({
   canEdit: boolean;
   live: boolean;
   engine: string;
+  focusKind?: string | null;
 }) {
   const stageArtifacts = useMemo(
     () => artifacts.filter((a) => a.stage_key === stageKey).sort((a, b) => a.title.localeCompare(b.title)),
@@ -50,6 +52,15 @@ export default function DocView({
   useEffect(() => {
     if (active) setDraft(active.content);
   }, [active?.id]);
+
+  useEffect(() => {
+    if (!focusKind) return;
+    const target = artifacts.find((a) => a.kind === focusKind);
+    if (target) {
+      setActiveId(target.id);
+      setEditing(false);
+    }
+  }, [focusKind, artifacts]);
 
   const generate = async (kind: string) => {
     setBusy(kind);
@@ -138,20 +149,20 @@ export default function DocView({
                 className={`min-w-[200px] shrink-0 rounded-xl border p-2.5 text-left transition lg:min-w-0 ${
                   selected
                     ? 'border-electric/40 bg-electric/[0.1]'
-                    : 'border-white/[0.07] bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
+                    : 'border-slate-200/90 bg-slate-50 hover:border-slate-300 hover:bg-slate-100/70'
                 }`}
               >
                 <div className="flex items-center justify-between gap-1">
-                  <span className="truncate text-[12px] font-medium text-slate-100">{a.title}</span>
-                  {a.content ? <Check className="h-3 w-3 shrink-0 text-mint" /> : <Sparkles className="h-3 w-3 shrink-0 text-slate-600" />}
+                  <span className="truncate text-[12px] font-medium text-slate-900">{a.title}</span>
+                  {a.content ? <Check className="h-3 w-3 shrink-0 text-mint" /> : <Sparkles className="h-3 w-3 shrink-0 text-slate-500" />}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5">
                   <span className={`rounded px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${
-                    a.content ? 'bg-white/[0.06] text-slate-400' : 'bg-amber/10 text-amber'
+                    a.content ? 'bg-slate-100 text-slate-500' : 'bg-amber/10 text-amber'
                   }`}>
                     {a.content ? a.status : 'empty'}
                   </span>
-                  {a.content && <span className="text-[9.5px] text-slate-600">{a.content.split(/\s+/).length} words</span>}
+                  {a.content && <span className="text-[9.5px] text-slate-500">{a.content.split(/\s+/).length} words</span>}
                 </div>
               </button>
             );
@@ -164,35 +175,41 @@ export default function DocView({
         <div className="panel min-h-[420px] overflow-hidden">
           {active ? (
             <>
-              <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.07] px-3.5 py-2.5">
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/90 px-3.5 py-2.5">
                 <div className="min-w-0">
-                  <h3 className="truncate text-[13px] font-semibold text-white">{active.title}</h3>
+                  <h3 className="truncate text-[13px] font-semibold text-slate-900">{active.title}</h3>
                   <div className="text-[10.5px] text-slate-500">
                     {active.updated_by ? `Edited by ${active.updated_by}` : 'Workspace starter'} · {active.content ? `${active.content.split(/\s+/).length} words` : 'not generated yet'}
                   </div>
                 </div>
                 <div className="ml-auto flex items-center gap-1.5">
                   <Pill tone={TONE[active.status] ?? 'slate'}>{active.status}</Pill>
-                  {active.content && (
-                    <>
-                      <button
-                        type="button"
-                        className="btn-subtle p-1.5"
-                        title="Copy markdown"
-                        onClick={() => navigator.clipboard?.writeText(active.content)}
-                      >
-                        <Copy className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-subtle p-1.5"
-                        title={editing ? 'Preview' : 'Edit'}
-                        onClick={() => setEditing((v) => !v)}
-                        disabled={!canEdit}
-                      >
-                        {editing ? <Eye className="h-3.5 w-3.5" /> : <Pencil className="h-3.5 w-3.5" />}
-                      </button>
-                    </>
+                  {editing ? (
+                    <button type="button" className="btn-subtle p-1.5" title="Preview" onClick={() => setEditing(false)}>
+                      <Eye className="h-3.5 w-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn-subtle p-1.5"
+                      title="Edit this document"
+                      onClick={() => {
+                        setDraft(active.content || `# ${active.title}\n\n## Summary\n\n## Detail\n\n## Decisions\n\n## Open questions\n`);
+                        setEditing(true);
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                  {!!active.content && (
+                    <button
+                      type="button"
+                      className="btn-subtle p-1.5"
+                      title="Copy markdown"
+                      onClick={() => navigator.clipboard?.writeText(active.content)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
                   )}
                   <button
                     type="button"
@@ -208,6 +225,11 @@ export default function DocView({
 
               {editing ? (
                 <div className="p-3">
+                  {!active.content && (
+                    <p className="mb-2 rounded-lg border border-amber/25 bg-amber/[0.06] px-2.5 py-1.5 text-[11px] text-amber">
+                      Nothing here yet — write the first version, or cancel and let Prime draft it.
+                    </p>
+                  )}
                   <div className="mb-2 flex items-center gap-2">
                     <button type="button" className="btn-primary px-2.5 py-1.5 text-[11px]" onClick={save} disabled={busy === 'save'}>
                       {busy === 'save' ? <Spinner className="h-3 w-3" /> : <Save className="h-3 w-3" />} Save
@@ -215,7 +237,7 @@ export default function DocView({
                     <button type="button" className="btn-subtle px-2.5 py-1.5 text-[11px]" onClick={() => { setEditing(false); setDraft(active.content); }}>
                       <X className="h-3 w-3" /> Cancel
                     </button>
-                    <span className="ml-auto text-[10px] text-slate-600">Markdown supported</span>
+                    <span className="ml-auto text-[10px] text-slate-500">Markdown supported</span>
                   </div>
                   <textarea
                     className="md-input scroll-thin"
@@ -227,8 +249,8 @@ export default function DocView({
               ) : active.content ? (
                 <div className="scroll-thin max-h-[600px] overflow-y-auto p-4">
                   <Markdown text={active.content} />
-                  <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/[0.07] pt-3">
-                    <span className="text-[10.5px] uppercase tracking-[0.14em] text-slate-600">Mark as</span>
+                  <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200/90 pt-3">
+                    <span className="text-[10.5px] uppercase tracking-[0.14em] text-slate-500">Mark as</span>
                     {['draft', 'ready', 'approved'].map((s) => (
                       <button
                         key={s}
@@ -237,13 +259,13 @@ export default function DocView({
                         className={`rounded-full border px-2.5 py-1 text-[10.5px] font-medium capitalize transition ${
                           active.status === s
                             ? 'border-mint/40 bg-mint/15 text-mint'
-                            : 'border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/25'
+                            : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
                         }`}
                       >
                         {s}
                       </button>
                     ))}
-                    <span className="ml-auto text-[10px] text-slate-600">engine: {engine}</span>
+                    <span className="ml-auto text-[10px] text-slate-500">engine: {engine}</span>
                   </div>
                 </div>
               ) : (
@@ -252,15 +274,27 @@ export default function DocView({
                     <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl border border-electric/25 bg-electric/10 text-electric-soft">
                       <Sparkles className="h-5 w-5" />
                     </div>
-                    <h4 className="text-[14px] font-semibold text-white">This document is empty</h4>
-                    <p className="mx-auto mt-1 max-w-sm text-[12px] leading-relaxed text-slate-400">
+                    <h4 className="text-[14px] font-semibold text-slate-900">This document is empty</h4>
+                    <p className="mx-auto mt-1 max-w-sm text-[12px] leading-relaxed text-slate-500">
                       Generate a starter draft tailored to your problem statement, then edit it in place. Nothing is
                       invented about your market — assumptions are marked.
                     </p>
-                    <button type="button" className="btn-primary mt-4" onClick={() => generate(active.kind)} disabled={busy !== null}>
-                      {busy === active.kind ? <Spinner className="h-4 w-4" /> : <Wand2 className="h-4 w-4" />}
-                      Generate “{active.title}”
-                    </button>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      <button type="button" className="btn-primary" onClick={() => generate(active.kind)} disabled={busy !== null}>
+                        {busy === active.kind ? <Spinner className="h-4 w-4" /> : <Wand2 className="h-4 w-4" />}
+                        Generate “{active.title}”
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={() => {
+                          setDraft(`# ${active.title}\n\n_Owner:_ ${''}\n\n## Summary\n\n## Detail\n\n## Decisions\n\n## Open questions\n`);
+                          setEditing(true);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" /> Write it myself
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

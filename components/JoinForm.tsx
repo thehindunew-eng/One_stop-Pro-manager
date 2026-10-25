@@ -70,11 +70,11 @@ export default function JoinForm({
 
   return (
     <div className="app-bg min-h-screen">
-      <header className="border-b border-white/[0.06]">
+      <header className="border-b border-slate-200/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <Link href="/" className="flex items-center gap-2.5">
             <Logo size={32} />
-            <span className="text-[13px] font-semibold text-white">One Stop Pro Manager</span>
+            <span className="text-[13px] font-semibold text-slate-900">One Stop Pro Manager</span>
           </Link>
           <Link href="/" className="btn-subtle text-[12.5px]">← Back to overview</Link>
         </div>
@@ -83,11 +83,11 @@ export default function JoinForm({
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[1fr_460px] lg:py-16">
         <div className="hidden lg:block">
           <Pill tone="electric"><Sparkles className="h-3 w-3" /> The room is where the work happens</Pill>
-          <h1 className="mt-4 text-[38px] font-semibold leading-[1.08] tracking-[-0.03em] text-white">
+          <h1 className="mt-4 text-[38px] font-semibold leading-[1.08] tracking-[-0.03em] text-slate-900">
             Join the team,<br />
             <span className="bg-gradient-to-r from-electric-soft to-cyan bg-clip-text text-transparent">then build the thing.</span>
           </h1>
-          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-slate-400">
+          <p className="mt-4 max-w-md text-[14px] leading-relaxed text-slate-500">
             Everyone gets the same problem statement, the same lifecycle and the same board. No sign-up wall, no
             invitation emails — just a name, a role and the link your PM shared.
           </p>
@@ -103,8 +103,8 @@ export default function JoinForm({
                   <f.icon className="h-4 w-4" />
                 </div>
                 <div>
-                  <div className="text-[13px] font-semibold text-white">{f.title}</div>
-                  <p className="text-[12px] leading-relaxed text-slate-400">{f.body}</p>
+                  <div className="text-[13px] font-semibold text-slate-900">{f.title}</div>
+                  <p className="text-[12px] leading-relaxed text-slate-500">{f.body}</p>
                 </div>
               </div>
             ))}
@@ -119,26 +119,26 @@ export default function JoinForm({
             </Link>
           </div>
 
-          <div className="mt-4 rounded-xl border border-dashed border-white/10 p-3 text-[11.5px] leading-relaxed text-slate-500">
-            <span className="font-semibold text-slate-300">Owner?</span> Enter the passcode you set in
-            <code className="mx-1 rounded bg-white/[0.07] px-1.5 py-0.5 text-[11px] text-cyan-200">ADMIN_PASSCODE</code>
-            to unlock the admin console. Default demo passcode: <span className="text-slate-300">amar-admin</span>.
+          <div className="mt-4 rounded-xl border border-dashed border-slate-200 p-3 text-[11.5px] leading-relaxed text-slate-500">
+            <span className="font-semibold text-slate-400">Owner?</span> Enter the passcode you set in
+            <code className="mx-1 rounded bg-slate-200/70 px-1.5 py-0.5 text-[11px] text-cyan-800">ADMIN_PASSCODE</code>
+            to unlock the admin console. Default demo passcode: <span className="text-slate-400">amar-admin</span>.
           </div>
         </div>
 
         <div className="panel p-5 lg:p-6">
-          <div className="mb-5 flex items-center gap-1 rounded-xl border border-white/10 bg-ink-900/60 p-1">
+          <div className="mb-5 flex items-center gap-1 rounded-xl border border-slate-200 bg-ink-900/60 p-1">
             <button
               type="button"
               onClick={() => setMode('join')}
-              className={`flex-1 rounded-lg px-3 py-2 text-[12.5px] font-medium transition ${mode === 'join' ? 'bg-white/[0.09] text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`flex-1 rounded-lg px-3 py-2 text-[12.5px] font-medium transition ${mode === 'join' ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
             >
               Join a room
             </button>
             <button
               type="button"
               onClick={() => setMode('create')}
-              className={`flex-1 rounded-lg px-3 py-2 text-[12.5px] font-medium transition ${mode === 'create' ? 'bg-white/[0.09] text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`flex-1 rounded-lg px-3 py-2 text-[12.5px] font-medium transition ${mode === 'create' ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
             >
               Create a room
             </button>
@@ -152,7 +152,7 @@ export default function JoinForm({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="label" htmlFor="email">Email <span className="normal-case tracking-normal text-slate-600">(optional)</span></label>
+                <label className="label" htmlFor="email">Email <span className="normal-case tracking-normal text-slate-500">(optional)</span></label>
                 <input id="email" className="field" type="email" placeholder="you@team.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div>
@@ -171,7 +171,7 @@ export default function JoinForm({
               <div>
                 <label className="label" htmlFor="code">Room link code</label>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-lg border border-white/10 bg-ink-900/70 px-2.5 py-2.5 text-[12px] text-slate-500">/room/</span>
+                  <span className="rounded-lg border border-slate-200 bg-ink-900/70 px-2.5 py-2.5 text-[12px] text-slate-500">/room/</span>
                   <input id="code" className="field" value={code} onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="studio" required />
                 </div>
                 <p className="mt-1.5 text-[11px] leading-relaxed text-slate-500">
@@ -189,7 +189,7 @@ export default function JoinForm({
                   <input id="projectName" className="field" placeholder="Clinic no-show killer" value={projectName} onChange={(e) => setProjectName(e.target.value)} required maxLength={80} />
                 </div>
                 <div>
-                  <label className="label" htmlFor="tagline">One-line goal <span className="normal-case tracking-normal text-slate-600">(optional)</span></label>
+                  <label className="label" htmlFor="tagline">One-line goal <span className="normal-case tracking-normal text-slate-500">(optional)</span></label>
                   <input id="tagline" className="field" placeholder="Turn a messy kickoff into a shipped v0.1 in two weeks" value={tagline} onChange={(e) => setTagline(e.target.value)} maxLength={160} />
                 </div>
                 <p className="text-[11px] leading-relaxed text-slate-500">
@@ -199,11 +199,11 @@ export default function JoinForm({
               </div>
             )}
 
-            <div className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <button
                 type="button"
                 onClick={() => setShowOwner((v) => !v)}
-                className="flex w-full items-center justify-between text-left text-[12px] font-medium text-slate-300"
+                className="flex w-full items-center justify-between text-left text-[12px] font-medium text-slate-400"
               >
                 <span className="inline-flex items-center gap-1.5"><Lock className="h-3.5 w-3.5 text-amber" /> Owner passcode (optional)</span>
                 <span className="text-[11px] text-slate-500">{showOwner ? 'hide' : 'unlock admin'}</span>
@@ -228,7 +228,7 @@ export default function JoinForm({
               {mode === 'join' ? 'Enter the room' : 'Create the room'}
             </button>
 
-            <p className="text-center text-[10.5px] leading-relaxed text-slate-600">
+            <p className="text-center text-[10.5px] leading-relaxed text-slate-500">
               Demo mode. Anyone with the link can join; only the owner and platform admins can edit the platform.
             </p>
           </form>

@@ -275,40 +275,143 @@ Be opinionated and specific to THIS problem.`;
 }
 
 const CHAT_SYSTEM = `You are "Prime", the operating partner inside One Stop Pro Manager, a meeting IDE for product teams.
-You have the team's problem statement, signals and artifacts. You are direct, practical and biased to shipping.
-Use short markdown sections and bullets. If something is unknown, say so and give the cheapest way to find out.
-Always end with one concrete next action and which stage it belongs to. Keep answers under 260 words.`;
+You are given the room's approved problem statement, the signals the team produced, the board state, the documents
+that already exist, the tools the team actually uses and the recent conversation.
 
-export async function askAgent(question: string, ctx: {
+How to answer:
+- Be the senior product operator in the room: direct, specific to THIS product, biased to shipping.
+- Ground every claim in the context you were given. If something is unknown, say so and give the cheapest way to find out.
+- Use plain language a product manager can act on today. Short markdown sections and bullets, under 240 words.
+- When you recommend work, phrase it as a task a named role could pick up.
+- Always finish with one line: **Next:** the single most useful action and which lifecycle stage it belongs to.`;
+
+export interface AgentAction {
+  kind: 'doc' | 'task' | 'stage' | 'problem';
+  label: string;
+  hint?: string;
+  payload?: Record<string, string>;
+}
+
+export interface AgentContext {
   project: Project;
   problem: ProblemStatement | null;
   messageCount: number;
-  artifacts: { title: string; status: string }[];
+  artifacts: { kind: string; title: string; status: string; stage: string; excerpt?: string }[];
   stage: string;
-}): Promise<{ content: string; engine: string }> {
+  stageKey: string;
+  stages: { key: string; name: string; done: number; total: number }[];
+  tasks: { title: string; status: string; owner: string | null; stage: string; priority: string }[];
+  signals: { type: string; label: string }[];
+  tools: { name: string; status: string; note: string }[];
+  recent: { author: string; content: string }[];
+  history: { role: 'you' | 'prime'; content: string }[];
+}
+
+function suggestedActions(ctx: AgentContext): AgentAction[] {
+  const actions: AgentAction[] = [];
+  const current = ctx.stages.find((s) => s.key === ctx.stageKey);
+  const missing = ctx.artifacts.filter((a) => !a.excerpt && (a.stage === ctx.stage || !a.stage));
+  const nextStage = ctx.stages.find((s) => s.key !== ctx.stageKey && s.done < s.total);
+
+  if (ctx.problem && ctx.problem.status !== 'approved') {
+    actions.push({ kind: 'problem', label: 'Review & approve the problem statement', hint: 'Everything downstream depends on it' });
+  }
+  if (missing[0]) {
+    actions.push({ kind: 'doc', label: `Draft “${missing[0].title}”`, hint: `${ctx.stage} · generated from your problem`, payload: { kind: missing[0].kind } });
+  }
+  actions.push({
+    kind: 'task',
+    label: 'Turn this into a board task',
+    hint: 'Adds it to the current stage so it does not get lost',
+    payload: { title: 'Prime follow-up', stage: ctx.stageKey },
+  });
+  if (nextStage) {
+    actions.push({ kind: 'stage', label: `Open ${nextStage.name}`, hint: `${nextStage.done}/${nextStage.total} done in that stage`, payload: { stage: nextStage.key } });
+  }
+  if (current && current.total > 0 && current.done < current.total) {
+    actions.push({ kind: 'stage', label: `Finish the ${current.name} checklist`, hint: `${current.total - current.done} items left`, payload: { stage: current.key } });
+  }
+  return actions.slice(0, 4);
+}
+
+export async function askAgent(
+  question: string,
+  ctx: AgentContext,
+): Promise<{ content: string; engine: string; actions: AgentAction[] }> {
   const cfg = aiConfig();
+  const actions = suggestedActions(ctx);
+  const fallbackCtx = {
+    problem: ctx.problem,
+    messageCount: ctx.messageCount,
+    stage: ctx.stage,
+    stageKey: ctx.stageKey,
+    openTasks: ctx.tasks.filter((t) => t.status !== 'done').slice(0, 4).map((t) => ({ title: t.title, stage: t.stage })),
+    docsReady: ctx.artifacts.filter((a) => a.status !== 'draft').length,
+    docsTotal: ctx.artifacts.length,
+    toolsUsing: ctx.tools.filter((t) => t.status === 'using').map((t) => t.name),
+    risks: ctx.problem?.unknowns ?? [],
+  };
   if (!cfg.live) {
-    return { content: localChatAnswer(question, { problem: ctx.problem, messageCount: ctx.messageCount }), engine: 'built-in reasoner' };
+    return {
+      content: localChatAnswer(question, fallbackCtx),
+      engine: 'built-in reasoner',
+      actions,
+    };
   }
+
   const p = ctx.problem;
-  const prompt = `PROJECT: ${ctx.project.name}
+  const docLines = ctx.artifacts
+    .map((a) => `- ${a.title} [${a.stage}] — ${a.excerpt ? `${a.status}, ${a.excerpt.slice(0, 320)}` : 'not written yet'}`)
+    .join('\n');
+  const taskLines = ctx.tasks.slice(0, 14).map((t) => `- [${t.status}] ${t.title} (${t.priority}${t.owner ? `, ${t.owner}` : ''})`).join('\n') || '- board is empty';
+  const stageLines = ctx.stages.map((s) => `- ${s.name}: ${s.done}/${s.total} tasks done`).join('\n');
+  const signalLines = ctx.signals.slice(0, 12).map((s) => `- ${s.type}: ${s.label}`).join('\n') || '- none captured';
+  const toolLines = ctx.tools.slice(0, 14).map((t) => `- ${t.name} (${t.status})${t.note ? `: ${t.note}` : ''}`).join('\n') || '- no tools marked yet';
+  const recentLines = ctx.recent.slice(-12).map((m) => `[${m.author}] ${m.content.slice(0, 420)}`).join('\n');
+  const historyLines = ctx.history.slice(-6).map((t) => `${t.role === 'you' ? 'PM' : 'Prime'}: ${t.content.slice(0, 500)}`).join('\n');
+
+  const prompt = `PROJECT: ${ctx.project.name}${ctx.project.tagline ? ` — ${ctx.project.tagline}` : ''}
 CURRENT STAGE: ${ctx.stage}
-PROBLEM STATEMENT: ${p?.statement ?? 'not defined yet'}
-USERS: ${p?.users.join('; ') ?? '—'}
-PAINS: ${p?.pains.join('; ') ?? '—'}
-EVIDENCE: ${p?.evidence.join('; ') ?? '—'}
-METRICS: ${p?.successMetrics.join('; ') ?? '—'}
-UNKNOWNS: ${p?.unknowns.join('; ') ?? '—'}
-ARTIFACTS: ${ctx.artifacts.map((a) => `${a.title} (${a.status})`).join(', ') || 'none'}
-MESSAGES IN MEETING: ${ctx.messageCount}
 
-TEAM ASKS: ${question}`;
+PROBLEM STATEMENT (status: ${p?.status ?? 'none'}, confidence ${p?.confidence ?? 0}%):
+${p?.statement ?? 'not defined yet'}
+Users: ${p?.users.join('; ') ?? '—'}
+Pains: ${p?.pains.join('; ') ?? '—'}
+Evidence: ${p?.evidence.join('; ') ?? '—'}
+Assumptions: ${p?.assumptions.join('; ') ?? '—'}
+Unknowns: ${p?.unknowns.join('; ') ?? '—'}
+Success metrics: ${p?.successMetrics.join('; ') ?? '—'}
 
-  const content = await callLLM(CHAT_SYSTEM, prompt, { maxTokens: 700, temperature: 0.55 });
+LIFECYCLE PROGRESS:
+${stageLines}
+
+DOCUMENTS:
+${docLines}
+
+BOARD (open + recent):
+${taskLines}
+
+SIGNALS FROM THE ROOM:
+${signalLines}
+
+TOOLS THE TEAM USES:
+${toolLines}
+
+RECENT CONVERSATION:
+${recentLines || '(nothing yet)'}
+
+${historyLines ? `EARLIER IN THIS CHAT:\n${historyLines}\n` : ''}
+THE PM ASKS: ${question}`;
+
+  const content = await callLLM(CHAT_SYSTEM, prompt, { maxTokens: 900, temperature: 0.45 });
   if (!content) {
-    return { content: localChatAnswer(question, { problem: ctx.problem, messageCount: ctx.messageCount }), engine: 'built-in reasoner (LLM unavailable)' };
+    return {
+      content: localChatAnswer(question, fallbackCtx),
+      engine: 'built-in reasoner (LLM unavailable)',
+      actions,
+    };
   }
-  return { content, engine: `${cfg.provider}:${cfg.model}` };
+  return { content, engine: `${cfg.provider}:${cfg.model}`, actions };
 }
 
 export function engineLabel(): { engine: string; provider: string | null; model: string | null; live: boolean } {

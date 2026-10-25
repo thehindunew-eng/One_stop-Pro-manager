@@ -26,13 +26,14 @@ export default function LandingPage() {
   return (
     <main className="app-bg min-h-screen">
       {/* nav */}
-      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-ink-900/70 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-ink-900/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
           <Logo size={34} />
           <div className="flex items-center gap-1.5">
             <Link href="#lifecycle" className="btn-subtle hidden md:inline-flex">Lifecycle</Link>
             <Link href="#tools" className="btn-subtle hidden md:inline-flex">Tool wall</Link>
             <Link href="#owner" className="btn-subtle hidden md:inline-flex">Owner console</Link>
+            <Link href="/setup" className="btn-subtle hidden md:inline-flex">Setup &amp; keys</Link>
             <Link href={LIVE_LINK} className="btn-primary">
               Open the live room <ArrowRight className="h-4 w-4" />
             </Link>
@@ -43,8 +44,8 @@ export default function LandingPage() {
       {/* hero */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 grid-lines" />
-        <div className="pointer-events-none absolute -left-40 top-10 h-72 w-72 rounded-full bg-electric/20 blur-[110px] animate-drift" />
-        <div className="pointer-events-none absolute right-0 top-32 h-64 w-64 rounded-full bg-cyan/10 blur-[100px]" />
+        <div className="pointer-events-none absolute -left-40 top-10 h-72 w-72 rounded-full bg-electric/10 blur-[110px] animate-drift" />
+        <div className="pointer-events-none absolute right-0 top-32 h-64 w-64 rounded-full bg-cyan/[0.07] blur-[100px]" />
         <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 md:pt-24">
           <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
             <div className="animate-fade-up">
@@ -52,14 +53,14 @@ export default function LandingPage() {
                 <Sparkles className="h-3.5 w-3.5" />
                 Meeting IDE · AI problem extraction · 9 stages to launch
               </div>
-              <h1 className="text-balance text-[40px] font-semibold leading-[1.05] tracking-[-0.03em] text-white md:text-[58px]">
+              <h1 className="text-balance text-[40px] font-semibold leading-[1.05] tracking-[-0.03em] text-slate-900 md:text-[58px]">
                 Your meeting should end with a product.
-                <span className="block bg-gradient-to-r from-electric-soft via-white to-cyan bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-electric via-indigo-500 to-cyan bg-clip-text text-transparent">
                   Not a note.
                 </span>
               </h1>
-              <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-slate-400">
-                One room where the whole team talks, the copilot works out the <strong className="font-medium text-slate-200">actual problem
+              <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-slate-500">
+                One room where the whole team talks, the copilot works out the <strong className="font-medium text-slate-800">actual problem
                 statement</strong>, and every stage from ideation to deployment arrives with its documents, checklists and free
                 tools already loaded — {toolCount}+ of them, icons side by side.
               </p>
@@ -80,10 +81,10 @@ export default function LandingPage() {
 
             {/* mock: conversation → problem */}
             <div className="relative animate-fade-up [animation-delay:120ms]">
-              <div className="absolute -inset-6 rounded-[32px] bg-gradient-to-br from-electric/20 via-transparent to-cyan/10 blur-2xl" />
+              <div className="absolute -inset-6 rounded-[32px] bg-gradient-to-br from-electric/[0.12] via-transparent to-cyan/[0.08] blur-2xl" />
               <div className="panel relative overflow-hidden p-4">
                 <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
+                  <div className="flex items-center gap-2 text-[11px] font-medium text-slate-500">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose/60" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-rose" />
@@ -98,12 +99,12 @@ export default function LandingPage() {
                     ['Rohan', 'eng', 'Scope arrives as vibes. We rework 30% of every sprint.'],
                     ['Priya', 'design', "I'm in four tools before I draw one screen."],
                   ].map(([name, role, text]) => (
-                    <div key={name} className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-2.5">
-                      <div className="mb-1 flex items-center gap-1.5 text-[10.5px] font-medium text-slate-400">
-                        <span className="text-slate-200">{name}</span>
-                        <span className="rounded bg-white/[0.06] px-1 py-px text-[9px] uppercase tracking-wider text-slate-400">{role}</span>
+                    <div key={name} className="rounded-xl border border-slate-200/80 bg-slate-50 p-2.5">
+                      <div className="mb-1 flex items-center gap-1.5 text-[10.5px] font-medium text-slate-500">
+                        <span className="text-slate-800">{name}</span>
+                        <span className="rounded bg-slate-100 px-1 py-px text-[9px] uppercase tracking-wider text-slate-500">{role}</span>
                       </div>
-                      <p className="text-[12px] leading-relaxed text-slate-400">{text}</p>
+                      <p className="text-[12px] leading-relaxed text-slate-500">{text}</p>
                     </div>
                   ))}
                 </div>
@@ -121,13 +122,13 @@ export default function LandingPage() {
                     <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-electric-soft">The real question</span>
                     <span className="text-[10px] font-semibold text-mint">87% confidence</span>
                   </div>
-                  <p className="text-[13.5px] font-medium leading-snug text-white">
+                  <p className="text-[13.5px] font-medium leading-snug text-slate-900">
                     How might we help product teams turn an unstructured working session into a validated, buildable
                     product — without losing the thread between meeting and launch?
                   </p>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {['product teams', 'hand-off tax', 'rework', 'one workspace'].map((t) => (
-                      <span key={t} className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-slate-300">{t}</span>
+                      <span key={t} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-400">{t}</span>
                     ))}
                   </div>
                 </div>
@@ -138,8 +139,8 @@ export default function LandingPage() {
                     ['Tools', String(toolCount)],
                     ['Stages', '9'],
                   ].map(([k, v]) => (
-                    <div key={k} className="rounded-lg border border-white/[0.06] bg-ink-900/60 px-2.5 py-2">
-                      <div className="text-[16px] font-semibold text-white">{v}</div>
+                    <div key={k} className="rounded-lg border border-slate-200/80 bg-ink-900/60 px-2.5 py-2">
+                      <div className="text-[16px] font-semibold text-slate-900">{v}</div>
                       <div className="text-[9.5px] uppercase tracking-[0.16em] text-slate-500">{k}</div>
                     </div>
                   ))}
@@ -151,14 +152,14 @@ export default function LandingPage() {
       </section>
 
       {/* problem engine */}
-      <section className="border-t border-white/[0.06] py-16">
+      <section className="border-t border-slate-200/80 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-10 max-w-2xl">
             <Pill tone="cyan"><Wand2 className="h-3 w-3" /> The problem engine</Pill>
-            <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-white md:text-[38px]">
+            <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-slate-900 md:text-[38px]">
               It listens like a product lead, not a stenographer.
             </h2>
-            <p className="mt-3 text-[14.5px] leading-relaxed text-slate-400">
+            <p className="mt-3 text-[14.5px] leading-relaxed text-slate-500">
               Every message is read for pains, users, evidence, decisions, blockers and metrics. When the conversation has
               enough signal, the room proposes the one question the team should answer — with confidence, unknowns and the
               evidence attached. A human always approves it.
@@ -171,11 +172,11 @@ export default function LandingPage() {
               { icon: Blocks, title: 'Operationalise', body: 'Once approved, the problem becomes the spine: PRDs, scope, architecture, tests and launch copy all build against it.', tone: '#fbbf24' },
             ].map((f) => (
               <div key={f.title} className="panel card-hover p-5">
-                <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-white/10" style={{ background: `${f.tone}18`, color: f.tone }}>
+                <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl border border-slate-200" style={{ background: `${f.tone}18`, color: f.tone }}>
                   <f.icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-[15px] font-semibold text-white">{f.title}</h3>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-slate-400">{f.body}</p>
+                <h3 className="text-[15px] font-semibold text-slate-900">{f.title}</h3>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">{f.body}</p>
               </div>
             ))}
           </div>
@@ -183,15 +184,15 @@ export default function LandingPage() {
       </section>
 
       {/* lifecycle */}
-      <section id="lifecycle" className="border-t border-white/[0.06] py-16">
+      <section id="lifecycle" className="border-t border-slate-200/80 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
               <Pill tone="electric"><Layers className="h-3 w-3" /> Nine stages, one thread</Pill>
-              <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-white md:text-[38px]">
+              <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-slate-900 md:text-[38px]">
                 Ideation to deployment, in order.
               </h2>
-              <p className="mt-3 text-[14.5px] leading-relaxed text-slate-400">
+              <p className="mt-3 text-[14.5px] leading-relaxed text-slate-500">
                 Each stage carries its own documents, checklist, board tasks and free tools. Nothing is skipped, and the
                 lifecycle can be renamed, reordered or extended by the owner.
               </p>
@@ -205,20 +206,20 @@ export default function LandingPage() {
               <div key={s.key} className="panel card-hover group relative overflow-hidden p-4">
                 <div className="flex items-start gap-3">
                   <div
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200"
                     style={{ background: `${s.color}16`, color: s.color }}
                   >
                     <StageIcon name={s.icon} className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-semibold tabular-nums text-slate-600">0{idx + 1}</span>
-                      <h3 className="text-[14.5px] font-semibold text-white">{s.name}</h3>
+                      <span className="text-[10px] font-semibold tabular-nums text-slate-500">0{idx + 1}</span>
+                      <h3 className="text-[14.5px] font-semibold text-slate-900">{s.name}</h3>
                     </div>
-                    <p className="mt-1 text-[12.5px] leading-relaxed text-slate-400">{s.tagline}</p>
+                    <p className="mt-1 text-[12.5px] leading-relaxed text-slate-500">{s.tagline}</p>
                     <div className="mt-2.5 flex flex-wrap gap-1">
                       {s.checklist.slice(0, 2).map((c) => (
-                        <span key={c} className="rounded bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-slate-500">
+                        <span key={c} className="rounded bg-slate-100/70 px-1.5 py-0.5 text-[10px] text-slate-500">
                           {c.length > 34 ? `${c.slice(0, 33)}…` : c}
                         </span>
                       ))}
@@ -232,14 +233,14 @@ export default function LandingPage() {
       </section>
 
       {/* tool wall */}
-      <section id="tools" className="border-t border-white/[0.06] py-16">
+      <section id="tools" className="border-t border-slate-200/80 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 max-w-2xl">
             <Pill tone="mint"><Blocks className="h-3 w-3" /> {toolCount}+ free tools</Pill>
-            <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-white md:text-[38px]">
+            <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-slate-900 md:text-[38px]">
               The whole stack, visible at a glance.
             </h2>
-            <p className="mt-3 text-[14.5px] leading-relaxed text-slate-400">
+            <p className="mt-3 text-[14.5px] leading-relaxed text-slate-500">
               Every tool below has a genuinely usable free tier and is mapped to the stage where it belongs. The owner can
               add, retire or rename any tile from inside the platform.
             </p>
@@ -249,7 +250,7 @@ export default function LandingPage() {
               <div key={group.cat}>
                 <div className="mb-2.5 flex items-center gap-2">
                   <span className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-slate-500">{group.cat}</span>
-                  <div className="h-px flex-1 bg-white/[0.06]" />
+                  <div className="h-px flex-1 bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                   {group.tools.map((t) => (
@@ -262,7 +263,7 @@ export default function LandingPage() {
                     >
                       <ToolIcon name={t.name} color={t.color} size={30} rounded={8} />
                       <div className="min-w-0">
-                        <div className="truncate text-[12px] font-medium text-slate-200">{t.name}</div>
+                        <div className="truncate text-[12px] font-medium text-slate-800">{t.name}</div>
                         <div className="truncate text-[10px] text-slate-500">{t.free_tier.replace(' free', '')}</div>
                       </div>
                     </a>
@@ -275,15 +276,15 @@ export default function LandingPage() {
       </section>
 
       {/* roles */}
-      <section className="border-t border-white/[0.06] py-16">
+      <section className="border-t border-slate-200/80 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
             <div>
               <Pill tone="amber"><Users className="h-3 w-3" /> Everyone in the same room</Pill>
-              <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-white md:text-[36px]">
+              <h2 className="mt-3 text-[30px] font-semibold tracking-tight text-slate-900 md:text-[36px]">
                 Built for the whole product team.
               </h2>
-              <p className="mt-3 text-[14.5px] leading-relaxed text-slate-400">
+              <p className="mt-3 text-[14.5px] leading-relaxed text-slate-500">
                 One link, role-aware access. Everyone sees the same problem, the same plan and the same next action —
                 with live presence so nobody repeats the meeting.
               </p>
@@ -300,8 +301,8 @@ export default function LandingPage() {
                     <Braces className="h-4 w-4" />
                   </div>
                   <div>
-                    <div className="text-[13px] font-semibold text-white">{r.label}</div>
-                    <div className="text-[11.5px] leading-relaxed text-slate-400">{r.blurb}</div>
+                    <div className="text-[13px] font-semibold text-slate-900">{r.label}</div>
+                    <div className="text-[11.5px] leading-relaxed text-slate-500">{r.blurb}</div>
                   </div>
                 </div>
               ))}
@@ -311,19 +312,19 @@ export default function LandingPage() {
       </section>
 
       {/* owner console + deploy */}
-      <section id="owner" className="border-t border-white/[0.06] py-16">
+      <section id="owner" className="border-t border-slate-200/80 py-16">
         <div className="mx-auto grid max-w-7xl gap-4 px-5 lg:grid-cols-2">
           <div className="panel relative overflow-hidden p-6">
             <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-amber/10 blur-3xl" />
             <Pill tone="amber"><ShieldCheck className="h-3 w-3" /> Owner access</Pill>
-            <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-white">
+            <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-slate-900">
               Amar, the platform is yours to maintain.
             </h2>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-slate-400">
+            <p className="mt-2 text-[13.5px] leading-relaxed text-slate-500">
               Unlock the owner console with a passcode. Edit stages, checklists, icons and colours. Add or retire tools
               with their free-tier notes and links. Everything is stored in Postgres — no code changes, no redeploy.
             </p>
-            <ul className="mt-4 space-y-2 text-[13px] text-slate-300">
+            <ul className="mt-4 space-y-2 text-[13px] text-slate-400">
               {[
                 'Rename, reorder, disable or add lifecycle stages',
                 'Edit each stage checklist that becomes board tasks',
@@ -340,8 +341,8 @@ export default function LandingPage() {
 
           <div className="panel p-6">
             <Pill tone="electric"><Rocket className="h-3 w-3" /> Ships on free infrastructure</Pill>
-            <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-white">Vercel + Neon, by design.</h2>
-            <p className="mt-2 text-[13.5px] leading-relaxed text-slate-400">
+            <h2 className="mt-3 text-[24px] font-semibold tracking-tight text-slate-900">Vercel + Neon, by design.</h2>
+            <p className="mt-2 text-[13.5px] leading-relaxed text-slate-500">
               Deploy the repo to Vercel, paste a Neon connection string, add one AI key (or none) and you are live.
               Locally it runs on an embedded Postgres with zero setup.
             </p>
@@ -356,8 +357,8 @@ export default function LandingPage() {
                   <s.icon className="mt-0.5 h-4 w-4 shrink-0 text-electric-soft" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-[12.5px] font-medium text-white">{s.title}</span>
-                      <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-400">{s.tag}</span>
+                      <span className="text-[12.5px] font-medium text-slate-900">{s.title}</span>
+                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-500">{s.tag}</span>
                     </div>
                     <p className="text-[11.5px] leading-relaxed text-slate-500">{s.body}</p>
                   </div>
@@ -368,14 +369,74 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* access checklist */}
+      <section id="access" className="border-t border-slate-200/80 bg-white/60 py-14">
+        <div className="mx-auto max-w-5xl px-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-mint/30 bg-mint/[0.08] px-2.5 py-1 text-[10.5px] font-medium text-mint">
+                <ShieldCheck className="h-3 w-3" /> Works today, with or without keys
+              </div>
+              <h2 className="mt-2 text-[24px] font-semibold tracking-tight text-slate-900">What you need to give us</h2>
+              <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-slate-600">
+                Two values for a real team, one optional key for sharper AI, and no OAuth apps at all. The
+                in-app checklist shows what is already connected.
+              </p>
+            </div>
+            <Link href="/setup" className="btn-ghost">
+              Open the checklist <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          <div className="mt-5 grid gap-2.5 md:grid-cols-3">
+            {[
+              {
+                icon: Database,
+                tag: 'Needed',
+                tone: 'text-rose',
+                title: 'Neon database URL',
+                body: 'DATABASE_URL — without it, data resets when the serverless instance restarts.',
+              },
+              {
+                icon: ShieldCheck,
+                tag: 'Needed',
+                tone: 'text-rose',
+                title: 'Session secret',
+                body: 'AUTH_SECRET — a long random string, so people stay signed in after a deploy.',
+              },
+              {
+                icon: Sparkles,
+                tag: 'Optional',
+                tone: 'text-amber',
+                title: 'One AI key',
+                body: 'Gemini, Groq, OpenAI, Anthropic or OpenRouter. Free tiers exist; without a key Prime uses the built-in reasoner.',
+              },
+            ].map((x) => (
+              <div key={x.title} className="panel-flat p-3.5">
+                <div className="flex items-center gap-2">
+                  <x.icon className={`h-4 w-4 ${x.tone}`} />
+                  <span className="text-[12.5px] font-semibold text-slate-900">{x.title}</span>
+                  <span className="ml-auto rounded bg-slate-100 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-slate-500">
+                    {x.tag}
+                  </span>
+                </div>
+                <p className="mt-1 text-[11.5px] leading-relaxed text-slate-600">{x.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[11px] text-slate-500">
+            Not needed: OAuth apps for Figma, Notion, Slack or Linear · payment keys · paid plans · repo or cloud access.
+          </p>
+        </div>
+      </section>
+
       {/* cta */}
-      <section className="border-t border-white/[0.06] py-20">
+      <section className="border-t border-slate-200/80 py-20">
         <div className="mx-auto max-w-3xl px-5 text-center">
           <div className="mx-auto mb-5 w-fit"><Logo size={48} /></div>
-          <h2 className="text-[32px] font-semibold tracking-tight text-white md:text-[42px]">
+          <h2 className="text-[32px] font-semibold tracking-tight text-slate-900 md:text-[42px]">
             Stop taking notes. Start shipping.
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-[14.5px] leading-relaxed text-slate-400">
+          <p className="mx-auto mt-3 max-w-xl text-[14.5px] leading-relaxed text-slate-500">
             Open the room, invite the team, and leave the meeting with an approved problem statement, a plan and a URL.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
@@ -389,15 +450,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-[11.5px] text-slate-600 sm:flex-row">
+      <footer className="border-t border-slate-200/80 py-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-[11.5px] text-slate-500 sm:flex-row">
           <div className="flex items-center gap-2">
             <Logo size={20} /> One Stop Pro Manager · built for Amar Tripathi&apos;s team
           </div>
           <div className="flex items-center gap-4">
-            <Link href={LIVE_LINK} className="hover:text-slate-300">Live workspace</Link>
+            <Link href={LIVE_LINK} className="hover:text-slate-400">Live workspace</Link>
             <span>·</span>
-            <Link href={DEMO_LINK} className="hover:text-slate-300">Demo room</Link>
+            <Link href={DEMO_LINK} className="hover:text-slate-400">Demo room</Link>
+            <Link href="/setup" className="hover:text-slate-400">Setup &amp; keys</Link>
             <span>·</span>
             <span>Vercel + Neon</span>
           </div>

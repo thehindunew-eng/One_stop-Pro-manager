@@ -6,8 +6,8 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
   return (
     <main className="app-bg grid min-h-screen place-items-center px-5">
       <div className="panel max-w-lg p-6 text-center">
-        <h1 className="text-lg font-semibold text-white">Something broke while loading</h1>
-        <p className="mt-2 text-[13px] leading-relaxed text-slate-400">
+        <h1 className="text-lg font-semibold text-slate-900">Something broke while loading</h1>
+        <p className="mt-2 text-[13px] leading-relaxed text-slate-500">
           The room hit an unexpected error. Your data is safe in Postgres — retry, or open another room.
         </p>
         {error?.message && (

@@ -2,31 +2,35 @@ import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
 
 const config: Config = {
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
+        // Light, professional surfaces (names kept from the earlier theme so
+        // components read the same, but the values are now paper + ink).
         ink: {
-          900: '#070914',
-          850: '#0a0d1c',
-          800: '#0e1224',
-          700: '#151a30',
-          600: '#1d2440',
-          500: '#2a3355',
+          900: '#f5f7fb',
+          850: '#ffffff',
+          800: '#ffffff',
+          700: '#eef1f7',
+          600: '#e3e8f1',
+          500: '#cfd6e4',
         },
-        electric: { DEFAULT: '#6366f1', soft: '#818cf8' },
-        mint: '#34d399',
-        amber: { ...colors.amber, DEFAULT: '#fbbf24' },
-        rose: { ...colors.rose, DEFAULT: '#fb7185' },
-        cyan: { ...colors.cyan, DEFAULT: '#22d3ee' },
+        electric: { DEFAULT: '#4f46e5', soft: '#4338ca' },
+        mint: { ...colors.emerald, DEFAULT: '#059669' },
+        amber: { ...colors.amber, DEFAULT: '#b45309' },
+        rose: { ...colors.rose, DEFAULT: '#e11d48' },
+        cyan: { ...colors.cyan, DEFAULT: '#0e7490' },
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
-        glow: '0 0 0 1px rgba(99,102,241,.25), 0 18px 50px -12px rgba(99,102,241,.45)',
-        panel: '0 24px 60px -30px rgba(0,0,0,.8)',
+        glow: '0 10px 30px -12px rgba(79,70,229,.45)',
+        panel: '0 1px 2px rgba(16,24,40,.04), 0 12px 28px -18px rgba(16,24,40,.22)',
+        card: '0 1px 2px rgba(16,24,40,.06)',
+        pop: '0 20px 45px -20px rgba(16,24,40,.28)',
       },
       keyframes: {
         'fade-up': { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },

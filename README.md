@@ -187,6 +187,28 @@ mutation, parameterised SQL only, no API keys exposed to the browser.
 
 ---
 
+## What needs an API key (and what does not)
+
+There is a live checklist inside the app at **`/setup`** — it reads your environment and shows, for every
+integration, whether it is connected, what the fallback is, and the exact steps to switch it on.
+
+| Integration | Needed? | Variable | If you skip it |
+| --- | --- | --- | --- |
+| Neon Postgres | **Yes for a real team** | `DATABASE_URL` | Runs on an embedded Postgres file. Works locally; on Vercel the file system is temporary, so data resets on redeploy. |
+| Session secret | **Yes for a real team** | `AUTH_SECRET` | Sessions work on a development default, but every deploy signs everyone out and a session could be forged. |
+| Vercel hosting | Recommended | `VERCEL` (automatic) | Nothing breaks locally, but the team has no public link. |
+| AI provider — one of | Optional (upgrade) | `GEMINI_API_KEY` / `GROQ_API_KEY` / `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `OPENROUTER_API_KEY` | The built-in reasoner answers from the problem statement, board and documents. No key = no network call, no cost. |
+| Owner passcode | Recommended | `ADMIN_PASSCODE` | The owner console falls back to the documented default passcode. |
+| Room codes / owner identity | Optional | `PROD_PROJECT_CODE`, `DEMO_PROJECT_CODE`, `PRODUCT_NAME`, `OWNER_NAME`, `OWNER_EMAIL` | Defaults: `/room/onestop` (live), `/room/studio` (demo), owner “Amar Tripathi”. |
+| Tool accounts (Figma, Notion, Linear…) | **No** | — | No OAuth app, no client ID, no credential sharing. The tool wall opens each tool in its own tab and stores only the workspace link your team pastes. |
+| Payments, email, analytics | **No** | — | Nothing in the product requires them. |
+
+**Free paths that work today:** Google AI Studio (Gemini), Groq and OpenRouter all have free tiers — one key is
+enough and the platform picks the first one it finds. Everything else (rooms, documents, board, tool wall, signals,
+export, owner console) works with no keys at all.
+
+---
+
 ## Honest limits
 
 - Live voice *transcription of a call* is not built in: the room captures typed chat, pasted transcripts and

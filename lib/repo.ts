@@ -16,6 +16,7 @@ import type {
   StageKey,
   Task,
   Tool,
+  ToolStack,
   User,
   WorkspaceState,
 } from './types';
@@ -776,6 +777,15 @@ export async function addMessage(input: {
   return rows[0];
 }
 
+export async function deleteMessage(projectId: string, id: string): Promise<void> {
+  await sql('DELETE FROM messages WHERE project_id = $1 AND id = $2', [projectId, id]);
+}
+
+export async function getMessage(projectId: string, id: string): Promise<Message | null> {
+  const rows = await sql<Message>('SELECT * FROM messages WHERE project_id = $1 AND id = $2', [projectId, id]);
+  return rows[0] ?? null;
+}
+
 export async function listSignals(projectId: string): Promise<Signal[]> {
   return sql<Signal>(
     `SELECT * FROM signals WHERE project_id = $1 ORDER BY score DESC, created_at DESC LIMIT 200`,
@@ -954,6 +964,34 @@ export async function deleteTool(id: string): Promise<void> {
   await sql('DELETE FROM tools WHERE id = $1', [id]);
 }
 
+export async function listStacks(projectId: string): Promise<ToolStack[]> {
+  return sql<ToolStack>('SELECT * FROM tool_stacks WHERE project_id = $1 ORDER BY updated_at DESC', [projectId]);
+}
+
+export async function setStack(input: {
+  projectId: string;
+  toolId: string;
+  status: string;
+  ourUrl: string;
+  note: string;
+  updatedBy: string;
+}): Promise<ToolStack> {
+  const status = ['planned', 'trial', 'using', 'parked'].includes(input.status) ? input.status : 'planned';
+  const rows = await sql<ToolStack>(
+    `INSERT INTO tool_stacks (project_id, tool_id, status, our_url, note, updated_by, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6, now())
+     ON CONFLICT (project_id, tool_id)
+     DO UPDATE SET status = $3, our_url = $4, note = $5, updated_by = $6, updated_at = now()
+     RETURNING *`,
+    [input.projectId, input.toolId, status, input.ourUrl.slice(0, 500), input.note.slice(0, 1000), input.updatedBy],
+  );
+  return rows[0];
+}
+
+export async function clearStack(projectId: string, toolId: string): Promise<void> {
+  await sql('DELETE FROM tool_stacks WHERE project_id = $1 AND tool_id = $2', [projectId, toolId]);
+}
+
 export async function listStages(onlyEnabled = false): Promise<Stage[]> {
   return sql<Stage>(
     `SELECT * FROM stages ${onlyEnabled ? 'WHERE enabled = true' : ''} ORDER BY position ASC`,
@@ -1002,13 +1040,14 @@ export async function getWorkspace(code: string, user: User): Promise<WorkspaceS
   const { accessFor } = await import('./auth');
   const { engineLabel } = await import('./ai');
 
-  const [members, messages, signals, artifacts, tasks, tools, stages] = await Promise.all([
+  const [members, messages, signals, artifacts, tasks, tools, stacks, stages] = await Promise.all([
     listMembers(project.id),
     listMessages(project.id),
     listSignals(project.id),
     listArtifacts(project.id),
     listTasks(project.id),
     listTools(true),
+    listStacks(project.id),
     listStages(true),
   ]);
 
@@ -1020,6 +1059,7 @@ export async function getWorkspace(code: string, user: User): Promise<WorkspaceS
     artifacts,
     tasks,
     tools,
+    stacks,
     stages,
     me: accessFor(user, project.owner_id),
     ai: engineLabel(),

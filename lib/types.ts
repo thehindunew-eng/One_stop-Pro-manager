@@ -133,6 +133,19 @@ export interface Artifact {
 
 export type TaskStatus = 'todo' | 'doing' | 'review' | 'done';
 
+export type StackStatus = 'planned' | 'trial' | 'using' | 'parked';
+
+/** A team's relationship to one tool: are we using it, where is our workspace, why. */
+export interface ToolStack {
+  project_id: string;
+  tool_id: string;
+  status: StackStatus;
+  our_url: string;
+  note: string;
+  updated_by: string | null;
+  updated_at: string;
+}
+
 export interface Task {
   id: string;
   project_id: string;
@@ -180,6 +193,7 @@ export interface WorkspaceState {
   artifacts: Artifact[];
   tasks: Task[];
   tools: Tool[];
+  stacks: ToolStack[];
   stages: Stage[];
   me: { id: string; name: string; role: Role; isAdmin: boolean; canEdit: boolean; canAdmin: boolean };
   ai: { engine: string; provider: string | null; model: string | null; live: boolean };

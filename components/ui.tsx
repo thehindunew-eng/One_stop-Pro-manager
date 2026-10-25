@@ -40,7 +40,7 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
     <div className="flex items-center gap-2.5">
       <Logo size={32} />
       <div className="leading-tight">
-        <div className="text-[13.5px] font-semibold tracking-tight text-white">One Stop</div>
+        <div className="text-[13.5px] font-semibold tracking-tight text-slate-900">One Stop</div>
         {!compact && <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">Pro Manager</div>}
       </div>
     </div>
@@ -101,7 +101,7 @@ export function Avatar({ name, size = 28, accent }: { name: string; size?: numbe
   const hue = [...name].reduce((n, c) => n + c.charCodeAt(0), 0) % 360;
   return (
     <div
-      className="grid shrink-0 place-items-center rounded-full font-semibold text-white ring-1 ring-white/15"
+      className="grid shrink-0 place-items-center rounded-full font-semibold text-white ring-1 ring-black/5"
       style={{
         width: size,
         height: size,
@@ -125,7 +125,7 @@ export function Pill({
   className?: string;
 }) {
   const tones: Record<string, string> = {
-    slate: 'border-white/10 bg-white/[0.04] text-slate-300',
+    slate: 'border-slate-200 bg-slate-50 text-slate-600',
     mint: 'border-mint/25 bg-mint/10 text-mint',
     amber: 'border-amber/25 bg-amber/10 text-amber',
     rose: 'border-rose/25 bg-rose/10 text-rose',
@@ -318,7 +318,7 @@ export function Markdown({ text, className = '' }: { text: string; className?: s
               {it.task && (
                 <span
                   className={`mt-[3px] grid h-[15px] w-[15px] shrink-0 place-items-center rounded-[4px] border ${
-                    it.checked ? 'border-mint/60 bg-mint/25 text-mint' : 'border-white/25 bg-white/5'
+                    it.checked ? 'border-emerald-500 bg-emerald-100 text-emerald-600' : 'border-slate-300 bg-white'
                   }`}
                 >
                   {it.checked && <Check className="h-3 w-3" />}

@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         code: body.code ? String(body.code) : undefined,
       });
     } else {
-      project = await findProject(String(body.projectCode ?? DEMO_CODE));
+      project = await findProject(String(body.projectCode ?? body.code ?? DEMO_CODE));
       if (!project) return NextResponse.json({ error: 'That room link is not valid. Ask the owner for a new one.' }, { status: 404 });
       await joinProject(project.id, user.id, role);
     }

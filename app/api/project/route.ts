@@ -15,9 +15,7 @@ export async function PATCH(req: Request) {
   const stageKeys = stages.map((s) => s.key);
   const stageKey = body.stage_key as StageKey | undefined;
   if (stageKey && !stageKeys.includes(stageKey)) return bad('Unknown stage');
-  if (!g.access.canEdit && stageKey) {
-    return bad('Only the owner can move the lifecycle. Ask them to advance it.', 403);
-  }
+  // Moving the lifecycle is a team action; renaming the room is not.
   if (!g.access.canEdit && (body.name || body.settings || body.tagline)) {
     return bad('Only the owner can edit the workspace.', 403);
   }

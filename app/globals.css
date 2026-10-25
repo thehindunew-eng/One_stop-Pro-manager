@@ -5,115 +5,121 @@
 :root {
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --line: #e3e8f1;
+  --paper: #ffffff;
+  --canvas: #f5f7fb;
+  --ink: #0f172a;
+  --muted: #64748b;
 }
 
 * {
-  border-color: rgba(255, 255, 255, 0.07);
+  border-color: var(--line);
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background: #070914;
-  color: #e7e9f5;
+  background: var(--canvas);
+  color: #1e293b;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-feature-settings: 'cv11', 'ss01';
 }
 
 ::selection {
-  background: rgba(99, 102, 241, 0.35);
+  background: rgba(79, 70, 229, 0.16);
 }
 
 .app-bg {
   background:
-    radial-gradient(900px 520px at 12% -8%, rgba(99, 102, 241, 0.22), transparent 60%),
-    radial-gradient(800px 500px at 88% 0%, rgba(34, 211, 238, 0.13), transparent 55%),
-    radial-gradient(700px 600px at 50% 110%, rgba(52, 211, 153, 0.08), transparent 60%),
-    #070914;
+    radial-gradient(1000px 520px at 8% -10%, rgba(79, 70, 229, 0.09), transparent 62%),
+    radial-gradient(820px 460px at 96% -4%, rgba(14, 116, 144, 0.07), transparent 58%),
+    radial-gradient(760px 520px at 50% 108%, rgba(5, 150, 105, 0.05), transparent 60%),
+    var(--canvas);
 }
 
 .grid-lines {
   background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 78% 58% at 50% 0%, #000 45%, transparent 100%);
 }
 
 @layer components {
   .panel {
-    @apply rounded-2xl border border-white/[0.07] bg-ink-800/70 backdrop-blur-xl;
-    box-shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.9);
+    @apply rounded-2xl border border-slate-200/90 bg-white;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 12px 28px -20px rgba(16, 24, 40, 0.22);
   }
 
   .panel-flat {
-    @apply rounded-xl border border-white/[0.07] bg-white/[0.025];
+    @apply rounded-xl border border-slate-200/90 bg-white;
   }
 
   .card-hover {
-    @apply transition duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.045];
+    @apply transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-card;
   }
 
   .btn {
     @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition
-      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric-soft/70 focus-visible:ring-offset-2
-      focus-visible:ring-offset-ink-900 disabled:cursor-not-allowed disabled:opacity-50;
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40 focus-visible:ring-offset-2
+      focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-primary {
     @apply btn text-white;
-    background: linear-gradient(135deg, #6366f1 0%, #7c5cf5 50%, #22d3ee 140%);
-    box-shadow: 0 12px 30px -12px rgba(99, 102, 241, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    box-shadow: 0 6px 16px -8px rgba(79, 70, 229, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   }
   .btn-primary:hover {
-    filter: brightness(1.08);
+    background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
   }
 
   .btn-ghost {
-    @apply btn border border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/20 hover:bg-white/[0.07];
+    @apply btn border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50;
   }
 
   .btn-subtle {
-    @apply btn text-slate-300 hover:bg-white/[0.06] hover:text-white;
+    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900;
   }
 
   .btn-mint {
-    @apply btn border border-mint/30 bg-mint/10 text-mint hover:bg-mint/20;
+    @apply btn border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100;
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-slate-300;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600;
   }
 
   .field {
-    @apply w-full rounded-xl border border-white/10 bg-ink-900/70 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500
-      focus:border-electric/60 focus:outline-none focus:ring-2 focus:ring-electric/25;
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400
+      focus:border-electric/60 focus:outline-none focus:ring-2 focus:ring-electric/15;
   }
 
   .label {
-    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400;
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500;
   }
 
   .tab {
-    @apply inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-400 transition hover:text-slate-100;
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-500 transition hover:text-slate-900;
   }
   .tab-active {
-    @apply bg-white/[0.08] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)];
+    @apply bg-white text-slate-900 shadow-card ring-1 ring-slate-200/80;
   }
 
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+    scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.14);
+    background: rgba(100, 116, 139, 0.3);
     border-radius: 999px;
   }
   .scroll-thin::-webkit-scrollbar-track {
@@ -121,22 +127,22 @@ body {
   }
 
   .link {
-    @apply text-electric-soft underline decoration-electric/30 underline-offset-4 hover:decoration-electric;
+    @apply text-electric underline decoration-electric/25 underline-offset-4 hover:decoration-electric;
   }
 }
 
 /* markdown */
 .md {
-  @apply text-[13.5px] leading-relaxed text-slate-300;
+  @apply text-[13.5px] leading-relaxed text-slate-700;
 }
 .md h1 {
-  @apply mb-3 mt-1 text-[22px] font-semibold tracking-tight text-white;
+  @apply mb-3 mt-1 text-[22px] font-semibold tracking-tight text-slate-900;
 }
 .md h2 {
-  @apply mb-2 mt-6 text-[15px] font-semibold uppercase tracking-[0.12em] text-slate-200;
+  @apply mb-2 mt-6 text-[12.5px] font-semibold uppercase tracking-[0.1em] text-slate-500;
 }
 .md h3 {
-  @apply mb-1.5 mt-4 text-[14px] font-semibold text-slate-100;
+  @apply mb-1.5 mt-4 text-[14px] font-semibold text-slate-900;
 }
 .md p {
   @apply my-2;
@@ -148,45 +154,45 @@ body {
   @apply my-2 list-decimal space-y-1 pl-5;
 }
 .md li {
-  @apply marker:text-slate-500;
+  @apply marker:text-slate-400;
 }
 .md a {
-  @apply text-electric-soft underline decoration-electric/40 underline-offset-2 hover:decoration-electric;
+  @apply text-electric underline decoration-electric/30 underline-offset-2 hover:decoration-electric;
 }
 .md code {
-  @apply rounded bg-white/[0.08] px-1.5 py-0.5 font-mono text-[12px] text-cyan-200;
+  @apply rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] text-indigo-700;
 }
 .md pre {
-  @apply my-3 overflow-x-auto rounded-xl border border-white/10 bg-black/40 p-3 text-[12px] leading-relaxed;
+  @apply my-3 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900 p-3 text-[12px] leading-relaxed;
 }
 .md pre code {
-  @apply bg-transparent p-0 text-slate-200;
+  @apply bg-transparent p-0 text-slate-800;
 }
 .md blockquote {
-  @apply my-3 border-l-2 border-electric/50 bg-electric/[0.06] py-1 pl-3 pr-2 text-slate-300;
+  @apply my-3 border-l-2 border-electric/40 bg-indigo-50/60 py-1 pl-3 pr-2 text-slate-600;
 }
 .md table {
   @apply my-3 w-full border-collapse overflow-hidden rounded-lg text-[12.5px];
 }
 .md th {
-  @apply border border-white/10 bg-white/[0.05] px-2.5 py-1.5 text-left font-semibold text-slate-200;
+  @apply border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left font-semibold text-slate-700;
 }
 .md td {
-  @apply border border-white/10 px-2.5 py-1.5 align-top text-slate-300;
+  @apply border border-slate-200 px-2.5 py-1.5 align-top text-slate-700;
 }
 .md hr {
-  @apply my-5 border-white/10;
+  @apply my-5 border-slate-200;
 }
 .md strong {
-  @apply font-semibold text-slate-100;
+  @apply font-semibold text-slate-900;
 }
 .md input[type='checkbox'] {
-  @apply mr-1.5 accent-emerald-400;
+  @apply mr-1.5 accent-emerald-500;
 }
 
 textarea.md-input {
-  @apply h-full w-full resize-none rounded-xl border border-white/10 bg-ink-900/60 p-4 font-mono text-[12.5px] leading-relaxed text-slate-200
-    focus:border-electric/50 focus:outline-none;
+  @apply h-full w-full resize-none rounded-xl border border-slate-300 bg-white p-4 font-mono text-[12.5px] leading-relaxed text-slate-800
+    focus:border-electric/50 focus:outline-none focus:ring-2 focus:ring-electric/15;
 }
 
 .shimmer {
@@ -198,7 +204,7 @@ textarea.md-input {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  background-image: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.05), transparent);
   animation: shimmer 1.6s infinite;
 }
 

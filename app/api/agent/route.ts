@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server';
 import { guard, isGuard, bad, rateLimited } from '@/lib/api';
-import { addMessage, listArtifacts, listMessages, listStages } from '@/lib/repo';
-import { askAgent } from '@/lib/ai';
+import {
+  addMessage,
+  listArtifacts,
+  listMessages,
+  listSignals,
+  listStacks,
+  listStages,
+  listTasks,
+  listTools,
+} from '@/lib/repo';
+import { askAgent, type AgentContext } from '@/lib/ai';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,17 +24,65 @@ export async function POST(req: Request) {
   if (!question) return bad('Ask me something about the product.');
   if (rateLimited(`agent:${g.project.id}`, 1200)) return bad('One question at a time — try again in a second.', 429);
 
-  const messages = await listMessages(g.project.id, 200);
-  const [artifacts, stages] = await Promise.all([listArtifacts(g.project.id), listStages(false)]);
-  const stage = stages.find((s) => s.key === g.project.stage_key)?.name ?? 'Discover';
+  const [messages, artifacts, stages, tasks, signals, stacks, tools] = await Promise.all([
+    listMessages(g.project.id, 200),
+    listArtifacts(g.project.id),
+    listStages(false),
+    listTasks(g.project.id),
+    listSignals(g.project.id),
+    listStacks(g.project.id),
+    listTools(true),
+  ]);
 
-  const answer = await askAgent(question, {
+  const toolById = new Map(tools.map((t) => [t.id, t]));
+  const stageName = (key: string) => stages.find((s) => s.key === key)?.name ?? key;
+
+  const ctx: AgentContext = {
     project: g.project,
     problem: g.project.problem,
     messageCount: messages.length,
-    artifacts: artifacts.map((a) => ({ title: a.title, status: a.status })),
-    stage,
-  });
+    stage: stageName(g.project.stage_key),
+    stageKey: g.project.stage_key,
+    stages: stages.map((s) => {
+      const mine = tasks.filter((t) => t.stage_key === s.key);
+      return {
+        key: s.key,
+        name: s.name,
+        done: mine.filter((t) => t.status === 'done').length,
+        total: mine.length,
+      };
+    }),
+    artifacts: artifacts.map((a) => ({
+      kind: a.kind,
+      title: a.title,
+      status: a.status,
+      stage: stageName(a.stage_key),
+      excerpt: (a.content ?? '').replace(/\s+/g, ' ').trim().slice(0, 320),
+    })),
+    tasks: tasks.map((t) => ({
+      title: t.title,
+      status: t.status,
+      owner: t.owner ?? null,
+      stage: stageName(t.stage_key),
+      priority: t.priority,
+    })),
+    signals: signals.map((s) => ({ type: s.type, label: s.label })),
+    tools: stacks.map((st) => ({
+      name: toolById.get(st.tool_id)?.name ?? st.tool_id,
+      status: st.status,
+      note: st.note ?? '',
+    })),
+    recent: messages
+      .filter((m) => m.kind !== 'chat' || m.author !== 'Prime')
+      .slice(-14)
+      .map((m) => ({ author: m.author, content: m.content })),
+    history: messages
+      .filter((m) => m.author === 'Prime' || (m.meta as Record<string, unknown>)?.to === 'prime')
+      .slice(-8)
+      .map((m) => ({ role: m.author === 'Prime' ? ('prime' as const) : ('you' as const), content: m.content })),
+  };
+
+  const answer = await askAgent(question, ctx);
 
   const questionMsg = await addMessage({
     projectId: g.project.id,
@@ -47,5 +104,10 @@ export async function POST(req: Request) {
     meta: { engine: answer.engine, askedBy: g.user.name },
   });
 
-  return NextResponse.json({ question: questionMsg, reply, engine: answer.engine });
+  return NextResponse.json({
+    question: questionMsg,
+    reply,
+    engine: answer.engine,
+    actions: answer.actions,
+  });
 }

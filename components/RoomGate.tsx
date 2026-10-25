@@ -82,13 +82,13 @@ export default function RoomGate({
         <div className="mb-5 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <Logo size={30} />
-            <span className="text-[12.5px] font-semibold text-white">One Stop Pro Manager</span>
+            <span className="text-[12.5px] font-semibold text-slate-900">One Stop Pro Manager</span>
           </Link>
           <Pill tone="mint">room ready</Pill>
         </div>
 
         <div className="panel overflow-hidden">
-          <div className="border-b border-white/[0.07] bg-white/[0.02] px-5 py-4">
+          <div className="border-b border-slate-200/90 bg-slate-50 px-5 py-4">
             <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint/50" />
@@ -96,8 +96,8 @@ export default function RoomGate({
               </span>
               live meeting room · /{code}
             </div>
-            <h1 className="mt-1.5 text-[19px] font-semibold leading-tight tracking-tight text-white">{roomName}</h1>
-            <p className="mt-1 text-[12px] leading-relaxed text-slate-400">{tagline || 'One room, one thread, one launch.'}</p>
+            <h1 className="mt-1.5 text-[19px] font-semibold leading-tight tracking-tight text-slate-900">{roomName}</h1>
+            <p className="mt-1 text-[12px] leading-relaxed text-slate-500">{tagline || 'One room, one thread, one launch.'}</p>
             <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-500">
               <Users className="h-3 w-3" /> {members} {members === 1 ? 'member' : 'members'} already in this room
             </div>
@@ -132,9 +132,9 @@ export default function RoomGate({
               </div>
             </div>
 
-            <details className="mb-3 rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-              <summary className="flex cursor-pointer items-center gap-1.5 text-[11.5px] text-slate-400">
-                <Lock className="h-3 w-3 text-amber" /> Owner passcode <span className="text-slate-600">(only if this is your workspace)</span>
+            <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <summary className="flex cursor-pointer items-center gap-1.5 text-[11.5px] text-slate-500">
+                <Lock className="h-3 w-3 text-amber" /> Owner passcode <span className="text-slate-500">(only if this is your workspace)</span>
               </summary>
               <input
                 className="field mt-2"
@@ -174,18 +174,18 @@ export default function RoomGate({
               </button>
             </div>
 
-            <p className="mt-3 text-center text-[10px] leading-relaxed text-slate-600">
+            <p className="mt-3 text-center text-[10px] leading-relaxed text-slate-500">
               Guest entry needs no details. Only the owner passcode unlocks editing.
             </p>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-3 text-[10.5px] text-slate-600">
-          <Link href="/" className="hover:text-slate-400">Overview</Link>
+        <div className="mt-4 flex items-center justify-center gap-3 text-[10.5px] text-slate-500">
+          <Link href="/" className="hover:text-slate-500">Overview</Link>
           <span>·</span>
-          <Link href="/join" className="hover:text-slate-400">Join form</Link>
+          <Link href="/join" className="hover:text-slate-500">Join form</Link>
           <span>·</span>
-          <Link href="/join?create=1" className="hover:text-slate-400">New room</Link>
+          <Link href="/join?create=1" className="hover:text-slate-500">New room</Link>
         </div>
       </div>
     </main>

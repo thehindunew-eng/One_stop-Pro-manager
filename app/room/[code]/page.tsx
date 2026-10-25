@@ -51,9 +51,9 @@ function MissingRoom({ code }: { code: string }) {
   return (
     <main className="app-bg grid min-h-screen place-items-center px-5">
       <div className="panel max-w-md p-6 text-center">
-        <h1 className="text-lg font-semibold text-white">That room does not exist</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          <span className="font-mono text-slate-300">/{code}</span> is not a room link. Ask the owner for the current
+        <h1 className="text-lg font-semibold text-slate-900">That room does not exist</h1>
+        <p className="mt-2 text-sm text-slate-500">
+          <span className="font-mono text-slate-400">/{code}</span> is not a room link. Ask the owner for the current
           link, or open an existing room.
         </p>
         <div className="mt-5 flex flex-wrap justify-center gap-2">

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { currentUser } from './auth';
-import { findProject } from './repo';
+import { findProject, joinProject } from './repo';
 import { accessFor } from './auth';
+import { sql } from './db';
 import type { Access, Project, User } from './types';
 
 export const bad = (message: string, status = 400) => NextResponse.json({ error: message }, { status });
@@ -20,6 +21,15 @@ export async function guard(code: string | null | undefined, needEdit = false): 
   const project = await findProject(code);
   if (!project) return bad('Project not found', 404);
   const access = accessFor(user, project.owner_id);
+
+  // Holding the room link is the invitation: make sure the person is a real
+  // member so their edits show up in the team list, exactly like the UI does.
+  const rows = await sql<{ user_id: string }>(
+    'SELECT user_id FROM members WHERE project_id = $1 AND user_id = $2',
+    [project.id, user.id],
+  );
+  if (!rows[0]) await joinProject(project.id, user.id, user.role);
+
   if (needEdit && !access.canEdit) return bad('Only the workspace owner can change this.', 403);
   return { user, project, access };
 }

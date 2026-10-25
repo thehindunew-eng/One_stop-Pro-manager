@@ -474,27 +474,49 @@ export function buildProblem(messages: Message[]): ProblemStatement {
   };
 }
 
-export function localChatAnswer(question: string, ctx: { problem: ProblemStatement | null; messageCount: number }): string {
+export interface ChatFallbackCtx {
+  problem: ProblemStatement | null;
+  messageCount: number;
+  stage?: string;
+  stageKey?: string;
+  openTasks?: { title: string; stage: string }[];
+  docsReady?: number;
+  docsTotal?: number;
+  toolsUsing?: string[];
+  risks?: string[];
+}
+
+export function localChatAnswer(question: string, ctx: ChatFallbackCtx): string {
   const q = question.toLowerCase();
   const p = ctx.problem;
+  const stage = ctx.stage ?? 'the current stage';
+  const nextTask = ctx.openTasks?.[0];
+  const next = nextTask ? `**Next:** finish “${nextTask.title}” in ${nextTask.stage}.` : `**Next:** open ${stage} and pick the next checklist item.`;
+
   if (!p) {
-    return `I have ${ctx.messageCount} messages so far but no approved problem statement yet. Talk it through and press **Build problem statement** — I will pull out the users, pains, evidence and the one question worth answering.`;
+    return `I have ${ctx.messageCount} messages so far but no problem statement yet.\n\nRun **Build problem statement** first — I will pull out the users, the pains, the evidence and the one question worth answering. Everything downstream depends on it.\n\n${next}`;
   }
-  if (/what.*(problem|statement|question)/.test(q)) {
-    return `**The problem we are solving**\n\n${p.statement}\n\nWhy it matters: ${p.summary.slice(0, 320)}…\n\nSuggested next move: ${p.unknowns[0] ?? 'attach evidence before scoping the MVP'}.`;
+  if (/problem|statement|question/.test(q)) {
+    return `**The problem we are solving**\n\n${p.statement}\n\nWhy it matters: ${p.summary.slice(0, 300)}…\n\nConfidence is ${p.confidence}% and the status is ${p.status}. Biggest unknown: ${p.unknowns[0] ?? 'evidence depth'}.\n\n${next}`;
   }
-  if (/next|what should|priority|todo/.test(q)) {
+  if (/next|what should|priority|today|todo/.test(q)) {
     const clean = (t?: string, fallback = '') => (t ? t.replace(/[.?!]+$/, '') : fallback);
-    return `Three highest-leverage moves right now:\n1. ${clean(p.unknowns[0], 'Validate the pain with 3 users')} — answer this before scoping anything.\n2. Lock the MVP to one job: ${clean(p.solutionAngles[0], 'the narrowest useful slice')}.\n3. Ship a deployable skeleton today so the team has a URL before the next meeting.\n\nThe checklist and board tasks for this are already in the workspace.`;
+    const board = (ctx.openTasks ?? []).slice(0, 3).map((t, i) => `${i + 1}. ${t.title} — ${t.stage}`).join('\n');
+    return `Here is what I would do, in order:\n${board || `1. ${clean(p.unknowns[0], 'Validate the pain with 3 users')}\n2. Lock the MVP to one job\n3. Ship a deployable skeleton`}\n\nYou are in **${stage}**, with ${ctx.docsReady ?? 0}/${ctx.docsTotal ?? 0} documents ready. Don't skip the unknown: ${clean(p.unknowns[0], 'evidence depth')}.\n\n${next}`;
   }
-  if (/metric|success|measure|kpi/.test(q)) {
-    return `Success for this problem:\n${p.successMetrics.map((m) => `• ${m}`).join('\n')}\n\nPick one as the launch metric and treat the rest as guardrails.`;
+  if (/metric|success|measure|kpi|north/.test(q)) {
+    return `Success for this problem:\n${p.successMetrics.map((m) => `- ${m}`).join('\n')}\n\nPick the first one as your launch metric and treat the rest as guardrails. A good north star moves weekly and is visible without a dashboard project.\n\n${next}`;
   }
-  if (/risk|fail|concern|blocker/.test(q)) {
-    return `Top risks I can see:\n${p.assumptions.map((a) => `• ${a}`).join('\n')}\n\nMitigate by timeboxing validation to 5 days and keeping v0.1 to a single happy path.`;
+  if (/risk|fail|concern|blocker|weak/.test(q)) {
+    const risks = ctx.risks?.length ? ctx.risks : p.assumptions;
+    return `The weakest points I can see:\n${(risks.length ? risks : ['No evidence captured yet', 'Scope still open']).map((a) => `- ${a}`).join('\n')}\n\nMitigate by timeboxing validation to 5 days and keeping v0.1 to one happy path.\n\n${next}`;
   }
-  if (/tool|stack|tech|build|deploy|free/.test(q)) {
-    return `Free stack that matches this problem (${p.productType}): Next.js on Vercel + Neon Postgres + an LLM API (Gemini/Groq have free tiers) + GitHub Actions + PostHog. Everything is pre-loaded with docs in the Build and Architect stages.`;
+  if (/tool|stack|tech|build|deploy|free|api/.test(q)) {
+    const using = ctx.toolsUsing?.length ? `Your team already marked these as in use: ${ctx.toolsUsing.join(', ')}.` : 'Nothing is marked as in use yet — open the Tools tab and mark your stack.';
+    return `Free stack for a ${p.productType}: Next.js on Vercel, Neon Postgres, an LLM API (Gemini and Groq have free tiers), GitHub Actions and PostHog.\n\n${using}\n\n${next}`;
   }
-  return `Here is what I read from the conversation:\n\n• Problem: ${p.statement}\n• Product shape: ${p.productType}\n• Confidence: ${p.confidence}%\n• Biggest unknown: ${p.unknowns[0] ?? 'evidence depth'}\n\nTell me which stage you want to go deep on — Discover, Define, Ideate, Design, Architect, Build, Test, Launch or Grow — and I will draft the artifact for it.`;
+  if (/doc|write|artifact|spec|prd/.test(q)) {
+    return `You have ${ctx.docsReady ?? 0} of ${ctx.docsTotal ?? 0} documents ready. Write them in this order: problem one-pager, PRD, then the design and build specs for whatever you ship this week.\n\nOpen **Documents** in ${stage} and press *Draft* on the one you need — it uses your problem statement, so it will not read like a template.\n\n${next}`;
+  }
+  return `Here is what I read from the room:\n\n- Problem: ${p.statement}\n- Product shape: ${p.productType}\n- Confidence: ${p.confidence}%\n- Stage: ${stage} (${ctx.docsReady ?? 0}/${ctx.docsTotal ?? 0} docs ready)\n- Biggest unknown: ${p.unknowns[0] ?? 'evidence depth'}\n\nAsk me to go deep on any stage and I will draft the artifact for it.\n\n${next}`;
 }

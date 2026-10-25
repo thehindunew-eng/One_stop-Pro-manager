@@ -209,13 +209,13 @@ export default function AdminConsole({
 
   return (
     <div className="app-bg min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-white/[0.07] bg-ink-900/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-slate-200/90 bg-ink-900/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <Wordmark compact />
-          <div className="h-6 w-px bg-white/10" />
+          <div className="h-6 w-px bg-slate-200" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="truncate text-[13px] font-semibold text-white">Owner console</h1>
+              <h1 className="truncate text-[13px] font-semibold text-slate-900">Owner console</h1>
               <Pill tone="amber"><ShieldCheck className="h-3 w-3" /> full edit access</Pill>
             </div>
             <div className="truncate text-[10.5px] text-slate-500">{state.project.name} · /room/{code}</div>
@@ -253,8 +253,8 @@ export default function AdminConsole({
           <div className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <h2 className="text-[18px] font-semibold text-white">The lifecycle</h2>
-                <p className="text-[12px] text-slate-400">
+                <h2 className="text-[18px] font-semibold text-slate-900">The lifecycle</h2>
+                <p className="text-[12px] text-slate-500">
                   Rename stages, change icons and colours, edit the checklist that becomes board tasks, or disable a stage.
                   New stages appear in the room immediately.
                 </p>
@@ -300,13 +300,13 @@ export default function AdminConsole({
                           <label className="label">Colour</label>
                           <input
                             type="color"
-                            className="h-[42px] w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent"
+                            className="h-[42px] w-12 cursor-pointer rounded-lg border border-slate-200 bg-transparent"
                             value={s.color}
                             onChange={(e) => setStageEdits((v) => ({ ...v, [raw.key]: { ...v[raw.key], color: e.target.value } }))}
                           />
                         </div>
                         <div className="pb-2">
-                          <label className="flex cursor-pointer items-center gap-1.5 text-[10.5px] text-slate-400">
+                          <label className="flex cursor-pointer items-center gap-1.5 text-[10.5px] text-slate-500">
                             <input
                               type="checkbox"
                               checked={s.enabled !== false}
@@ -336,12 +336,12 @@ export default function AdminConsole({
                       <div className="flex flex-col items-end justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span
-                            className="grid h-9 w-9 place-items-center rounded-lg border border-white/10"
+                            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200"
                             style={{ background: `${s.color}18`, color: s.color }}
                           >
                             <StageIcon name={s.icon} className="h-4 w-4" />
                           </span>
-                          <span className="rounded bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] text-slate-500">{s.key}</span>
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">{s.key}</span>
                         </div>
                         <button type="button" className={`${dirty ? 'btn-primary' : 'btn-ghost'} px-3 py-1.5 text-[11.5px]`} onClick={() => saveStage(raw)} disabled={!dirty}>
                           <Save className="h-3.5 w-3.5" /> {dirty ? 'Save stage' : 'Saved'}
@@ -354,7 +354,7 @@ export default function AdminConsole({
             </div>
 
             <div className="panel p-4">
-              <h3 className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-white">
+              <h3 className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-slate-900">
                 <Plus className="h-4 w-4 text-mint" /> Add a stage
               </h3>
               <div className="grid gap-2 md:grid-cols-4">
@@ -376,8 +376,8 @@ export default function AdminConsole({
           <div className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <h2 className="text-[18px] font-semibold text-white">The tool wall</h2>
-                <p className="text-[12px] text-slate-400">
+                <h2 className="text-[18px] font-semibold text-slate-900">The tool wall</h2>
+                <p className="text-[12px] text-slate-500">
                   {state.tools.length} live tools. Edit the free-tier note, link, colour and which stages each tool appears in.
                 </p>
               </div>
@@ -397,7 +397,7 @@ export default function AdminConsole({
                   <input className="field" placeholder="Free tier (e.g. 1,000 events / month)" value={newTool.free_tier ?? ''} onChange={(e) => setNewTool({ ...newTool, free_tier: e.target.value })} />
                   <input className="field" placeholder="What it is for" value={newTool.description ?? ''} onChange={(e) => setNewTool({ ...newTool, description: e.target.value })} />
                   <div className="flex items-center gap-2">
-                    <input type="color" className="h-[42px] w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent" value={`#${newTool.color}`} onChange={(e) => setNewTool({ ...newTool, color: e.target.value.replace('#', '') })} />
+                    <input type="color" className="h-[42px] w-12 cursor-pointer rounded-lg border border-slate-200 bg-transparent" value={`#${newTool.color}`} onChange={(e) => setNewTool({ ...newTool, color: e.target.value.replace('#', '') })} />
                     <button type="button" className="btn-primary flex-1" onClick={createTool}><Plus className="h-4 w-4" /> Add</button>
                   </div>
                 </div>
@@ -416,7 +416,7 @@ export default function AdminConsole({
                               : [...(newTool.stages ?? []), s.key],
                           })
                         }
-                        className={`rounded-full border px-2 py-0.5 text-[10px] ${on ? 'border-electric/40 bg-electric/15 text-electric-soft' : 'border-white/10 text-slate-500'}`}
+                        className={`rounded-full border px-2 py-0.5 text-[10px] ${on ? 'border-electric/40 bg-electric/15 text-electric-soft' : 'border-slate-200 text-slate-500'}`}
                       >
                         {s.name}
                       </button>
@@ -447,7 +447,7 @@ export default function AdminConsole({
                         </select>
                         <input className="field" value={t.free_tier} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], free_tier: e.target.value } }))} />
                         <div className="flex items-center gap-1.5">
-                          <input type="color" className="h-9 w-9 cursor-pointer rounded-lg border border-white/10 bg-transparent" value={`#${t.color.replace('#', '')}`} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], color: e.target.value.replace('#', '') } }))} />
+                          <input type="color" className="h-9 w-9 cursor-pointer rounded-lg border border-slate-200 bg-transparent" value={`#${t.color.replace('#', '')}`} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], color: e.target.value.replace('#', '') } }))} />
                           <button
                             type="button"
                             title={raw.enabled === false ? 'Enable tool' : 'Disable tool'}
@@ -487,7 +487,7 @@ export default function AdminConsole({
                                   },
                                 }))
                               }
-                              className={`rounded-full border px-1.5 py-0.5 text-[9.5px] ${on ? 'border-electric/35 bg-electric/12 text-electric-soft' : 'border-white/10 text-slate-600'}`}
+                              className={`rounded-full border px-1.5 py-0.5 text-[9.5px] ${on ? 'border-electric/35 bg-electric/12 text-electric-soft' : 'border-slate-200 text-slate-500'}`}
                             >
                               {s.name}
                             </button>
@@ -504,8 +504,8 @@ export default function AdminConsole({
         {tab === 'team' && (
           <div className="space-y-4">
             <div>
-              <h2 className="text-[18px] font-semibold text-white">The team</h2>
-              <p className="text-[12px] text-slate-400">Roles decide the seat each member sees. Anyone with the room link can join.</p>
+              <h2 className="text-[18px] font-semibold text-slate-900">The team</h2>
+              <p className="text-[12px] text-slate-500">Roles decide the seat each member sees. Anyone with the room link can join.</p>
             </div>
 
             <div className="panel flex flex-wrap items-center gap-2 p-3">
@@ -534,7 +534,7 @@ export default function AdminConsole({
                 <div key={m.user_id} className="panel flex flex-wrap items-center gap-2 p-3">
                   <Avatar name={m.name} size={32} />
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-white">
+                    <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-slate-900">
                       {m.name}
                       {m.user_id === state.project.owner_id && <Pill tone="amber">owner</Pill>}
                       {m.is_admin && m.user_id !== state.project.owner_id && <Pill tone="electric">admin</Pill>}
@@ -564,7 +564,7 @@ export default function AdminConsole({
         {tab === 'engine' && (
           <div className="space-y-4">
             <div className="panel p-4">
-              <h2 className="mb-3 text-[15px] font-semibold text-white">Workspace identity</h2>
+              <h2 className="mb-3 text-[15px] font-semibold text-slate-900">Workspace identity</h2>
               <div className="grid gap-2 md:grid-cols-2">
                 <div>
                   <label className="label">Product name</label>
@@ -579,23 +579,26 @@ export default function AdminConsole({
                 <button type="button" className="btn-primary px-3 py-2 text-[12px]" onClick={saveIdentity}>
                   <Save className="h-3.5 w-3.5" /> Save
                 </button>
-                <span className="text-[10.5px] text-slate-500">Share link: <span className="font-mono text-slate-400">{shareUrl}</span></span>
+                <span className="text-[10.5px] text-slate-500">Share link: <span className="font-mono text-slate-500">{shareUrl}</span></span>
+                <a href="/setup" className="btn-ghost ml-auto px-2.5 py-1.5 text-[11.5px]">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Setup &amp; access keys
+                </a>
               </div>
             </div>
 
             <div className="panel p-4">
-              <h2 className="mb-1 flex items-center gap-2 text-[15px] font-semibold text-white">
+              <h2 className="mb-1 flex items-center gap-2 text-[15px] font-semibold text-slate-900">
                 <Sparkles className="h-4 w-4 text-electric-soft" /> Intelligence engine
               </h2>
-              <p className="text-[12px] leading-relaxed text-slate-400">
-                Current engine: <span className="text-slate-200">{state.ai.engine}</span>{' '}
+              <p className="text-[12px] leading-relaxed text-slate-500">
+                Current engine: <span className="text-slate-800">{state.ai.engine}</span>{' '}
                 <Pill tone={state.ai.live ? 'mint' : 'slate'} className="ml-1">{state.ai.live ? 'live' : 'built-in'}</Pill>
               </p>
-              <div className="mt-3 grid gap-2 text-[11.5px] text-slate-400 md:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-[11.5px] text-slate-500 md:grid-cols-2">
                 <div className="panel-flat p-3">
-                  <div className="mb-1 font-medium text-slate-200">To switch on a live model</div>
+                  <div className="mb-1 font-medium text-slate-800">To switch on a live model</div>
                   Set any one of these in Vercel → Settings → Environment Variables, then redeploy:
-                  <ul className="mt-1.5 space-y-0.5 font-mono text-[10.5px] text-cyan-200">
+                  <ul className="mt-1.5 space-y-0.5 font-mono text-[10.5px] text-cyan-800">
                     <li>OPENAI_API_KEY</li>
                     <li>ANTHROPIC_API_KEY</li>
                     <li>GEMINI_API_KEY</li>
@@ -604,12 +607,12 @@ export default function AdminConsole({
                   </ul>
                 </div>
                 <div className="panel-flat p-3">
-                  <div className="mb-1 font-medium text-slate-200">Access &amp; security</div>
+                  <div className="mb-1 font-medium text-slate-800">Access &amp; security</div>
                   <ul className="space-y-1">
-                    <li>· Owner passcode: <code className="text-cyan-200">ADMIN_PASSCODE</code></li>
-                    <li>· Admin emails: <code className="text-cyan-200">ADMIN_EMAILS</code></li>
-                    <li>· Session secret: <code className="text-cyan-200">AUTH_SECRET</code></li>
-                    <li>· Database: <code className="text-cyan-200">DATABASE_URL</code> (Neon)</li>
+                    <li>· Owner passcode: <code className="text-cyan-800">ADMIN_PASSCODE</code></li>
+                    <li>· Admin emails: <code className="text-cyan-800">ADMIN_EMAILS</code></li>
+                    <li>· Session secret: <code className="text-cyan-800">AUTH_SECRET</code></li>
+                    <li>· Database: <code className="text-cyan-800">DATABASE_URL</code> (Neon)</li>
                   </ul>
                   <div className="mt-2 flex items-center gap-1 text-[10.5px] text-mint">
                     <ShieldCheck className="h-3 w-3" /> Members cannot call owner routes.
@@ -619,10 +622,10 @@ export default function AdminConsole({
             </div>
 
             <div className="panel p-4">
-              <h2 className="mb-2 flex items-center gap-2 text-[15px] font-semibold text-white">
+              <h2 className="mb-2 flex items-center gap-2 text-[15px] font-semibold text-slate-900">
                 <Wand2 className="h-4 w-4 text-amber" /> What stays editable without code
               </h2>
-              <div className="grid gap-2 text-[11.5px] text-slate-400 sm:grid-cols-2">
+              <div className="grid gap-2 text-[11.5px] text-slate-500 sm:grid-cols-2">
                 {[
                   'Stage names, icons, colours, order and visibility',
                   'Each stage checklist (drives the board)',

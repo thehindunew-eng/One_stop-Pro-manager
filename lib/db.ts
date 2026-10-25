@@ -252,6 +252,17 @@ CREATE TABLE IF NOT EXISTS stages (
   checklist jsonb DEFAULT '[]'::jsonb
 );
 
+CREATE TABLE IF NOT EXISTS tool_stacks (
+  project_id text NOT NULL,
+  tool_id text NOT NULL,
+  status text DEFAULT 'planned',
+  our_url text DEFAULT '',
+  note text DEFAULT '',
+  updated_by text,
+  updated_at timestamptz DEFAULT now(),
+  PRIMARY KEY (project_id, tool_id)
+);
+
 CREATE TABLE IF NOT EXISTS app_settings (
   key text PRIMARY KEY,
   value jsonb NOT NULL,
