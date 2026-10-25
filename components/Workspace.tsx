@@ -7,7 +7,7 @@ import {
   Share2, ShieldCheck, Sparkles, Target, Users, Zap, X,
 } from 'lucide-react';
 import type { Artifact, Message, ProblemStatement, Project, Signal, StageKey, WorkspaceState } from '@/lib/types';
-import { api, post, timeAgo } from '@/lib/client';
+import { api, post, setAuthToken } from '@/lib/client';
 import { Avatar, CopyButton, Pill, Spinner, StageIcon, ToolIcon, Wordmark } from './ui';
 import MeetingRoom from './MeetingRoom';
 import StageView from './StageView';
@@ -20,9 +20,11 @@ type View = 'meeting' | 'stage';
 export default function Workspace({
   initialState,
   siblings,
+  token = null,
 }: {
   initialState: WorkspaceState;
   siblings: { demo: string; live: string };
+  token?: string | null;
 }) {
   const [state, setState] = useState<WorkspaceState>(initialState);
   const [view, setView] = useState<View>('meeting');
@@ -47,9 +49,14 @@ export default function Workspace({
 
   useEffect(() => {
     setMounted(true);
+    setAuthToken(token);
+    // keep the token out of the visible URL so it is never shared by accident
+    if (token && window.location.search.includes('k=')) {
+      window.history.replaceState({}, '', `/room/${project.code}`);
+    }
     setShareUrl(`${window.location.origin}/room/${project.code}`);
     document.title = `${project.name} · One Stop Pro Manager`;
-  }, [project.code, project.name]);
+  }, [project.code, project.name, token]);
 
   useEffect(() => {
     if (!toast) return;

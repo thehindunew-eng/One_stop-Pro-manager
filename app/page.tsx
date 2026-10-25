@@ -6,8 +6,8 @@ import {
 import { STAGE_SEED, TOOL_SEED, ROLES, ROOM_CODES } from '@/lib/defaults';
 import { Logo, Pill, StageIcon, ToolIcon } from '@/components/ui';
 
-const LIVE_LINK = `/join?code=${ROOM_CODES.live}`;
-const DEMO_LINK = `/join?code=${ROOM_CODES.demo}`;
+const LIVE_LINK = `/room/${ROOM_CODES.live}`;
+const DEMO_LINK = `/room/${ROOM_CODES.demo}`;
 
 const CATEGORY_ORDER = [
   'Meetings & Docs', 'Whiteboard & Ideation', 'Research & Validation', 'Design & Prototype',

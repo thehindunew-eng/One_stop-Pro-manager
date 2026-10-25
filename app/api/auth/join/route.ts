@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createUser, createProject, ensureBase, findProject, findUserByEmail, joinProject } from '@/lib/repo';
-import { isOwnerPasscode, resolveAdmin, setSessionCookie } from '@/lib/auth';
+import { isOwnerPasscode, resolveAdmin, setSessionCookie, signSession } from '@/lib/auth';
 import { DEMO_CODE } from '@/lib/repo';
 import type { Role, User } from '@/lib/types';
 
@@ -14,7 +14,10 @@ export async function POST(req: Request) {
   try {
     await ensureBase();
     const body = await req.json().catch(() => ({}));
-    const name = String(body.name ?? '').trim().slice(0, 60);
+    const guest = body.guest === true;
+    const name =
+      String(body.name ?? '').trim().slice(0, 60) ||
+      (guest ? `Guest ${Math.floor(1000 + Math.random() * 9000)}` : '');
     const email = body.email ? String(body.email).trim().toLowerCase().slice(0, 160) : null;
     const role = (ROLES.includes(body.role) ? body.role : 'member') as Role;
     const admin = isOwnerPasscode(body.passcode);
@@ -59,11 +62,15 @@ export async function POST(req: Request) {
       await joinProject(project.id, user.id, role);
     }
 
-    setSessionCookie({ uid: user.id, name: user.name, role: user.role, admin: resolveAdmin(user) });
+    const payload = { uid: user.id, name: user.name, role: user.role, admin: resolveAdmin(user) as boolean };
+    setSessionCookie(payload);
+    // Same signed payload as the cookie — the client can use it if cookies are blocked.
+    const token = signSession(payload);
 
     return NextResponse.json({
       ok: true,
       code: project.code,
+      token,
       user: { id: user.id, name: user.name, role: user.role, isAdmin: resolveAdmin(user) },
     });
   } catch (err) {

@@ -37,6 +37,20 @@ Every call degrades gracefully — if the model errors or times out, the room ke
 
 ---
 
+## Open a room (the three ways in)
+
+| Link | Result |
+| --- | --- |
+| `/live` | Redirects to the live workspace room |
+| `/demo` | Redirects to the demo room |
+| `/room/<code>` | The room itself. If you are not signed in it shows an **in-room gate** — enter your name, or press **Enter as guest** / **Demo room** (one click, no details) |
+
+Rooms never depend on cookies alone: the session also travels as a signed token (`?k=` once, then
+`x-ospm-token` on API calls), so the room still opens in embedded previews, private windows and browsers
+that block third-party cookies.
+
+`/api/health` reports whether the database is reachable and both rooms exist — use it after every deploy.
+
 ## Run it locally
 
 ```bash
@@ -169,6 +183,7 @@ mutation, parameterised SQL only, no API keys exposed to the browser.
 | POST | `/api/admin/stages` | Stage editing / creation |
 | POST | `/api/admin/team` | Members and roles |
 | GET | `/api/export?code=` | Download the product pack (Markdown) |
+| GET | `/api/health` | Database, rooms, catalogue and AI engine status |
 
 ---
 

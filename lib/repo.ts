@@ -1,4 +1,4 @@
-import { asJson, ensureSchema, newId, sql } from './db';
+import { asJson, ensureSchema, newId, resetSchema, seedEpoch, sql } from './db';
 import { ARTIFACT_BLUEPRINTS, ROOM_CODES, STAGE_SEED, TOOL_SEED } from './defaults';
 import { buildProblem, extractSignals } from './intel';
 import { generateDoc } from './generate';
@@ -29,10 +29,28 @@ const g = globalThis as unknown as { __ospmBase?: Promise<void> };
 /* seeding                                                             */
 /* ------------------------------------------------------------------ */
 
-export async function ensureBase(): Promise<void> {
+let baseEpoch = -1;
+
+export async function ensureBase(force = false): Promise<void> {
+  const epoch = seedEpoch();
+  // A rebuilt database (fresh Neon, recovered embedded Postgres) must be re-seeded.
+  if (force || epoch !== baseEpoch) {
+    g.__ospmBase = undefined;
+    if (force) resetSchema();
+  }
   if (!g.__ospmBase) {
+    baseEpoch = epoch;
     g.__ospmBase = (async () => {
       await ensureSchema();
+
+      const safeCount = async (table: string): Promise<number> => {
+        try {
+          const rows = await sql<{ count: string }>(`SELECT count(*)::text AS count FROM ${table}`);
+          return Number(rows?.[0]?.count ?? 0);
+        } catch {
+          return -1; // table missing or database mid-recovery
+        }
+      };
 
       for (const s of STAGE_SEED) {
         await sql(
@@ -43,8 +61,7 @@ export async function ensureBase(): Promise<void> {
         );
       }
 
-      const [{ count }] = await sql<{ count: string }>('SELECT count(*)::text AS count FROM tools');
-      if (Number(count) === 0) {
+      if ((await safeCount('tools')) === 0) {
         let i = 0;
         for (const t of TOOL_SEED) {
           await sql(
@@ -55,8 +72,18 @@ export async function ensureBase(): Promise<void> {
         }
       }
 
-      await seedDemoProject();
-      await seedLiveProject();
+      // Only seed when the database has no rooms at all. Re-running is safe but
+      // pointless, and this check is what lets a wiped/fresh database self-heal
+      // without a restart.
+      const rooms = await safeCount('projects');
+      if (rooms <= 0) {
+        try {
+          await seedDemoProject();
+          await seedLiveProject();
+        } catch (err) {
+          console.error('[repo] seeding failed:', (err as Error).message);
+        }
+      }
     })().catch((err) => {
       g.__ospmBase = undefined;
       throw err;
@@ -630,8 +657,17 @@ export async function createProject(input: {
 }
 
 export async function findProject(code: string): Promise<Project | null> {
-  const rows = await sql<Project>('SELECT * FROM projects WHERE lower(code) = lower($1) LIMIT 1', [code]);
-  return rows[0] ?? null;
+  const query = () => sql<Project>('SELECT * FROM projects WHERE lower(code) = lower($1) LIMIT 1', [code]);
+  try {
+    const rows = await query();
+    if (rows[0]) return rows[0];
+  } catch (err) {
+    console.error('[repo] project lookup failed, retrying after schema check:', (err as Error).message);
+  }
+  // Miss: the room may not exist yet, or the database was initialised after boot.
+  await ensureBase(true);
+  const retry = await query();
+  return retry[0] ?? null;
 }
 
 export async function listProjectsForUser(userId: string): Promise<Project[]> {

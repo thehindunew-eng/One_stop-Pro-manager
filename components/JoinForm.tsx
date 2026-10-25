@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowRight, Loader2, Lock, Sparkles, Users, ShieldCheck, Wand2 } from 'lucide-react';
 import { Logo, Pill } from './ui';
 import { ROLES } from '@/lib/defaults';
+import { setAuthToken } from '@/lib/client';
 
 const ROLE_ICONS: Record<string, string> = {
   pm: '🎯', design: '🎨', eng: '⚙️', qa: '🧪', growth: '📈', member: '🧩',
@@ -57,7 +58,9 @@ export default function JoinForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not open the room.');
-      router.push(passcode ? `/room/${data.code}/admin` : `/room/${data.code}`);
+      if (data.token) setAuthToken(data.token);
+      const target = passcode ? `/room/${data.code}/admin` : `/room/${data.code}`;
+      router.push(data.token ? `${target}?k=${encodeURIComponent(data.token)}` : target);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -107,7 +110,16 @@ export default function JoinForm({
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-dashed border-white/10 p-3 text-[11.5px] leading-relaxed text-slate-500">
+          <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+            <Link href={`/room/${liveCode}`} className="btn-ghost flex-1 justify-center py-2 text-[11px]">
+              Open the live room
+            </Link>
+            <Link href={`/room/${demoCode}`} className="btn-ghost flex-1 justify-center py-2 text-[11px]">
+              Open the demo room
+            </Link>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-dashed border-white/10 p-3 text-[11.5px] leading-relaxed text-slate-500">
             <span className="font-semibold text-slate-300">Owner?</span> Enter the passcode you set in
             <code className="mx-1 rounded bg-white/[0.07] px-1.5 py-0.5 text-[11px] text-cyan-200">ADMIN_PASSCODE</code>
             to unlock the admin console. Default demo passcode: <span className="text-slate-300">amar-admin</span>.

@@ -16,7 +16,15 @@ interface Driver {
   kind: 'neon' | 'pglite';
 }
 
-const g = globalThis as unknown as { __ospmDriver?: Promise<Driver> };
+const g = globalThis as unknown as { __ospmDriver?: Promise<Driver>; __ospmSeedEpoch?: number };
+
+/** Bumped whenever the driver has to rebuild itself, so seeding can be replayed. */
+export const seedEpoch = (): number => g.__ospmSeedEpoch ?? 0;
+
+const looksRecoverable = (err: unknown): boolean =>
+  /ENOENT|EIO|EBADF|not a database|database .* does not exist|file is not a database|could not open|Data directory|aborted|terminated|closed|WAL/i.test(
+    (err as Error)?.message ?? '',
+  );
 
 async function createDriver(): Promise<Driver> {
   const url = process.env.DATABASE_URL;
@@ -49,9 +57,32 @@ async function createDriver(): Promise<Driver> {
   if (process.env.VERCEL) {
     console.warn('[db] DATABASE_URL is not set — using ephemeral /tmp Postgres. Add Neon for persistence.');
   }
-  fs.mkdirSync(dir, { recursive: true });
-  const db = await PGlite.create(dir);
+
+  async function open(): Promise<any> {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      const instance = await PGlite.create(dir);
+      await instance.query('SELECT 1');
+      return instance;
+    } catch (err) {
+      // A restored snapshot or a deleted directory can leave an unreadable store.
+      // Falling back to an in-memory Postgres keeps the product usable, and the
+      // rooms re-seed on the next request.
+      console.error('[db] embedded Postgres could not open its directory:', (err as Error).message);
+      console.warn('[db] falling back to in-memory Postgres — data will be re-seeded.');
+      const memory = await PGlite.create();
+      await memory.query('SELECT 1');
+      return memory;
+    }
+  }
+
+  let db = await open();
   let chain: Promise<unknown> = Promise.resolve();
+
+  async function recover(): Promise<void> {
+    db = await open();
+    g.__ospmSeedEpoch = (g.__ospmSeedEpoch ?? 0) + 1;
+  }
   const serial = <T>(fn: () => Promise<T>): Promise<T> => {
     const next = chain.then(fn, fn);
     chain = next.catch(() => undefined);
@@ -61,13 +92,28 @@ async function createDriver(): Promise<Driver> {
     kind: 'pglite',
     query(sql, params = []) {
       return serial(async () => {
-        const res = await db.query(sql, params as any[]);
-        return { rows: res.rows as Record<string, any>[] };
+        try {
+          const res = await db.query(sql, params as any[]);
+          return { rows: res.rows as Record<string, any>[] };
+        } catch (err) {
+          if (!looksRecoverable(err)) throw err;
+          console.error('[db] recovering embedded Postgres after:', (err as Error).message);
+          await recover();
+          const res = await db.query(sql, params as any[]);
+          return { rows: res.rows as Record<string, any>[] };
+        }
       });
     },
     exec(sql) {
       return serial(async () => {
-        await db.exec(sql);
+        try {
+          await db.exec(sql);
+        } catch (err) {
+          if (!looksRecoverable(err)) throw err;
+          console.error('[db] recovering embedded Postgres after:', (err as Error).message);
+          await recover();
+          await db.exec(sql);
+        }
       });
     },
   };
@@ -214,8 +260,20 @@ CREATE TABLE IF NOT EXISTS app_settings (
 `;
 
 let schemaReady: Promise<void> | null = null;
+let schemaEpoch = -1;
+
+/** Forget the memoised schema so the next ensureSchema() re-creates tables. */
+export function resetSchema(): void {
+  schemaReady = null;
+  schemaEpoch = -1;
+}
 
 export async function ensureSchema(): Promise<void> {
+  const epoch = seedEpoch();
+  if (schemaEpoch !== epoch) {
+    schemaReady = null;
+    schemaEpoch = epoch;
+  }
   if (!schemaReady) {
     schemaReady = (async () => {
       await exec(SCHEMA);

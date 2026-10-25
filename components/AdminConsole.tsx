@@ -6,7 +6,7 @@ import {
   ArrowLeft, Check, Copy, Plus, Save, ShieldCheck, Sliders, Sparkles, Trash2, Users, Wand2, Wrench, X,
 } from 'lucide-react';
 import type { Member, Stage, Tool, WorkspaceState, StageKey } from '@/lib/types';
-import { del, patch, post } from '@/lib/client';
+import { api, del, patch, post, setAuthToken } from '@/lib/client';
 import { Avatar, Pill, StageIcon, STAGE_ICONS, Spinner, ToolIcon, Wordmark } from './ui';
 
 const ICON_NAMES = Object.keys(STAGE_ICONS);
@@ -19,7 +19,13 @@ const CATEGORIES = [
 
 type Tab = 'stages' | 'tools' | 'team' | 'engine';
 
-export default function AdminConsole({ initialState }: { initialState: WorkspaceState }) {
+export default function AdminConsole({
+  initialState,
+  token = null,
+}: {
+  initialState: WorkspaceState;
+  token?: string | null;
+}) {
   const [state, setState] = useState(initialState);
   const [tab, setTab] = useState<Tab>('stages');
   const [toast, setToast] = useState<string | null>(null);
@@ -28,8 +34,11 @@ export default function AdminConsole({ initialState }: { initialState: Workspace
   const code = state.project.code;
 
   useEffect(() => {
-    fetch(`/api/admin/tools?code=${code}`)
-      .then((r) => (r.ok ? r.json() : null))
+    setAuthToken(token);
+  }, [token]);
+
+  useEffect(() => {
+    api<{ tools: Tool[] }>(`/api/admin/tools?code=${code}`)
       .then((data) => {
         if (data?.tools) setState((v) => ({ ...v, tools: data.tools }));
       })
@@ -43,8 +52,12 @@ export default function AdminConsole({ initialState }: { initialState: Workspace
   const fail = (e: unknown) => setError((e as Error).message);
 
   async function reload() {
-    const res = await fetch(`/api/workspace?code=${code}`).then((r) => r.json());
-    if (res?.project) setState(res as WorkspaceState);
+    try {
+      const res = await api<WorkspaceState>(`/api/workspace?code=${code}`);
+      if (res?.project) setState(res);
+    } catch {
+      /* keep the current view */
+    }
   }
 
   /* ------------------------------ stages ------------------------------ */

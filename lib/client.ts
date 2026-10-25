@@ -1,7 +1,34 @@
+let authToken: string | null = null;
+
+/** Used when the browser blocks the session cookie (embedded previews, private modes). */
+export function setAuthToken(token: string | null): void {
+  authToken = token;
+  try {
+    if (token) sessionStorage.setItem('ospm_token', token);
+  } catch {
+    /* storage can be blocked too — the header still works for this page */
+  }
+}
+
+export function getAuthToken(): string | null {
+  if (authToken) return authToken;
+  try {
+    authToken = sessionStorage.getItem('ospm_token');
+  } catch {
+    /* ignore */
+  }
+  return authToken;
+}
+
 export async function api<T = any>(path: string, init?: RequestInit): Promise<T> {
+  const token = getAuthToken();
   const res = await fetch(path, {
     ...init,
-    headers: { 'content-type': 'application/json', ...(init?.headers || {}) },
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { 'x-ospm-token': token } : {}),
+      ...(init?.headers || {}),
+    },
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((data as any)?.error || `Request failed (${res.status})`);

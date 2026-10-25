@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { sql } from './db';
 import type { Access, Role, User } from './types';
 
@@ -44,8 +44,30 @@ export function readSession(token: string | undefined): SessionPayload | null {
   }
 }
 
+/**
+ * Sessions travel two ways so the room works even when the browser blocks
+ * cookies (embedded previews, third-party-iframe policies, privacy modes):
+ *  1. the httpOnly cookie (preferred)
+ *  2. a signed token in the `x-ospm-token` header, or `?k=` on the URL
+ * Both are the same HMAC-signed payload — nothing new to trust.
+ */
 export async function currentSession(): Promise<SessionPayload | null> {
-  return readSession(cookies().get(COOKIE)?.value);
+  const fromCookie = readSession(cookies().get(COOKIE)?.value);
+  if (fromCookie) return fromCookie;
+  try {
+    const fromHeader = readSession(headers().get('x-ospm-token') ?? undefined);
+    if (fromHeader) return fromHeader;
+  } catch {
+    /* not in a request scope */
+  }
+  return null;
+}
+
+export async function userFromToken(token: string | null | undefined): Promise<User | null> {
+  const session = readSession(token ?? undefined);
+  if (!session) return null;
+  const rows = await sql<User>('SELECT * FROM users WHERE id = $1', [session.uid]);
+  return rows[0] ?? null;
 }
 
 export async function currentUser(): Promise<User | null> {
