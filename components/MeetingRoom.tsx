@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { Artifact, Message, MessageKind, ProblemStatement, Signal } from '@/lib/types';
 import { del, post } from '@/lib/client';
+import { stageAccent } from '@/lib/defaults';
 import { Avatar, Pill, Spinner } from './ui';
 
 const KIND_META: Record<string, { label: string; icon: any; color: string }> = {
@@ -160,21 +161,21 @@ export default function MeetingRoom({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* status bar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/80 px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose/50" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose/40" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-rose" />
           </span>
-          <span className="text-[11.5px] font-medium text-slate-400">Room live</span>
-          <span className="text-[11px] text-slate-500">·</span>
-          <span className="text-[11.5px] text-slate-500">{members.length} in the room</span>
+          <span className="text-[12px] font-medium text-slate-600">Live</span>
+          <span className="text-[12px] text-slate-500">·</span>
+          <span className="text-[12px] text-slate-500">{members.length} in the room</span>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Pill tone={live ? 'mint' : 'slate'}>
             <Sparkles className="h-3 w-3" /> {live ? 'live model' : 'built-in reasoner'}
           </Pill>
-          <button type="button" className="btn-ghost px-2 py-1.5 text-[11px]" onClick={() => setImportOpen(true)}>
+          <button type="button" className="btn-ghost px-2 py-1.5 text-[12px]" onClick={() => setImportOpen(true)}>
             <ClipboardPaste className="h-3.5 w-3.5" /> Paste transcript
           </button>
         </div>
@@ -186,13 +187,13 @@ export default function MeetingRoom({
           <button
             type="button"
             onClick={onOpenProblem}
-            className="group w-full rounded-2xl border border-electric/25 bg-gradient-to-br from-electric/[0.13] via-electric/[0.05] to-transparent p-3.5 text-left transition hover:border-electric/40"
+            className="group relative w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-3.5 text-left shadow-card transition hover:border-slate-300"
           >
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <Pill tone="electric"><Wand2 className="h-3 w-3" /> Working problem statement</Pill>
-              <span className="text-[10.5px] text-slate-500">confidence {problem.confidence}%</span>
+              <span className="text-[12px] text-slate-500">confidence {problem.confidence}%</span>
               <Pill tone={problem.status === 'approved' ? 'mint' : 'amber'}>{problem.status}</Pill>
-              <span className="ml-auto text-[10.5px] text-slate-500 group-hover:text-slate-400">open details →</span>
+              <span className="ml-auto text-[12px] text-slate-500 group-hover:text-slate-700">View details →</span>
             </div>
             <p className="text-[13px] font-medium leading-snug text-slate-900">{problem.statement}</p>
           </button>
@@ -206,7 +207,7 @@ export default function MeetingRoom({
             <div key={m.id} className="group/msg flex gap-2.5">
               <div className="pt-0.5">
                 {isPrime ? (
-                  <div className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-electric to-cyan text-white ring-1 ring-slate-200">
+                  <div className="grid h-7 w-7 place-items-center rounded-full bg-electric text-white ring-1 ring-slate-200">
                     <Sparkles className="h-3.5 w-3.5" />
                   </div>
                 ) : (
@@ -215,20 +216,20 @@ export default function MeetingRoom({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
-                  <span className={`text-[12px] font-semibold ${isPrime ? 'text-electric-soft' : 'text-slate-800'}`}>
+                  <span className={`text-[12px] font-semibold ${isPrime ? 'text-electric' : 'text-slate-800'}`}>
                     {isPrime ? 'Prime' : m.author}
-                    {mine && !isPrime && <span className="ml-1 text-[10px] font-normal text-slate-500">(you)</span>}
+                    {mine && !isPrime && <span className="ml-1 text-[12px] font-normal text-slate-500">(you)</span>}
                   </span>
-                  <span className="rounded bg-slate-100 px-1 py-px text-[9px] uppercase tracking-wider text-slate-500">{m.role}</span>
+                  <span className="rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{m.role}</span>
                   {m.kind !== 'chat' && (
                     <span
-                      className="inline-flex items-center gap-1 rounded px-1 py-px text-[9px] font-semibold uppercase tracking-wider"
-                      style={{ background: `${meta.color}18`, color: meta.color }}
+                      className="inline-flex items-center gap-1 rounded px-1 py-px text-[11px] font-semibold uppercase tracking-wider"
+                      style={{ background: `${stageAccent(meta.color)}18`, color: stageAccent(meta.color) }}
                     >
                       <meta.icon className="h-2.5 w-2.5" /> {meta.label}
                     </span>
                   )}
-                  <span className="text-[10px] text-slate-500" suppressHydrationWarning>
+                  <span className="text-[12px] text-slate-500" suppressHydrationWarning>
                     {new Date(m.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   {(mine || (me.canEdit && isPrime)) && (
@@ -250,11 +251,11 @@ export default function MeetingRoom({
                   )}
                 </div>
                 <div
-                  className={`whitespace-pre-wrap rounded-xl border px-3 py-2 text-[12.5px] leading-relaxed ${
+                  className={`whitespace-pre-wrap rounded-xl border px-3 py-2 text-[13px] leading-relaxed ${
                     isPrime
-                      ? 'border-electric/20 bg-electric/[0.06] text-slate-700'
+                      ? 'border-slate-200 bg-slate-50 text-slate-700'
                       : m.kind === 'decision'
-                        ? 'border-mint/20 bg-mint/[0.06] text-slate-700'
+                        ? 'border-mint/20 bg-emerald-50 text-slate-700'
                         : m.kind === 'idea'
                           ? 'border-amber/20 bg-amber/[0.06] text-slate-700'
                           : 'border-slate-200 bg-slate-50 text-slate-700'
@@ -268,11 +269,11 @@ export default function MeetingRoom({
         })}
         {!real.length && (
           <div className="panel-flat p-5 text-center">
-            <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl bg-electric/12 text-electric-soft">
+            <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600">
               <AudioLines className="h-5 w-5" />
             </div>
-            <h3 className="text-[13.5px] font-semibold text-slate-900">Start the conversation</h3>
-            <p className="mx-auto mt-1 max-w-sm text-[12px] leading-relaxed text-slate-500">
+            <h3 className="text-[13px] font-semibold text-slate-900">Start the conversation</h3>
+            <p className="mx-auto mt-1 max-w-sm text-[13px] leading-relaxed text-slate-500">
               Describe the problem the team is facing — or paste an existing transcript. Prime will pull out the pains,
               users, evidence and decisions as you talk.
             </p>
@@ -286,7 +287,7 @@ export default function MeetingRoom({
                   key={p}
                   type="button"
                   onClick={() => setText(`${p} `)}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10.5px] text-slate-500 transition hover:border-electric/40 hover:text-slate-900"
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[12px] text-slate-500 transition hover:border-electric/40 hover:text-slate-900"
                 >
                   {p}
                 </button>
@@ -298,9 +299,9 @@ export default function MeetingRoom({
       </div>
 
       {/* analyze bar */}
-      <div className="border-t border-slate-200/80 px-4 py-2.5">
+      <div className="border-t border-slate-200 px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="text-[11px] text-slate-500">
+          <div className="text-[12px] text-slate-500">
             {pains ? `${pains} pains captured` : 'No signals extracted yet'} · engine {engine}
           </div>
           <button type="button" className="btn-primary ml-auto px-3 py-2 text-[12px]" onClick={onAnalyze} disabled={busyAnalyze}>
@@ -314,11 +315,11 @@ export default function MeetingRoom({
       </div>
 
       {/* composer */}
-      <div className="border-t border-slate-200/80 p-3">
-        {error && <div className="mb-2 rounded-lg border border-rose/30 bg-rose/10 px-3 py-1.5 text-[11px] text-rose">{error}</div>}
-        <div className="rounded-xl border border-slate-200 bg-ink-900/70 focus-within:border-electric/50">
+      <div className="border-t border-slate-200 p-3">
+        {error && <div className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[12px] text-rose">{error}</div>}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 focus-within:border-electric/50">
           <textarea
-            className="scroll-thin max-h-40 w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-[12.5px] leading-relaxed text-slate-800 placeholder:text-slate-500 focus:outline-none"
+            className="scroll-thin max-h-40 w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-[13px] leading-relaxed text-slate-800 placeholder:text-slate-500 focus:outline-none"
             rows={2}
             placeholder="Type what the team is saying… (Enter to send, Shift+Enter for a new line)"
             value={text}
@@ -330,7 +331,7 @@ export default function MeetingRoom({
               }
             }}
           />
-          <div className="flex flex-wrap items-center gap-1 border-t border-slate-200/80 px-2 py-1.5">
+          <div className="flex flex-wrap items-center gap-1 border-t border-slate-200 px-2 py-1.5">
             {(['chat', 'idea', 'decision', 'question', 'note'] as MessageKind[]).map((k) => {
               const meta = KIND_META[k];
               return (
@@ -338,7 +339,7 @@ export default function MeetingRoom({
                   key={k}
                   type="button"
                   onClick={() => setKind(k)}
-                  className={`inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[10.5px] font-medium transition ${
+                  className={`inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[12px] font-medium transition ${
                     kind === k ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
@@ -351,7 +352,7 @@ export default function MeetingRoom({
               type="button"
               onClick={toggleMic}
               title={listening ? 'Stop dictating' : 'Dictate into the room'}
-              className={`ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-medium transition ${
+              className={`ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] font-medium transition ${
                 listening ? 'bg-rose/10 text-rose' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
               }`}
             >
@@ -360,7 +361,7 @@ export default function MeetingRoom({
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-electric px-2.5 py-1.5 text-[11px] font-medium text-white shadow-card transition hover:bg-electric-soft disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-electric px-2.5 py-1.5 text-[12px] font-medium text-white shadow-card transition hover:bg-electric-soft disabled:opacity-40"
               onClick={send}
               disabled={!text.trim() || sending}
             >
@@ -369,23 +370,23 @@ export default function MeetingRoom({
             </button>
           </div>
         </div>
-        <div className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
+        <div className="mt-1.5 flex items-center gap-1 text-[12px] text-slate-500">
           <Dot className="h-3 w-3" /> Signal extraction runs automatically on ideas, decisions and questions.
         </div>
       </div>
 
       {/* transcript import */}
       {importOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => setImportOpen(false)}>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4-sm" onClick={() => setImportOpen(false)}>
           <div className="panel w-full max-w-2xl p-4" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 flex items-center gap-2">
-              <ClipboardPaste className="h-4 w-4 text-electric-soft" />
+              <ClipboardPaste className="h-4 w-4 text-electric" />
               <h3 className="text-[14px] font-semibold text-slate-900">Paste a transcript or notes</h3>
               <button type="button" className="btn-subtle ml-auto p-1.5" onClick={() => setImportOpen(false)}>
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p className="mb-2 text-[11.5px] leading-relaxed text-slate-500">
+            <p className="mb-2 text-[13px] leading-relaxed text-slate-500">
               One line per message. Use <code className="rounded bg-slate-100 px-1">Name: what they said</code> to keep
               speakers — otherwise each line is attributed to you. Everything lands as transcript messages for analysis.
             </p>
@@ -401,7 +402,7 @@ export default function MeetingRoom({
                 {importing ? <Spinner className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
                 Import {paste.trim() ? `${paste.split(/\n/).filter(Boolean).length} lines` : ''}
               </button>
-              <span className="text-[10.5px] text-slate-500">Max 120 lines per import.</span>
+              <span className="text-[12px] text-slate-500">Max 120 lines per import.</span>
             </div>
           </div>
         </div>

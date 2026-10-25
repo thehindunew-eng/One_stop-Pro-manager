@@ -57,15 +57,15 @@ export default function HowItWorks({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-900/40 p-4-sm" onClick={onClose}>
       <div className="panel w-full max-w-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
-          <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-electric to-cyan text-white">
+          <div className="grid h-8 w-8 place-items-center rounded-full bg-electric text-white">
             <Sparkles className="h-4 w-4" />
           </div>
           <div>
             <div className="text-[13px] font-semibold text-slate-900">How {roomName} works</div>
-            <div className="text-[10.5px] text-slate-500">Four steps from meeting to launch — no training needed.</div>
+            <div className="text-[12px] text-slate-500">Four steps from meeting to launch — no training needed.</div>
           </div>
           <Pill tone="slate" className="ml-auto">{me.role}</Pill>
           <button type="button" className="btn-subtle p-1.5" onClick={onClose} aria-label="Close">
@@ -80,18 +80,18 @@ export default function HowItWorks({
               type="button"
               onClick={() => setStep(i)}
               className={`rounded-xl border p-3 text-left transition ${
-                step === i ? 'border-electric/40 bg-electric/[0.05]' : 'border-slate-200 bg-white hover:border-slate-300'
+                step === i ? 'border-slate-300 bg-white shadow-card' : 'border-slate-200 bg-white hover:border-slate-300'
               }`}
             >
               <s.icon className={`h-4 w-4 ${s.tone}`} />
               <div className="mt-1.5 text-[12px] font-semibold text-slate-900">{s.title}</div>
-              <p className="mt-0.5 text-[11px] leading-relaxed text-slate-600">{s.body}</p>
+              <p className="mt-0.5 text-[13px] leading-relaxed text-slate-600">{s.body}</p>
             </button>
           ))}
         </div>
 
         <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
-          <div className="mb-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
             <Users className="h-3 w-3" /> Your next click
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -114,11 +114,11 @@ export default function HowItWorks({
               Got it <ArrowRight className="h-3 w-3" />
             </button>
           </div>
-          <p className="mt-2 flex items-center gap-1 text-[10px] text-slate-500">
+          <p className="mt-2 flex items-center gap-1 text-[12px] text-slate-500">
             <CircleDollarSign className="h-2.5 w-2.5 text-mint" /> Every tool on the wall has a free tier. Nothing here
             needs a paid account to start.
           </p>
-          <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
+          <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
             Roles shape your playbook and who usually owns a task — everyone in the room can edit documents, the board,
             the signals and the tool wall. Only the owner console is restricted.
           </p>

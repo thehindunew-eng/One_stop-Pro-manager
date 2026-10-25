@@ -10,10 +10,10 @@ import { del, hostFromUrl, patch, post, safeHref } from '@/lib/client';
 import { Pill, Spinner, ToolIcon } from './ui';
 
 const STATUS: Record<StackStatus, { label: string; blurb: string; tone: string; dot: string }> = {
-  planned: { label: 'Planned', blurb: 'We intend to use it', tone: 'border-slate-300 bg-white text-slate-600', dot: '#94a3b8' },
-  trial: { label: 'Trial', blurb: 'Someone is testing it', tone: 'border-amber-300 bg-amber-50 text-amber-800', dot: '#d97706' },
-  using: { label: 'In use', blurb: 'This is our live tool', tone: 'border-emerald-300 bg-emerald-50 text-emerald-800', dot: '#059669' },
-  parked: { label: 'Parked', blurb: 'Not for this product', tone: 'border-slate-200 bg-slate-100 text-slate-500', dot: '#cbd5e1' },
+  planned: { label: 'Planned', blurb: 'We intend to use it', tone: 'border-slate-300 bg-white text-slate-600', dot: '#667085' },
+  trial: { label: 'Trial', blurb: 'Someone is testing it', tone: 'border-amber-300 bg-amber-50 text-amber-800', dot: '#b45309' },
+  using: { label: 'In use', blurb: 'This is our live tool', tone: 'border-emerald-300 bg-emerald-50 text-emerald-800', dot: '#047857' },
+  parked: { label: 'Parked', blurb: 'Not for this product', tone: 'border-slate-200 bg-slate-100 text-slate-500', dot: '#98a2b3' },
 };
 
 export default function ToolWall({
@@ -154,9 +154,9 @@ export default function ToolWall({
     <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="relative min-w-[190px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
           <input
-            className="field py-2 pl-9 text-[12.5px]"
+            className="field py-2 pl-9 text-[13px]"
             placeholder="Find a tool, category or use case…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -166,7 +166,7 @@ export default function ToolWall({
           {stageKey && (
             <button
               type="button"
-              className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'stage' ? 'bg-white text-slate-900 shadow-card' : 'text-slate-500 hover:text-slate-800'}`}
+              className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${scope === 'stage' ? 'bg-white text-slate-900 shadow-card' : 'text-slate-500 hover:text-slate-800'}`}
               onClick={() => setScope('stage')}
             >
               {stageName ?? 'This stage'}
@@ -174,14 +174,14 @@ export default function ToolWall({
           )}
           <button
             type="button"
-            className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'all' ? 'bg-white text-slate-900 shadow-card' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${scope === 'all' ? 'bg-white text-slate-900 shadow-card' : 'text-slate-500 hover:text-slate-800'}`}
             onClick={() => setScope('all')}
           >
             All {tools.length}
           </button>
           <button
             type="button"
-            className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'using' ? 'bg-white text-slate-900 shadow-card' : 'text-slate-500 hover:text-slate-800'}`}
+            className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${scope === 'using' ? 'bg-white text-slate-900 shadow-card' : 'text-slate-500 hover:text-slate-800'}`}
             onClick={() => setScope('using')}
           >
             Our stack {inUse}
@@ -194,7 +194,7 @@ export default function ToolWall({
         )}
       </div>
 
-      <p className="mb-4 text-[11.5px] leading-relaxed text-slate-500">
+      <p className="mb-4 text-[13px] leading-relaxed text-slate-500">
         Click a tool to see what it is for, mark whether your team uses it, paste <em>your</em> workspace link and drop a
         setup task on the board. Everyone in the room can do this — only the owner edits the catalogue.
       </p>
@@ -203,8 +203,8 @@ export default function ToolWall({
         {groups.map(([cat, list]) => (
           <div key={cat}>
             <div className="mb-2 flex items-center gap-2">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{cat}</span>
-              <span className="text-[10px] text-slate-400">{list.length}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">{cat}</span>
+              <span className="text-[12px] text-slate-500">{list.length}</span>
               <div className="h-px flex-1 bg-slate-200" />
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -228,16 +228,16 @@ export default function ToolWall({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="truncate text-[12.5px] font-medium text-slate-900">{t.name}</span>
+                        <span className="truncate text-[13px] font-medium text-slate-900">{t.name}</span>
                         <ChevronRight className="ml-auto h-3 w-3 shrink-0 text-slate-300 transition group-hover:text-slate-500" />
                       </div>
-                      <div className="truncate text-[10.5px] text-slate-500">{t.free_tier || t.category}</div>
+                      <div className="truncate text-[12px] text-slate-500">{t.free_tier || t.category}</div>
                       <div className="mt-0.5 flex items-center gap-1.5">
-                        <span className="inline-flex items-center gap-1 text-[9.5px] font-medium" style={{ color: st.dot }}>
+                        <span className="inline-flex items-center gap-1 text-[12px] font-medium" style={{ color: st.dot }}>
                           <span className="h-1 w-1 rounded-full" style={{ background: st.dot }} /> {st.label}
                         </span>
                         {stack?.our_url && (
-                          <span className="inline-flex items-center gap-0.5 truncate text-[9.5px] text-slate-400">
+                          <span className="inline-flex items-center gap-0.5 truncate text-[12px] text-slate-500">
                             <Link2 className="h-2.5 w-2.5" /> {hostFromUrl(stack.our_url)}
                           </span>
                         )}
@@ -250,7 +250,7 @@ export default function ToolWall({
           </div>
         ))}
         {!groups.length && (
-          <div className="panel-flat p-6 text-center text-[12.5px] text-slate-500">
+          <div className="panel-flat p-6 text-center text-[13px] text-slate-500">
             {scope === 'using'
               ? 'No tools marked in use yet. Open a tool and set it to “In use”.'
               : `No tool matches “${q}”. ${canAdmin ? 'Add it from the owner console.' : 'Ask the owner to add it.'}`}
@@ -260,16 +260,16 @@ export default function ToolWall({
 
       {/* tool sheet */}
       {active && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={() => setOpenId(null)}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 sm:items-center sm:p-4" onClick={() => setOpenId(null)}>
           <div
-            className="panel max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none rounded-t-2xl sm:rounded-2xl scroll-thin"
+            className="panel max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none rounded-t-2xl sm:rounded-xl scroll-thin"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start gap-3 border-b border-slate-200 px-4 py-3.5">
               <ToolIcon name={active.name} color={active.color} size={44} rounded={12} />
               <div className="min-w-0 flex-1">
-                <h3 className="text-[15px] font-semibold text-slate-900">{active.name}</h3>
-                <div className="text-[11px] text-slate-500">{active.category} · {hostFromUrl(active.url)}</div>
+                <h3 className="text-[16px] font-semibold text-slate-900">{active.name}</h3>
+                <div className="text-[12px] text-slate-500">{active.category} · {hostFromUrl(active.url)}</div>
               </div>
               <button type="button" className="btn-subtle p-1.5" onClick={() => setOpenId(null)} aria-label="Close">
                 <X className="h-4 w-4" />
@@ -277,16 +277,16 @@ export default function ToolWall({
             </div>
 
             <div className="space-y-3.5 px-4 py-4">
-              <p className="text-[12.5px] leading-relaxed text-slate-600">{active.description}</p>
+              <p className="text-[13px] leading-relaxed text-slate-600">{active.description}</p>
 
               <div className="grid gap-2 sm:grid-cols-2">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
-                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">Free tier</div>
-                  <div className="text-[11.5px] font-medium text-slate-800">{active.free_tier || 'Free to start'}</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Free tier</div>
+                  <div className="text-[12px] font-medium text-slate-800">{active.free_tier || 'Free to start'}</div>
                 </div>
                 <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
-                  <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">Used in stages</div>
-                  <div className="text-[11.5px] font-medium text-slate-800">
+                  <div className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Used in stages</div>
+                  <div className="text-[12px] font-medium text-slate-800">
                     {active.stages.map((k) => stages.find((s) => s.key === k)?.name ?? k).slice(0, 3).join(', ')}
                     {active.stages.length > 3 ? ` +${active.stages.length - 3}` : ''}
                   </div>
@@ -304,7 +304,7 @@ export default function ToolWall({
                         key={key}
                         type="button"
                         onClick={() => setDraft({ ...draft, status: key })}
-                        className={`rounded-lg border px-2 py-1.5 text-[11px] font-medium transition ${
+                        className={`rounded-lg border px-2 py-1.5 text-[12px] font-medium transition ${
                           on ? conf.tone : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
                         }`}
                         title={conf.blurb}
@@ -317,7 +317,7 @@ export default function ToolWall({
               </div>
 
               <div>
-                <label className="label" htmlFor="stack-url">Our workspace link <span className="normal-case tracking-normal text-slate-400">(optional)</span></label>
+                <label className="label" htmlFor="stack-url">Our workspace link <span className="normal-case tracking-normal text-slate-500">(optional)</span></label>
                 <input
                   id="stack-url"
                   className="field text-[12px]"
@@ -325,7 +325,7 @@ export default function ToolWall({
                   value={draft.our_url}
                   onChange={(e) => setDraft({ ...draft, our_url: e.target.value })}
                 />
-                <p className="mt-1 text-[10.5px] text-slate-500">
+                <p className="mt-1 text-[12px] text-slate-500">
                   Paste the link your team actually works in, so nobody hunts for it during the meeting.
                 </p>
               </div>
@@ -334,7 +334,7 @@ export default function ToolWall({
                 <label className="label" htmlFor="stack-note">Note for the team</label>
                 <textarea
                   id="stack-note"
-                  className="field min-h-[64px] text-[12px] leading-relaxed"
+                  className="field min-h-[64px] text-[13px] leading-relaxed"
                   placeholder="Who owns it, what plan we are on, what to do before we upgrade…"
                   value={draft.note}
                   onChange={(e) => setDraft({ ...draft, note: e.target.value })}
@@ -342,14 +342,14 @@ export default function ToolWall({
               </div>
 
               {activeStack?.updated_by && (
-                <div className="text-[10.5px] text-slate-500">
+                <div className="text-[12px] text-slate-500">
                   Last updated by {activeStack.updated_by} · {new Date(activeStack.updated_at).toLocaleDateString()}
                 </div>
               )}
 
-              {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[11.5px] text-rose">{error}</div>}
+              {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose">{error}</div>}
               {saved && (
-                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11.5px] text-emerald-700">
+                <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12px] text-emerald-700">
                   <Check className="h-3.5 w-3.5" /> Saved for the whole team
                 </div>
               )}
@@ -368,7 +368,7 @@ export default function ToolWall({
               {activeStack && (
                 <button
                   type="button"
-                  className="btn-ghost px-2.5 py-2 text-[11.5px] text-slate-500 hover:text-rose"
+                  className="btn-ghost px-2.5 py-2 text-[12px] text-slate-500 hover:text-rose"
                   onClick={clearOurStatus}
                   disabled={busy !== null}
                   title="Take this tool out of our stack"
@@ -376,7 +376,7 @@ export default function ToolWall({
                   Clear
                 </button>
               )}
-              <a href={safeHref(active.url)} target="_blank" rel="noreferrer noopener" className="ml-auto hidden items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 sm:flex">
+              <a href={safeHref(active.url)} target="_blank" rel="noreferrer noopener" className="ml-auto hidden items-center gap-1 text-[12px] text-slate-500 hover:text-slate-800 sm:flex">
                 {hostFromUrl(active.url)} <ArrowUpRight className="h-3 w-3" />
               </a>
             </div>

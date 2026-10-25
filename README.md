@@ -9,6 +9,26 @@ stages, tools and copy from inside the app — no redeploy, no code.
 
 ---
 
+## Visual system (v2)
+
+The first release looked like a template: gradients, glow, nine shades of micro-type. This release rebuilt the
+foundations rather than restyling pages one by one.
+
+| Layer | Decision |
+| --- | --- |
+| Typeface | **Inter Variable**, self-hosted through `@fontsource-variable/inter` and loaded in `app/layout.tsx`. No Google Fonts request, no fallback to Segoe UI. |
+| Type scale | Six steps only: 11 / 12 / 13 / 14 / 16 / 20 / 24 / 30px (`tailwind.config.ts`). Nothing renders below 11px; body copy is 13–14px with 1.5–1.7 line height. |
+| Colour | One accent (indigo `#4338ca`), one neutral ramp, and three semantic colours used only for meaning (emerald = done, amber = attention, rose = risk). Stage colours are muted to the same family; bright legacy hexes stored in Postgres are mapped at render time by `stageAccent()` in `lib/defaults.ts`. |
+| Surfaces | Flat canvas `#f7f8fa`, white cards, 1px `#e4e7ec` borders, one hairline shadow (`shadow-card`). No radial washes, no backdrop blur, no glows. |
+| Marks | The logo, tool tiles and avatars are flat: a solid indigo square with an “M” mark, tinted initials for tools, solid circles for people. |
+| Components | `app/globals.css` defines the primitives — `.panel`, `.panel-flat`, `.btn*`, `.chip`, `.field`, `.label`, `.tab`, `.section-label`, `.tnum` — so a new screen inherits the system instead of inventing one. |
+| Motion | One 4px fade-up and a soft pulse for live indicators. `prefers-reduced-motion` disables both. |
+
+If you add UI, use the primitives and the scale above. Hard-coded `text-[9.5px]` or `bg-gradient-to-*` is treated as
+a regression.
+
+---
+
 ## What it does
 
 | Capability | Where |
@@ -17,9 +37,9 @@ stages, tools and copy from inside the app — no redeploy, no code.
 | **Problem engine** — reads the whole conversation and writes the real "How might we…" question, with confidence, users, pains, evidence, assumptions, unknowns, success metrics and solution angles | Right rail / `Build problem statement` |
 | Signal extraction — pains, users, evidence, decisions, metrics, risks, open questions with evidence quotes and accept/dismiss | `Live signals` |
 | 9 chronological lifecycle stages (Discover → Define → Ideate → Design → Architect → Build → Test → Launch → Grow) each with docs, checklist, board and scoped tool kit | `Lifecycle` tab |
-| 24 auto-generated, editable artifacts: Problem Canvas, PRD, personas, MVP scope, concepts, solution brief, UX flows, design system, landing blueprint, tech stack, data model, API spec, repo/sprint plan, deployment runbook, engineering standards, test plan, QA checklist, GTM plan, landing copy, launch checklist, metrics plan, feedback loop… | `Documents` |
+| 30 auto-generated, editable artifacts: Problem Canvas, PRD, personas, MVP scope, concepts, solution brief, UX flows, design system, landing blueprint, tech stack, data model, API spec, repo/sprint plan, deployment runbook, engineering standards, test plan, QA checklist, GTM plan, landing copy, launch checklist, metrics plan, feedback loop… | `Documents` |
 | Kanban board with owners, priorities, drag-to-move (48 tasks pre-seeded from stage checklists) | `Board` |
-| 104 curated free-tier tools with brand-coloured icons, mapped to stages, searchable | `Tools` / tool wall |
+| 104 curated free-tier tools with flat brand-tinted marks, mapped to stages, searchable | `Tools` / tool wall |
 | **Prime** — an agent you can ask about scope, risk, metrics, stack; always ends with one next action | `Ask Prime` |
 | Owner console — edit stages, icons, colours, checklists; add/retire tools; manage team roles; workspace identity | `/room/<code>/admin` |
 | Export the whole product pack as Markdown | profile menu → *Download product pack* |

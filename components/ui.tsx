@@ -17,20 +17,17 @@ export function StageIcon({ name, className }: { name: string; className?: strin
   return <Icon className={className} strokeWidth={1.75} />;
 }
 
-export function Logo({ size = 36, className = '' }: { size?: number; className?: string }) {
+/* ------------------------------- brand ---------------------------------- */
+
+export function Logo({ size = 32, className = '' }: { size?: number; className?: string }) {
   return (
     <div
-      className={`relative grid place-items-center rounded-[11px] text-white ${className}`}
-      style={{
-        width: size,
-        height: size,
-        background: 'linear-gradient(140deg,#6366f1 0%,#8b5cf6 45%,#22d3ee 120%)',
-        boxShadow: '0 10px 26px -12px rgba(99,102,241,.9), inset 0 1px 0 rgba(255,255,255,.35)',
-      }}
+      className={`grid shrink-0 place-items-center rounded-[9px] bg-electric text-white ${className}`}
+      style={{ width: size, height: size }}
       aria-hidden
     >
-      <svg width={size * 0.52} height={size * 0.52} viewBox="0 0 24 24" fill="none">
-        <path d="M5 19V7.5L12 13l7-5.5V19" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none">
+        <path d="M5 19V7.5L12 13l7-5.5V19" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );
@@ -39,28 +36,60 @@ export function Logo({ size = 36, className = '' }: { size?: number; className?:
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <Logo size={32} />
-      <div className="leading-tight">
-        <div className="text-[13.5px] font-semibold tracking-tight text-slate-900">One Stop</div>
-        {!compact && <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-slate-500">Pro Manager</div>}
+      <Logo size={28} />
+      <div className="leading-none">
+        <div className="text-[13px] font-semibold tracking-tight text-slate-900">One Stop</div>
+        {!compact && (
+          <div className="mt-1 text-[11px] font-medium uppercase tracking-[.08em] text-slate-500">Pro Manager</div>
+        )}
       </div>
     </div>
   );
 }
 
+/* ------------------------------- icons ---------------------------------- */
+
+/** Tint a hex colour towards the background so initials stay legible. */
+function tint(hex: string, amount: number): string {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+  const num = parseInt(full.slice(0, 6), 16);
+  if (Number.isNaN(num)) return '#4338ca';
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const mix = (c: number) => Math.round(c * (1 - amount) + 255 * amount);
+  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+}
+
+function darken(hex: string, amount: number): string {
+  const clean = hex.replace('#', '');
+  const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+  const num = parseInt(full.slice(0, 6), 16);
+  if (Number.isNaN(num)) return '#4338ca';
+  const r = Math.round(((num >> 16) & 255) * (1 - amount));
+  const g = Math.round(((num >> 8) & 255) * (1 - amount));
+  const b = Math.round((num & 255) * (1 - amount));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
+ * Tool marks are flat, tinted brand tiles: one colour, no gradient, no glow.
+ * 104 of them sit next to each other, so restraint is what makes the wall read.
+ */
 export function ToolIcon({
   name,
   color,
-  size = 40,
-  rounded = 11,
+  size = 32,
+  rounded = 8,
 }: {
   name: string;
   color?: string;
   size?: number;
   rounded?: number;
 }) {
-  const hex = (color || '6366f1').replace('#', '');
-  const safe = /^[0-9a-fA-F]{3,8}$/.test(hex) ? hex : '6366f1';
+  const hex = (color || '4338ca').replace('#', '');
+  const safe = /^[0-9a-fA-F]{6}$/.test(hex) ? hex : /^[0-9a-fA-F]{3}$/.test(hex) ? hex : '4338ca';
   const initials = name
     .replace(/[^A-Za-z0-9 ]/g, '')
     .split(/\s+/)
@@ -69,45 +98,48 @@ export function ToolIcon({
     .map((w) => w[0])
     .join('')
     .toUpperCase();
-  const isDark = ['000000', '000', '181717', '151515', '191919', '231f20', '0b0d0e', '262627', '050038'].includes(safe.toLowerCase());
   return (
     <div
-      className="relative grid shrink-0 place-items-center font-semibold text-white"
+      className="grid shrink-0 place-items-center border font-semibold"
       style={{
         width: size,
         height: size,
         borderRadius: rounded,
-        fontSize: size * 0.4,
-        letterSpacing: '-0.02em',
-        background: isDark
-          ? `linear-gradient(140deg, #2a2f45, #141827)`
-          : `linear-gradient(140deg, #${safe}, #${safe}b0)`,
-        border: `1px solid #${safe}55`,
-        boxShadow: `0 8px 22px -14px #${safe}, inset 0 1px 0 rgba(255,255,255,.22)`,
+        fontSize: Math.max(10, size * 0.36),
+        letterSpacing: '-0.01em',
+        background: tint(`#${safe}`, 0.9),
+        borderColor: tint(`#${safe}`, 0.75),
+        color: darken(`#${safe}`, 0.35),
       }}
       title={name}
+      aria-hidden
     >
       {initials || '·'}
     </div>
   );
 }
 
-export function Avatar({ name, size = 28, accent }: { name: string; size?: number; accent?: string }) {
+/* ------------------------------- people --------------------------------- */
+
+const AVATAR_COLORS = ['#4338ca', '#0f766e', '#b45309', '#9d174d', '#5b21b6', '#334155'];
+
+export function Avatar({ name, size = 26 }: { name: string; size?: number; accent?: string }) {
   const initials = name
     .split(/\s+/)
+    .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0])
     .join('')
     .toUpperCase();
-  const hue = [...name].reduce((n, c) => n + c.charCodeAt(0), 0) % 360;
+  const hash = [...name].reduce((n, c) => n + c.charCodeAt(0), 0);
   return (
     <div
-      className="grid shrink-0 place-items-center rounded-full font-semibold text-white ring-1 ring-black/5"
+      className="grid shrink-0 place-items-center rounded-full font-semibold text-white"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.38,
-        background: accent || `linear-gradient(140deg, hsl(${hue} 70% 56%), hsl(${(hue + 40) % 360} 70% 44%))`,
+        fontSize: Math.max(9, size * 0.38),
+        background: AVATAR_COLORS[hash % AVATAR_COLORS.length],
       }}
       title={name}
     >
@@ -115,6 +147,8 @@ export function Avatar({ name, size = 28, accent }: { name: string; size?: numbe
     </div>
   );
 }
+
+/* ------------------------------- labels --------------------------------- */
 
 export function Pill({
   children,
@@ -126,16 +160,16 @@ export function Pill({
   className?: string;
 }) {
   const tones: Record<string, string> = {
-    slate: 'border-slate-200 bg-slate-50 text-slate-600',
-    mint: 'border-mint/25 bg-mint/10 text-mint',
-    amber: 'border-amber/25 bg-amber/10 text-amber',
-    rose: 'border-rose/25 bg-rose/10 text-rose',
-    electric: 'border-electric/30 bg-electric/12 text-electric-soft',
-    cyan: 'border-cyan/25 bg-cyan/10 text-cyan',
+    slate: 'bg-slate-100 text-slate-600',
+    mint: 'bg-emerald-50 text-emerald-700',
+    amber: 'bg-amber-50 text-amber-800',
+    rose: 'bg-rose-50 text-rose-700',
+    electric: 'bg-indigo-50 text-indigo-700',
+    cyan: 'bg-cyan-50 text-cyan-800',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[12px] font-medium leading-4 ${tones[tone]} ${className}`}
     >
       {children}
     </span>
@@ -172,7 +206,7 @@ export function ProgressRing({
   value,
   size = 22,
   stroke = 2.5,
-  color = '#34d399',
+  color = '#4338ca',
 }: {
   value: number;
   size?: number;
@@ -184,7 +218,7 @@ export function ProgressRing({
   const pct = Math.max(0, Math.min(100, value));
   return (
     <svg width={size} height={size} className="-rotate-90" aria-hidden>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,.12)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e4e7ec" strokeWidth={stroke} />
       <circle
         cx={size / 2}
         cy={size / 2}

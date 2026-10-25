@@ -88,7 +88,7 @@ function PrimeBubble({ text, engine }: { text: string; engine?: string }) {
     <>
       <Markdown text={shown >= text.length ? text : `${text.slice(0, shown)}▌`} />
       {engine && shown >= text.length && (
-        <div className="mt-1.5 text-[9px] uppercase tracking-wider text-slate-400">{engine}</div>
+        <div className="mt-1.5 text-[11px] uppercase tracking-wider text-slate-500">{engine}</div>
       )}
     </>
   );
@@ -226,18 +226,18 @@ export default function PrimePanel({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/35 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/35-sm" onClick={onClose}>
       <aside
-        className="flex h-full w-full max-w-[480px] flex-col border-l border-slate-200 bg-ink-850 shadow-panel"
+        className="flex h-full w-full max-w-[480px] flex-col border-l border-slate-200 bg-white shadow-panel"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
-          <div className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-electric to-cyan text-white">
+          <div className="grid h-8 w-8 place-items-center rounded-full bg-electric text-white">
             <Sparkles className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="text-[13px] font-semibold text-slate-900">Prime</div>
-            <div className="flex items-center gap-1 text-[10px] text-slate-500">
+            <div className="flex items-center gap-1 text-[12px] text-slate-500">
               <Zap className="h-2.5 w-2.5 text-mint" />
               {live ? 'live model' : 'built-in reasoner'} · {engine}
             </div>
@@ -256,13 +256,13 @@ export default function PrimePanel({
         </div>
 
         <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-1.5">
-          <span className="mr-1 inline-flex items-center gap-1 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          <span className="mr-1 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
             <Target className="h-3 w-3 text-electric" /> Prime can see
           </span>
           {contextChips(context).map((c) => (
             <span
               key={c}
-              className="rounded-full border border-slate-200 bg-white px-1.5 py-0.5 text-[9.5px] text-slate-500"
+              className="rounded-full border border-slate-200 bg-white px-1.5 py-0.5 text-[12px] text-slate-500"
             >
               {c}
             </span>
@@ -275,7 +275,7 @@ export default function PrimePanel({
               <div
                 className={`max-w-[94%] rounded-xl border px-3 py-2 ${
                   t.role === 'you'
-                    ? 'border-electric/25 bg-electric/[0.08] text-[12.5px] text-slate-800'
+                    ? 'border-slate-200 bg-slate-50 text-[13px] text-slate-800'
                     : 'border-slate-200 bg-white shadow-card'
                 }`}
               >
@@ -284,7 +284,7 @@ export default function PrimePanel({
                     <PrimeBubble text={t.content} engine={t.engine} />
                     {!!t.actions?.length && (
                       <div className="mt-2 border-t border-slate-200 pt-2">
-                        <div className="mb-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        <div className="mb-1 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
                           Do it from here
                         </div>
                         <div className="flex flex-wrap gap-1.5">
@@ -293,7 +293,7 @@ export default function PrimePanel({
                               key={`${a.kind}-${k}`}
                               type="button"
                               onClick={() => runAction(a, i * 10 + k)}
-                              className="group inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-left text-[10.5px] font-medium text-slate-600 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
+                              className="group inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-left text-[12px] font-medium text-slate-600 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
                               title={a.hint}
                             >
                               {a.kind === 'doc' ? (
@@ -312,14 +312,14 @@ export default function PrimePanel({
                         {Object.entries(done)
                           .filter(([k]) => Number(k) >= i * 10 && Number(k) < i * 10 + 10)
                           .map(([k, v]) => (
-                            <div key={k} className="mt-1 text-[9.5px] text-mint">
+                            <div key={k} className="mt-1 text-[12px] text-mint">
                               ✓ {v}
                             </div>
                           ))}
                       </div>
                     )}
                     {t.role === 'prime' && t.content !== INTRO && (
-                      <div className="mt-2 flex items-center gap-2 text-[9.5px] text-slate-400">
+                      <div className="mt-2 flex items-center gap-2 text-[12px] text-slate-500">
                         <button
                           type="button"
                           className="inline-flex items-center gap-1 hover:text-slate-700"
@@ -344,12 +344,12 @@ export default function PrimePanel({
             </div>
           ))}
           {busy && (
-            <div className="flex items-center gap-2 text-[11.5px] text-slate-500">
+            <div className="flex items-center gap-2 text-[12px] text-slate-500">
               <Spinner className="h-3.5 w-3.5" /> Prime is reading the problem, the docs and the board…
             </div>
           )}
           {error && (
-            <div className="rounded-lg border border-rose/30 bg-rose/10 px-3 py-2 text-[11px] text-rose">
+            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose">
               {error}
             </div>
           )}
@@ -358,13 +358,13 @@ export default function PrimePanel({
 
         <div className="border-t border-slate-200 px-3 py-2">
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
               {context.nextTask ? `Suggested next: ${context.nextTask.title}` : 'Try asking'}
             </span>
             <button
               type="button"
               onClick={clearThread}
-              className="inline-flex items-center gap-0.5 text-[9px] text-slate-400 hover:text-rose"
+              className="inline-flex items-center gap-0.5 text-[12px] text-slate-500 hover:text-rose"
             >
               <Trash2 className="h-2.5 w-2.5" /> clear
             </button>
@@ -374,7 +374,7 @@ export default function PrimePanel({
               <button
                 key={q}
                 type="button"
-                className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] text-slate-500 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
+                className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[12px] text-slate-500 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
                 onClick={() => ask(q)}
               >
                 {q}
@@ -384,9 +384,9 @@ export default function PrimePanel({
         </div>
 
         <div className="border-t border-slate-200 p-3">
-          <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-ink-900 p-2 focus-within:border-electric/50">
+          <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 focus-within:border-electric/50">
             <textarea
-              className="scroll-thin max-h-28 flex-1 resize-none bg-transparent px-1 py-1 text-[12.5px] text-slate-800 placeholder:text-slate-400 focus:outline-none"
+              className="scroll-thin max-h-28 flex-1 resize-none bg-transparent px-1 py-1 text-[13px] text-slate-800 placeholder:text-slate-500 focus:outline-none"
               rows={1}
               placeholder="Ask Prime about scope, risk, metrics, tools or the next ship…"
               value={input}
@@ -400,7 +400,7 @@ export default function PrimePanel({
             />
             <button
               type="button"
-              className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-electric to-cyan text-white disabled:opacity-40"
+              className="grid h-8 w-8 place-items-center rounded-lg bg-electric text-white disabled:opacity-40"
               onClick={() => ask(input)}
               disabled={!input.trim() || busy}
               aria-label="Send"
@@ -408,7 +408,7 @@ export default function PrimePanel({
               <ArrowUp className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-1 flex items-center gap-1 text-[9px] text-slate-400">
+          <p className="mt-1 flex items-center gap-1 text-[12px] text-slate-500">
             <BookOpen className="h-2.5 w-2.5" /> Every answer is grounded in this room. {context.myRole} view.
           </p>
         </div>

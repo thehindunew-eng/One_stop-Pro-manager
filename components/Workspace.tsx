@@ -150,8 +150,8 @@ export default function Workspace({
   return (
     <div className="app-bg flex h-[100dvh] flex-col overflow-hidden">
       {/* top bar */}
-      <header className="z-30 border-b border-slate-200/90 bg-ink-900/70 backdrop-blur-xl">
-        <div className="flex h-14 items-center gap-3 px-3 sm:px-4">
+      <header className="z-30 border-b border-slate-200 bg-white">
+        <div className="flex h-14 items-center gap-3 px-4">
           <Link href="/" className="shrink-0" title="Home">
             <Wordmark compact />
           </Link>
@@ -159,7 +159,7 @@ export default function Workspace({
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-[13px] font-semibold text-slate-900">{project.name}</h1>
-              <span className="hidden rounded border border-slate-200 bg-slate-100/70 px-1.5 py-0.5 font-mono text-[9.5px] text-slate-500 sm:inline">
+              <span className="hidden rounded border border-slate-200 bg-slate-100/70 px-1.5 py-0.5 font-mono text-[12px] text-slate-500 sm:inline">
                 /room/{project.code}
               </span>
               <Pill tone="electric" className="hidden md:inline-flex">
@@ -170,15 +170,15 @@ export default function Workspace({
               </Pill>
               <Link
                 href={`/room/${otherRoom}`}
-                className="hidden items-center gap-1 text-[10.5px] text-slate-500 transition hover:text-slate-800 lg:inline-flex"
+                className="hidden items-center gap-1 text-[12px] text-slate-500 transition hover:text-slate-800 lg:inline-flex"
               >
                 {isDemo ? 'live workspace' : 'demo room'} <ArrowRight className="h-2.5 w-2.5" />
               </Link>
             </div>
-            <p className="truncate text-[10.5px] text-slate-500">{project.tagline || 'One room, one thread, one launch.'}</p>
+            <p className="truncate text-[12px] text-slate-500">{project.tagline || 'One room, one thread, one launch.'}</p>
           </div>
 
-          <div className="hidden items-center gap-1 rounded-lg border border-slate-200 bg-ink-800/70 p-0.5 md:flex">
+          <div className="hidden items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 md:flex">
             <button
               type="button"
               onClick={() => setView('meeting')}
@@ -200,26 +200,26 @@ export default function Workspace({
               {online.slice(0, 4).map((m) => (
                 <div key={m.user_id} className="relative" title={`${m.name} · ${m.role} (online)`}>
                   <Avatar name={m.name} size={26} />
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-mint ring-2 ring-ink-900" />
+                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-mint ring-2 ring-white" />
                 </div>
               ))}
               {members.length > 4 && (
-                <div className="grid h-[26px] w-[26px] place-items-center rounded-full bg-white text-[9.5px] font-semibold text-slate-400 ring-2 ring-ink-900">
+                <div className="grid h-[26px] w-[26px] place-items-center rounded-full bg-white text-[12px] font-semibold text-slate-500 ring-2 ring-white">
                   +{members.length - 4}
                 </div>
               )}
             </div>
             <div className="hidden sm:block">
-              <CopyButton value={shareUrl} label="Invite" className="!px-2.5 !py-1.5 !text-[11.5px]" />
+              <CopyButton value={shareUrl} label="Invite" className="!px-2.5 !py-1.5 !text-[12px]" />
             </div>
-            <button type="button" className="btn-ghost px-2 py-1.5 text-[11.5px]" onClick={() => setGuideOpen(true)} title="How this room works">
+            <button type="button" className="btn-ghost px-2 py-1.5 text-[12px]" onClick={() => setGuideOpen(true)} title="How this room works">
               <CircleHelp className="h-3.5 w-3.5" />
             </button>
-            <button type="button" className="btn-primary px-2.5 py-1.5 text-[11.5px]" onClick={() => setPrimeOpen(true)}>
+            <button type="button" className="btn-primary px-2.5 py-1.5 text-[12px]" onClick={() => setPrimeOpen(true)}>
               <Sparkles className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Ask Prime</span>
             </button>
             {me.canAdmin && (
-              <Link href={`/room/${project.code}/admin`} className="btn-ghost px-2 py-1.5 text-[11.5px]" title="Owner console">
+              <Link href={`/room/${project.code}/admin`} className="btn-ghost px-2 py-1.5 text-[12px]" title="Owner console">
                 <ShieldCheck className="h-3.5 w-3.5" /> <span className="hidden md:inline">Owner</span>
               </Link>
             )}
@@ -230,84 +230,84 @@ export default function Workspace({
               </button>
               {menuOpen && (
                 <div className="panel scroll-thin absolute right-0 top-10 z-40 max-h-[72vh] w-60 overflow-y-auto p-2" onMouseLeave={() => setMenuOpen(false)}>
-                  <div className="border-b border-slate-200/90 px-2 py-1.5">
+                  <div className="border-b border-slate-200 px-2 py-1.5">
                     <div className="text-[12px] font-semibold text-slate-900">{me.name}</div>
-                    <div className="text-[10.5px] text-slate-500">{me.role} · {me.isAdmin ? 'platform admin' : 'member'}</div>
+                    <div className="text-[12px] text-slate-500">{me.role} · {me.isAdmin ? 'platform admin' : 'member'}</div>
                   </div>
-                  <div className="px-2 py-1.5 text-[10.5px] text-slate-500">
+                  <div className="px-2 py-1.5 text-[12px] text-slate-500">
                     Engine: {ai.engine}
                   </div>
                   <button
                     type="button"
                     onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-slate-400 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
                   >
                     <Share2 className="h-3.5 w-3.5" /> Copy invite link
                   </button>
                   <Link
                     href="/setup"
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-slate-400 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
                   >
                     <KeyRound className="h-3.5 w-3.5" /> Setup &amp; access keys
                   </Link>
                   <a
                     href={`/api/export?code=${project.code}`}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-slate-400 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
                   >
                     <Download className="h-3.5 w-3.5" /> Download product pack
                   </a>
                   {me.canAdmin && (
                     <Link
                       href={`/room/${project.code}/admin`}
-                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-slate-400 hover:bg-slate-100"
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
                     >
                       <ShieldCheck className="h-3.5 w-3.5" /> Owner console
                     </Link>
                   )}
-                  <div className="mt-1 flex gap-1 border-t border-slate-200/90 px-2 pb-1 pt-2">
+                  <div className="mt-1 flex gap-1 border-t border-slate-200 px-2 pb-1 pt-2">
                     <Link
                       href={`/room/${siblings.live}`}
-                      className={`flex-1 rounded-md px-1.5 py-1 text-center text-[10px] font-medium ${
-                        isDemo ? 'text-slate-500 hover:bg-slate-100' : 'bg-mint/15 text-mint'
+                      className={`flex-1 rounded-md px-1.5 py-1 text-center text-[12px] font-medium ${
+                        isDemo ? 'text-slate-500 hover:bg-slate-100' : 'bg-emerald-50 text-emerald-700'
                       }`}
                     >
                       Live
                     </Link>
                     <Link
                       href={`/room/${siblings.demo}`}
-                      className={`flex-1 rounded-md px-1.5 py-1 text-center text-[10px] font-medium ${
-                        isDemo ? 'bg-amber/15 text-amber' : 'text-slate-500 hover:bg-slate-100'
+                      className={`flex-1 rounded-md px-1.5 py-1 text-center text-[12px] font-medium ${
+                        isDemo ? 'bg-amber-50 text-amber-800' : 'text-slate-500 hover:bg-slate-100'
                       }`}
                     >
                       Demo
                     </Link>
                   </div>
-                  <div className="mt-1 border-t border-slate-200/90 px-2 pb-1 pt-2 text-[9.5px] uppercase tracking-[0.14em] text-slate-500">
+                  <div className="mt-1 border-t border-slate-200 px-2 pb-1 pt-2 text-[11px] uppercase tracking-[.08em] text-slate-500">
                     My rooms
                   </div>
                   {rooms.slice(0, 5).map((r) => (
                     <Link
                       key={r.code}
                       href={`/room/${r.code}`}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] ${
+                      className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] ${
                         r.code === project.code ? 'text-slate-900' : 'text-slate-500 hover:bg-slate-100'
                       }`}
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${r.code === project.code ? 'bg-mint' : 'bg-slate-600'}`} />
                       <span className="truncate">{r.name}</span>
-                      <span className="ml-auto text-[9px] uppercase tracking-wider text-slate-500">{r.stage}</span>
+                      <span className="ml-auto text-[11px] uppercase tracking-wider text-slate-500">{r.stage}</span>
                     </Link>
                   ))}
                   <Link
                     href="/join?create=1"
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-electric-soft hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-electric hover:bg-slate-100"
                   >
                     + New product room
                   </Link>
                   <button
                     type="button"
                     onClick={logout}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11.5px] text-slate-500 hover:bg-rose/10 hover:text-rose"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-500 hover:bg-rose-50 hover:text-rose"
                   >
                     <LogOut className="h-3.5 w-3.5" /> Leave (sign out)
                   </button>
@@ -318,7 +318,7 @@ export default function Workspace({
         </div>
 
         {/* mobile view switch */}
-        <div className="flex items-center gap-1 border-t border-slate-200/80 px-3 py-1.5 md:hidden">
+        <div className="flex items-center gap-1 border-t border-slate-200 px-3 py-1.5 md:hidden">
           <button type="button" onClick={() => setView('meeting')} className={`tab ${view === 'meeting' ? 'tab-active' : ''}`}>
             <MessagesSquare className="h-3.5 w-3.5" /> Meeting
           </button>
@@ -334,8 +334,8 @@ export default function Workspace({
       {(error || toast) && (
         <div className="pointer-events-none fixed bottom-4 left-1/2 z-[60] -translate-x-1/2 px-4">
           <div
-            className={`pointer-events-auto flex items-center gap-2 rounded-xl border px-3.5 py-2 text-[12px] shadow-xl backdrop-blur ${
-              error ? 'border-rose/40 bg-rose/15 text-rose' : 'border-mint/35 bg-mint/15 text-mint'
+            className={`pointer-events-auto flex items-center gap-2 rounded-lg border px-3.5 py-2 text-[13px] shadow-pop ${
+              error ? 'border-rose/40 bg-rose/15 text-rose' : 'border-mint/35 bg-emerald-50 text-emerald-700'
             }`}
           >
             {error ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
@@ -405,7 +405,7 @@ export default function Workspace({
         </main>
 
         {/* context rail */}
-        <aside className="hidden w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-200/90 bg-ink-900/40 p-3 xl:flex scroll-thin">
+        <aside className="hidden w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-200 bg-slate-50/40 p-3 xl:flex scroll-thin">
           <MyWork
             code={project.code}
             project={project}
@@ -449,31 +449,31 @@ export default function Workspace({
           <div className="panel p-3.5">
             <div className="mb-2 flex items-center gap-1.5">
               <Zap className="h-3.5 w-3.5 text-amber" />
-              <h3 className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">Next best action</h3>
-              <span className="ml-auto text-[10px] text-slate-500">{doneRatio}% shipped</span>
+              <h3 className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Next best action</h3>
+              <span className="ml-auto text-[12px] text-slate-500">{doneRatio}% shipped</span>
             </div>
             {nextTasks.slice(0, 3).map((t) => (
               <div key={t.id} className="flex items-start gap-2 border-t border-slate-200/70 py-1.5 first:border-0 first:pt-0">
                 <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-amber" />
                 <div className="min-w-0">
-                  <p className="line-clamp-2 text-[11px] leading-snug text-slate-400">{t.title}</p>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500">
+                  <p className="line-clamp-2 text-[12px] leading-snug text-slate-500">{t.title}</p>
+                  <span className="text-[11px] uppercase tracking-wider text-slate-500">
                     {stages.find((s) => s.key === t.stage_key)?.name} · {t.priority}
                   </span>
                 </div>
               </div>
             ))}
-            {!nextTasks.length && <p className="text-[11px] text-slate-500">Everything is done. Ship it, then start the next problem.</p>}
-            <button type="button" onClick={() => setView('stage')} className="btn-ghost mt-2 w-full py-1.5 text-[10.5px]">
+            {!nextTasks.length && <p className="text-[12px] text-slate-500">Everything is done. Ship it, then start the next problem.</p>}
+            <button type="button" onClick={() => setView('stage')} className="btn-ghost mt-2 w-full py-1.5 text-[12px]">
               Open the lifecycle <ArrowRight className="h-3 w-3" />
             </button>
           </div>
 
           <div className="panel p-3.5">
             <div className="mb-2 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-cyan" />
-              <h3 className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">Team</h3>
-              <span className="ml-auto flex items-center gap-1 text-[10px] text-mint">
+              <Users className="h-3.5 w-3.5 text-slate-500" />
+              <h3 className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Team</h3>
+              <span className="ml-auto flex items-center gap-1 text-[12px] text-emerald-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-mint" /> {online.length || 1} online
               </span>
             </div>
@@ -481,37 +481,37 @@ export default function Workspace({
               {members.map((m) => (
                 <div key={m.user_id} className="flex items-center gap-2">
                   <Avatar name={m.name} size={22} />
-                  <span className="truncate text-[11.5px] text-slate-400">{m.name}</span>
+                  <span className="truncate text-[12px] text-slate-700">{m.name}</span>
                   {m.user_id === project.owner_id && <ShieldCheck className="h-3 w-3 shrink-0 text-amber" />}
-                  <span className="ml-auto shrink-0 rounded bg-slate-100 px-1 py-px text-[9px] uppercase tracking-wider text-slate-500">
+                  <span className="ml-auto shrink-0 rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">
                     {m.role}
                   </span>
                 </div>
               ))}
             </div>
             <div className="mt-2.5 flex items-center gap-1.5">
-              <CopyButton value={shareUrl} label="Invite" className="flex-1 !py-1.5 !text-[10.5px]" />
+              <CopyButton value={shareUrl} label="Invite" className="flex-1 !py-1.5 !text-[12px]" />
             </div>
-            <p className="mt-1.5 text-[9.5px] text-slate-500">Anyone with the link can join as a member.</p>
+            <p className="mt-1.5 text-[12px] text-slate-500">Anyone with the link can join as a member.</p>
           </div>
 
-          <div className="rounded-xl border border-electric/20 bg-gradient-to-br from-electric/[0.12] to-transparent p-3.5">
+          <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3.5">
             <div className="flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-electric-soft" />
-              <span className="text-[11.5px] font-semibold text-slate-900">Prime</span>
+              <Sparkles className="h-3.5 w-3.5 text-electric" />
+              <span className="text-[12px] font-semibold text-slate-900">Prime</span>
               <Pill tone={ai.live ? 'mint' : 'slate'} className="ml-auto">{ai.live ? 'live' : 'local'}</Pill>
             </div>
-            <p className="mt-1 text-[10.5px] leading-relaxed text-slate-500">
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">
               {ai.live
                 ? `Connected to ${ai.provider} · ${ai.model}. Ask about scope, risk, metrics or the next ship.`
                 : 'Running the built-in reasoner — no API key needed. Add any provider key to upgrade responses.'}
             </p>
-            <button type="button" className="btn-primary mt-2 w-full py-1.5 text-[11px]" onClick={() => setPrimeOpen(true)}>
+            <button type="button" className="btn-primary mt-2 w-full py-1.5 text-[12px]" onClick={() => setPrimeOpen(true)}>
               Ask Prime <ArrowRight className="h-3 w-3" />
             </button>
           </div>
 
-          <div className="flex items-center justify-between px-1 pb-2 text-[9.5px] text-slate-500">
+          <div className="flex items-center justify-between px-1 pb-2 text-[12px] text-slate-500">
             <span className="flex items-center gap-1"><Bell className="h-2.5 w-2.5" /> auto-refresh 14s</span>
             <span>{members.length} members · {signals.length} signals</span>
           </div>
@@ -522,7 +522,7 @@ export default function Workspace({
       <button
         type="button"
         onClick={() => setMobileContext(true)}
-        className="fixed bottom-4 right-4 z-30 grid h-12 w-12 place-items-center rounded-full bg-gradient-to-br from-electric to-cyan text-white shadow-glow xl:hidden"
+        className="fixed bottom-4 right-4 z-30 grid h-11 w-11 place-items-center rounded-full bg-electric text-white shadow-pop xl:hidden"
         aria-label="Open problem panel"
       >
         <Target className="h-5 w-5" />
@@ -530,8 +530,8 @@ export default function Workspace({
 
       {/* mobile context drawer */}
       {mobileContext && (
-        <div className="fixed inset-0 z-50 flex items-end bg-slate-900/40 backdrop-blur-sm xl:hidden" onClick={() => setMobileContext(false)}>
-          <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-ink-850 p-3 scroll-thin" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end bg-slate-900/40-sm xl:hidden" onClick={() => setMobileContext(false)}>
+          <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-3 scroll-thin" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 flex items-center gap-2">
               <span className="text-[12px] font-semibold text-slate-900">Room context</span>
               <button type="button" className="btn-subtle ml-auto p-1" onClick={() => setMobileContext(false)}>

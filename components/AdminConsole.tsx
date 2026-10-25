@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { Member, Stage, Tool, WorkspaceState, StageKey } from '@/lib/types';
 import { api, del, patch, post, setAuthToken } from '@/lib/client';
+import { stageAccent } from '@/lib/defaults';
 import { Avatar, Pill, StageIcon, STAGE_ICONS, Spinner, ToolIcon, Wordmark } from './ui';
 
 const ICON_NAMES = Object.keys(STAGE_ICONS);
@@ -209,7 +210,7 @@ export default function AdminConsole({
 
   return (
     <div className="app-bg min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-slate-200/90 bg-ink-900/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <Wordmark compact />
           <div className="h-6 w-px bg-slate-200" />
@@ -218,10 +219,10 @@ export default function AdminConsole({
               <h1 className="truncate text-[13px] font-semibold text-slate-900">Owner console</h1>
               <Pill tone="amber"><ShieldCheck className="h-3 w-3" /> full edit access</Pill>
             </div>
-            <div className="truncate text-[10.5px] text-slate-500">{state.project.name} · /room/{code}</div>
+            <div className="truncate text-[12px] text-slate-500">{state.project.name} · /room/{code}</div>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <Link href={`/room/${code}`} className="btn-ghost px-2.5 py-1.5 text-[11.5px]">
+            <Link href={`/room/${code}`} className="btn-ghost px-2.5 py-1.5 text-[12px]">
               <ArrowLeft className="h-3.5 w-3.5" /> Back to the room
             </Link>
           </div>
@@ -232,7 +233,7 @@ export default function AdminConsole({
               <t.icon className="h-3.5 w-3.5" /> {t.label}
             </button>
           ))}
-          <span className="ml-auto hidden text-[10.5px] text-slate-500 sm:block">
+          <span className="ml-auto hidden text-[12px] text-slate-500 sm:block">
             Changes are stored in Postgres — no deploy needed.
           </span>
         </div>
@@ -240,7 +241,7 @@ export default function AdminConsole({
 
       {(toast || error) && (
         <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
-          <div className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-[12px] shadow-xl ${error ? 'border-rose/40 bg-rose/15 text-rose' : 'border-mint/35 bg-mint/15 text-mint'}`}>
+          <div className={`flex items-center gap-2 rounded-xl border px-3.5 py-2 text-[12px] shadow-pop ${error ? 'border-rose-200 bg-white text-rose' : 'border-emerald-200 bg-white text-emerald-800'}`}>
             {error ? <X className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
             {error || toast}
             <button type="button" onClick={() => { setError(null); setToast(null); }} className="ml-1 opacity-60"><X className="h-3 w-3" /></button>
@@ -306,7 +307,7 @@ export default function AdminConsole({
                           />
                         </div>
                         <div className="pb-2">
-                          <label className="flex cursor-pointer items-center gap-1.5 text-[10.5px] text-slate-500">
+                          <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-slate-500">
                             <input
                               type="checkbox"
                               checked={s.enabled !== false}
@@ -323,7 +324,7 @@ export default function AdminConsole({
                       <div>
                         <label className="label">Checklist (one item per line → board tasks)</label>
                         <textarea
-                          className="field min-h-[78px] text-[11.5px] leading-relaxed"
+                          className="field min-h-[78px] text-[13px] leading-relaxed"
                           value={(s.checklist ?? []).join('\n')}
                           onChange={(e) =>
                             setStageEdits((v) => ({
@@ -337,13 +338,13 @@ export default function AdminConsole({
                         <div className="flex items-center gap-2">
                           <span
                             className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200"
-                            style={{ background: `${s.color}18`, color: s.color }}
+                            style={{ background: `${stageAccent(s.color)}18`, color: stageAccent(s.color) }}
                           >
                             <StageIcon name={s.icon} className="h-4 w-4" />
                           </span>
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-500">{s.key}</span>
+                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] text-slate-500">{s.key}</span>
                         </div>
-                        <button type="button" className={`${dirty ? 'btn-primary' : 'btn-ghost'} px-3 py-1.5 text-[11.5px]`} onClick={() => saveStage(raw)} disabled={!dirty}>
+                        <button type="button" className={`${dirty ? 'btn-primary' : 'btn-ghost'} px-3 py-1.5 text-[12px]`} onClick={() => saveStage(raw)} disabled={!dirty}>
                           <Save className="h-3.5 w-3.5" /> {dirty ? 'Save stage' : 'Saved'}
                         </button>
                       </div>
@@ -365,7 +366,7 @@ export default function AdminConsole({
                   <Plus className="h-4 w-4" /> Add stage
                 </button>
               </div>
-              <p className="mt-1.5 text-[10.5px] text-slate-500">
+              <p className="mt-1.5 text-[12px] text-slate-500">
                 Stages are additive — the default nine always stay compatible with existing docs.
               </p>
             </div>
@@ -416,7 +417,7 @@ export default function AdminConsole({
                               : [...(newTool.stages ?? []), s.key],
                           })
                         }
-                        className={`rounded-full border px-2 py-0.5 text-[10px] ${on ? 'border-electric/40 bg-electric/15 text-electric-soft' : 'border-slate-200 text-slate-500'}`}
+                        className={`rounded-full border px-2 py-0.5 text-[12px] ${on ? 'border-electric bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
                       >
                         {s.name}
                       </button>
@@ -451,7 +452,7 @@ export default function AdminConsole({
                           <button
                             type="button"
                             title={raw.enabled === false ? 'Enable tool' : 'Disable tool'}
-                            className={`rounded-lg border px-1.5 py-1.5 text-[10px] ${raw.enabled === false ? 'border-rose/30 text-rose' : 'border-mint/25 text-mint'}`}
+                            className={`rounded-lg border px-1.5 py-1.5 text-[12px] ${raw.enabled === false ? 'border-rose/30 text-rose' : 'border-mint/25 text-mint'}`}
                             onClick={() => {
                               setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], enabled: raw.enabled === false } }));
                               setTimeout(() => saveTool({ ...raw, enabled: raw.enabled === false }), 0);
@@ -459,17 +460,17 @@ export default function AdminConsole({
                           >
                             {raw.enabled === false ? 'off' : 'on'}
                           </button>
-                          <button type="button" className={`${dirty ? 'btn-primary' : 'btn-ghost'} px-2 py-1.5 text-[11px]`} onClick={() => saveTool(raw)} disabled={!dirty}>
+                          <button type="button" className={`${dirty ? 'btn-primary' : 'btn-ghost'} px-2 py-1.5 text-[12px]`} onClick={() => saveTool(raw)} disabled={!dirty}>
                             <Save className="h-3.5 w-3.5" />
                           </button>
-                          <button type="button" className="btn-subtle px-2 py-1.5 text-[11px] text-slate-500 hover:text-rose" onClick={() => removeTool(raw)}>
+                          <button type="button" className="btn-subtle px-2 py-1.5 text-[12px] text-slate-500 hover:text-rose" onClick={() => removeTool(raw)}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
                       <div className="mt-2 grid gap-2 md:grid-cols-[1fr_1fr]">
-                        <input className="field text-[11.5px]" value={t.url} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], url: e.target.value } }))} />
-                        <input className="field text-[11.5px]" value={t.description} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], description: e.target.value } }))} />
+                        <input className="field text-[12px]" value={t.url} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], url: e.target.value } }))} />
+                        <input className="field text-[12px]" value={t.description} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], description: e.target.value } }))} />
                       </div>
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {state.stages.map((s) => {
@@ -487,7 +488,7 @@ export default function AdminConsole({
                                   },
                                 }))
                               }
-                              className={`rounded-full border px-1.5 py-0.5 text-[9.5px] ${on ? 'border-electric/35 bg-electric/12 text-electric-soft' : 'border-slate-200 text-slate-500'}`}
+                              className={`rounded-full border px-1.5 py-0.5 text-[12px] ${on ? 'border-electric bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
                             >
                               {s.name}
                             </button>
@@ -503,7 +504,7 @@ export default function AdminConsole({
 
         {tab === 'team' && (
           <div className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] leading-relaxed text-slate-600">
               Roles decide the playbook and the default owner for each stage. Membership is the only permission that
               exists today: everyone in the room can edit documents, tasks, signals and the tool wall — the owner
               console is the one restricted area.
@@ -529,7 +530,7 @@ export default function AdminConsole({
               >
                 <Plus className="h-3.5 w-3.5" /> Add member
               </button>
-              <button type="button" className="btn-ghost px-2.5 py-2 text-[11.5px]" onClick={() => navigator.clipboard?.writeText(shareUrl)}>
+              <button type="button" className="btn-ghost px-2.5 py-2 text-[12px]" onClick={() => navigator.clipboard?.writeText(shareUrl)}>
                 <Copy className="h-3.5 w-3.5" /> Copy invite link
               </button>
             </div>
@@ -539,23 +540,23 @@ export default function AdminConsole({
                 <div key={m.user_id} className="panel flex flex-wrap items-center gap-2 p-3">
                   <Avatar name={m.name} size={32} />
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-[12.5px] font-medium text-slate-900">
+                    <div className="flex items-center gap-1.5 text-[13px] font-medium text-slate-900">
                       {m.name}
                       {m.user_id === state.project.owner_id && <Pill tone="amber">owner</Pill>}
                       {m.is_admin && m.user_id !== state.project.owner_id && <Pill tone="electric">admin</Pill>}
                     </div>
-                    <div className="text-[10.5px] text-slate-500">{m.email || 'guest'} · joined {String(m.joined_at).slice(0, 10)}</div>
+                    <div className="text-[12px] text-slate-500">{m.email || 'guest'} · joined {String(m.joined_at).slice(0, 10)}</div>
                   </div>
                   <div className="ml-auto flex items-center gap-2">
                     <select
-                      className="field w-36 py-1.5 text-[11.5px]"
+                      className="field w-36 py-1.5 text-[12px]"
                       value={m.role}
                       onChange={(e) => teamAction({ user_id: m.user_id, role: e.target.value })}
                     >
                       {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                     </select>
                     {m.user_id !== state.project.owner_id && (
-                      <button type="button" className="btn-subtle px-2 py-1.5 text-[11px] text-slate-500 hover:text-rose" onClick={() => teamAction({ action: 'remove', user_id: m.user_id })}>
+                      <button type="button" className="btn-subtle px-2 py-1.5 text-[12px] text-slate-500 hover:text-rose" onClick={() => teamAction({ action: 'remove', user_id: m.user_id })}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     )}
@@ -569,7 +570,7 @@ export default function AdminConsole({
         {tab === 'engine' && (
           <div className="space-y-4">
             <div className="panel p-4">
-              <h2 className="mb-3 text-[15px] font-semibold text-slate-900">Workspace identity</h2>
+              <h2 className="mb-3 text-[16px] font-semibold text-slate-900">Workspace identity</h2>
               <div className="grid gap-2 md:grid-cols-2">
                 <div>
                   <label className="label">Product name</label>
@@ -584,26 +585,26 @@ export default function AdminConsole({
                 <button type="button" className="btn-primary px-3 py-2 text-[12px]" onClick={saveIdentity}>
                   <Save className="h-3.5 w-3.5" /> Save
                 </button>
-                <span className="text-[10.5px] text-slate-500">Share link: <span className="font-mono text-slate-500">{shareUrl}</span></span>
-                <a href="/setup" className="btn-ghost ml-auto px-2.5 py-1.5 text-[11.5px]">
+                <span className="text-[12px] text-slate-500">Share link: <span className="font-mono text-slate-500">{shareUrl}</span></span>
+                <a href="/setup" className="btn-ghost ml-auto px-2.5 py-1.5 text-[12px]">
                   <ShieldCheck className="h-3.5 w-3.5" /> Setup &amp; access keys
                 </a>
               </div>
             </div>
 
             <div className="panel p-4">
-              <h2 className="mb-1 flex items-center gap-2 text-[15px] font-semibold text-slate-900">
-                <Sparkles className="h-4 w-4 text-electric-soft" /> Intelligence engine
+              <h2 className="mb-1 flex items-center gap-2 text-[16px] font-semibold text-slate-900">
+                <Sparkles className="h-4 w-4 text-electric" /> Intelligence engine
               </h2>
-              <p className="text-[12px] leading-relaxed text-slate-500">
+              <p className="text-[13px] leading-relaxed text-slate-500">
                 Current engine: <span className="text-slate-800">{state.ai.engine}</span>{' '}
                 <Pill tone={state.ai.live ? 'mint' : 'slate'} className="ml-1">{state.ai.live ? 'live' : 'built-in'}</Pill>
               </p>
-              <div className="mt-3 grid gap-2 text-[11.5px] text-slate-500 md:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-[12px] text-slate-500 md:grid-cols-2">
                 <div className="panel-flat p-3">
                   <div className="mb-1 font-medium text-slate-800">To switch on a live model</div>
                   Set any one of these in Vercel → Settings → Environment Variables, then redeploy:
-                  <ul className="mt-1.5 space-y-0.5 font-mono text-[10.5px] text-cyan-800">
+                  <ul className="mt-1.5 space-y-0.5 font-mono text-[12px] text-cyan-800">
                     <li>OPENAI_API_KEY</li>
                     <li>ANTHROPIC_API_KEY</li>
                     <li>GEMINI_API_KEY</li>
@@ -619,7 +620,7 @@ export default function AdminConsole({
                     <li>· Session secret: <code className="text-cyan-800">AUTH_SECRET</code></li>
                     <li>· Database: <code className="text-cyan-800">DATABASE_URL</code> (Neon)</li>
                   </ul>
-                  <div className="mt-2 flex items-center gap-1 text-[10.5px] text-mint">
+                  <div className="mt-2 flex items-center gap-1 text-[12px] text-mint">
                     <ShieldCheck className="h-3 w-3" /> Members cannot call owner routes.
                   </div>
                 </div>
@@ -627,10 +628,10 @@ export default function AdminConsole({
             </div>
 
             <div className="panel p-4">
-              <h2 className="mb-2 flex items-center gap-2 text-[15px] font-semibold text-slate-900">
+              <h2 className="mb-2 flex items-center gap-2 text-[16px] font-semibold text-slate-900">
                 <Wand2 className="h-4 w-4 text-amber" /> What stays editable without code
               </h2>
-              <div className="grid gap-2 text-[11.5px] text-slate-500 sm:grid-cols-2">
+              <div className="grid gap-2 text-[12px] text-slate-500 sm:grid-cols-2">
                 {[
                   'Stage names, icons, colours, order and visibility',
                   'Each stage checklist (drives the board)',

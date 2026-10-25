@@ -10,6 +10,7 @@ import DocView from './DocView';
 import Board from './Board';
 import ToolWall from './ToolWall';
 import { post, safeHref } from '@/lib/client';
+import { stageAccent } from '@/lib/defaults';
 
 type Tab = 'plan' | 'docs' | 'board' | 'tools';
 
@@ -147,18 +148,18 @@ export default function StageView({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {problem?.status !== 'approved' && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-amber/20 bg-amber/[0.07] px-4 py-1.5 text-[11px] text-amber">
+        <div className="flex flex-wrap items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-[12px] text-amber">
           <span className="h-1.5 w-1.5 rounded-full bg-amber" />
           {problem
             ? 'The problem statement is still a draft. Approve it to lock scope before the team builds on it.'
             : 'No problem statement yet. Talk it through in the meeting, then run the problem engine.'}
-          <button type="button" onClick={onOpenProblem} className="ml-auto rounded-md border border-amber/40 px-2 py-0.5 font-medium hover:bg-amber/15">
+          <button type="button" onClick={onOpenProblem} className="ml-auto rounded-md border border-amber-300 px-2 py-0.5 font-medium hover:bg-amber-100">
             {problem ? 'Review & approve' : 'Open the panel'}
           </button>
         </div>
       )}
       {/* stage strip */}
-      <div className="scroll-thin flex items-center gap-1.5 overflow-x-auto border-b border-slate-200/80 px-3 py-2">
+      <div className="scroll-thin flex items-center gap-1.5 overflow-x-auto border-b border-slate-200 px-3 py-2">
         {stages.map((s, i) => {
           const active = s.key === stage.key;
           const p = stageProgress(s.key);
@@ -176,38 +177,38 @@ export default function StageView({
               >
                 <span
                   className="grid h-6 w-6 place-items-center rounded-md"
-                  style={{ background: `${s.color}1f`, color: active ? s.color : '#94a3b8' }}
+                  style={{ background: `${stageAccent(s.color)}1f`, color: active ? stageAccent(s.color) : '#98a2b3' }}
                 >
                   <StageIcon name={s.icon} className="h-3.5 w-3.5" />
                 </span>
-                <span className={`text-[11.5px] font-medium ${active ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                <span className={`text-[12px] font-medium ${active ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-800'}`}>
                   {s.name}
                 </span>
                 {p > 0 && <ProgressRing value={p} size={14} stroke={2} color={s.color} />}
               </button>
-              {i < stages.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-slate-400" />}
+              {i < stages.length - 1 && <ChevronRight className="h-3 w-3 shrink-0 text-slate-500" />}
             </div>
           );
         })}
       </div>
 
       {/* stage header */}
-      <div className="border-b border-slate-200/80 px-4 py-3">
+      <div className="border-b border-slate-200 px-4 py-3">
         <div className="flex flex-wrap items-start gap-3">
           <div
             className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200"
-            style={{ background: `${stage.color}18`, color: stage.color }}
+            style={{ background: `${stageAccent(stage.color)}16`, color: stageAccent(stage.color) }}
           >
             <StageIcon name={stage.icon} className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-[17px] font-semibold tracking-tight text-slate-900">{stage.name}</h2>
+              <h2 className="text-[16px] font-semibold tracking-tight text-slate-900">{stage.name}</h2>
               <Pill tone="slate">stage {idx + 1} of {stages.length}</Pill>
               {project.stage_key === stage.key && <Pill tone="electric">current</Pill>}
-              <span className="text-[10.5px] text-slate-500">{pct}% complete</span>
+              <span className="text-[12px] text-slate-500">{pct}% complete</span>
             </div>
-            <p className="mt-0.5 max-w-2xl text-[12px] leading-relaxed text-slate-500">{stage.tagline}</p>
+            <p className="mt-0.5 max-w-2xl text-[13px] leading-relaxed text-slate-500">{stage.tagline}</p>
           </div>
           <div className="flex items-center gap-1.5">
             {stageTools.slice(0, 5).map((t) => (
@@ -216,7 +217,7 @@ export default function StageView({
               </a>
             ))}
             {next && (
-              <button type="button" className="btn-ghost ml-1 px-2.5 py-1.5 text-[11px]" onClick={advance}>
+              <button type="button" className="btn-ghost ml-1 px-2.5 py-1.5 text-[12px]" onClick={advance}>
                 Advance to {next.name} <ArrowRight className="h-3 w-3" />
               </button>
             )}
@@ -233,7 +234,7 @@ export default function StageView({
             >
               <t.icon className="h-3.5 w-3.5" />
               {t.label}
-              {typeof t.count === 'number' && <span className="text-[10px] text-slate-500">{t.count}</span>}
+              {typeof t.count === 'number' && <span className="text-[12px] text-slate-500">{t.count}</span>}
             </button>
           ))}
         </div>
@@ -246,8 +247,8 @@ export default function StageView({
               <div className="panel p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <ListChecks className="h-4 w-4 text-slate-500" />
-                  <h3 className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">Stage checklist</h3>
-                  <span className="ml-auto text-[10.5px] text-slate-500">{doneCount}/{stageTasks.length}</span>
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Stage checklist</h3>
+                  <span className="ml-auto text-[12px] text-slate-500">{doneCount}/{stageTasks.length}</span>
                 </div>
                 <div className="space-y-1">
                   {(stage.checklist?.length ? stage.checklist : ['No checklist yet — add one from the admin console.']).map((item) => {
@@ -262,15 +263,15 @@ export default function StageView({
                       >
                         <span
                           className={`mt-px grid h-[17px] w-[17px] shrink-0 place-items-center rounded-md border transition ${
-                            done ? 'border-mint/60 bg-mint/25 text-mint' : 'border-slate-300 bg-slate-50 text-transparent'
+                            done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-slate-50 text-transparent'
                           }`}
                         >
                           <Check className="h-3 w-3" />
                         </span>
-                        <span className={`text-[12.5px] leading-relaxed ${done ? 'text-slate-500 line-through' : 'text-slate-400'}`}>
+                        <span className={`text-[13px] leading-relaxed ${done ? 'text-slate-500 line-through' : 'text-slate-500'}`}>
                           {item}
                         </span>
-                        {task?.owner && <span className="ml-auto shrink-0 text-[9.5px] text-slate-500">{task.owner.split(' ')[0]}</span>}
+                        {task?.owner && <span className="ml-auto shrink-0 text-[12px] text-slate-500">{task.owner.split(' ')[0]}</span>}
                       </button>
                     );
                   })}
@@ -279,8 +280,8 @@ export default function StageView({
 
               <div className="panel p-4">
                 <div className="mb-2 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-electric-soft" />
-                  <h3 className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">What to produce here</h3>
+                  <Sparkles className="h-4 w-4 text-electric" />
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">What to produce here</h3>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {stageArtifacts.map((a) => (
@@ -293,7 +294,7 @@ export default function StageView({
                       <FileText className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${a.content ? 'text-mint' : 'text-slate-500'}`} />
                       <div className="min-w-0">
                         <div className="truncate text-[12px] font-medium text-slate-800">{a.title}</div>
-                        <div className="text-[10px] text-slate-500">{a.content ? `${a.status} · ready to edit` : 'not generated'}</div>
+                        <div className="text-[12px] text-slate-500">{a.content ? `${a.status} · ready to edit` : 'not generated'}</div>
                       </div>
                     </button>
                   ))}
@@ -301,11 +302,11 @@ export default function StageView({
               </div>
 
               {problem && (
-                <div className="rounded-xl border border-electric/20 bg-electric/[0.06] p-3.5">
-                  <div className="mb-1 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-electric-soft">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                  <div className="mb-1 text-[11px] font-semibold uppercase tracking-[.08em] text-electric">
                     Building against
                   </div>
-                  <p className="text-[12px] leading-relaxed text-slate-400">{problem.statement}</p>
+                  <p className="text-[13px] leading-relaxed text-slate-500">{problem.statement}</p>
                 </div>
               )}
             </div>
@@ -313,8 +314,8 @@ export default function StageView({
             <div className="space-y-4">
               <div className="panel p-4">
                 <div className="mb-2.5 flex items-center gap-2">
-                  <h3 className="text-[12.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">Free tools for this stage</h3>
-                  <button type="button" onClick={() => setTab('tools')} className="ml-auto text-[10.5px] text-electric-soft hover:underline">
+                  <h3 className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Free tools for this stage</h3>
+                  <button type="button" onClick={() => setTab('tools')} className="ml-auto text-[12px] text-electric hover:underline">
                     see all
                   </button>
                 </div>
@@ -330,34 +331,34 @@ export default function StageView({
                     >
                       <ToolIcon name={t.name} color={t.color} size={26} rounded={7} />
                       <div className="min-w-0">
-                        <div className="truncate text-[11px] font-medium text-slate-800">{t.name}</div>
-                        <div className="truncate text-[9.5px] text-slate-500">{t.free_tier}</div>
+                        <div className="truncate text-[12px] font-medium text-slate-800">{t.name}</div>
+                        <div className="truncate text-[12px] text-slate-500">{t.free_tier}</div>
                       </div>
                     </a>
                   ))}
                 </div>
-                <button type="button" onClick={() => setTab('tools')} className="btn-subtle mt-2 w-full py-1.5 text-[10.5px]">
+                <button type="button" onClick={() => setTab('tools')} className="btn-subtle mt-2 w-full py-1.5 text-[12px]">
                   <Wand2 className="h-3 w-3" /> Open the full tool wall
                 </button>
                 {canManage && (
-                  <button type="button" onClick={onManage} className="btn-subtle w-full py-1.5 text-[10.5px]">
+                  <button type="button" onClick={onManage} className="btn-subtle w-full py-1.5 text-[12px]">
                     Edit the catalogue
                   </button>
                 )}
               </div>
 
               <div className="panel p-4">
-                <h3 className="mb-2 text-[12.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">Who is on it</h3>
+                <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Who is on it</h3>
                 <div className="space-y-1.5">
                   {members.map((m) => {
                     const owned = stageTasks.filter((t) => t.owner === m.name);
                     const done = owned.filter((t) => t.status === 'done').length;
                     return (
-                      <div key={m.user_id} className="flex items-center gap-2 text-[11.5px]">
+                      <div key={m.user_id} className="flex items-center gap-2 text-[12px]">
                         <Circle className="h-2 w-2" style={{ color: m.role === 'pm' ? '#818cf8' : '#475569', fill: 'currentColor' }} />
-                        <span className="text-slate-400">{m.name}</span>
-                        <span className="rounded bg-slate-100 px-1 py-px text-[9px] uppercase tracking-wider text-slate-500">{m.role}</span>
-                        <span className="ml-auto text-[10px] text-slate-500">{owned.length ? `${done}/${owned.length}` : '—'}</span>
+                        <span className="text-slate-500">{m.name}</span>
+                        <span className="rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{m.role}</span>
+                        <span className="ml-auto text-[12px] text-slate-500">{owned.length ? `${done}/${owned.length}` : '—'}</span>
                       </div>
                     );
                   })}

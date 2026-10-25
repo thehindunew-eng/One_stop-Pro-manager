@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowRight, Lock, Sparkles, Users } from 'lucide-react';
 import { ROLES } from '@/lib/defaults';
 import { api, getAuthToken, post, setAuthToken } from '@/lib/client';
-import { Logo, Pill, Spinner } from './ui';
+import { Pill, Spinner, Wordmark } from './ui';
 
 const ROLE_ICONS: Record<string, string> = {
   pm: '🎯', design: '🎨', eng: '⚙️', qa: '🧪', growth: '📈', member: '🧩',
@@ -74,31 +74,26 @@ export default function RoomGate({
   }
 
   return (
-    <main className="app-bg relative grid min-h-screen place-items-center overflow-hidden px-4 py-10">
-      <div className="pointer-events-none absolute inset-0 grid-lines" />
-      <div className="pointer-events-none absolute -left-32 top-0 h-72 w-72 rounded-full bg-electric/20 blur-[110px]" />
+    <main className="app-bg grid min-h-screen place-items-center px-4 py-10">
 
-      <div className="relative w-full max-w-md">
+      <div className="w-full max-w-md">
         <div className="mb-5 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Logo size={30} />
-            <span className="text-[12.5px] font-semibold text-slate-900">One Stop Pro Manager</span>
-          </Link>
+          <Link href="/"><Wordmark /></Link>
           <Pill tone="mint">room ready</Pill>
         </div>
 
         <div className="panel overflow-hidden">
-          <div className="border-b border-slate-200/90 bg-slate-50 px-5 py-4">
-            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint/50" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-mint" />
               </span>
               live meeting room · /{code}
             </div>
-            <h1 className="mt-1.5 text-[19px] font-semibold leading-tight tracking-tight text-slate-900">{roomName}</h1>
-            <p className="mt-1 text-[12px] leading-relaxed text-slate-500">{tagline || 'One room, one thread, one launch.'}</p>
-            <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-slate-500">
+            <h1 className="mt-1.5 text-[20px] font-semibold leading-tight tracking-tight text-slate-900">{roomName}</h1>
+            <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{tagline || 'One room, one thread, one launch.'}</p>
+            <div className="mt-2.5 flex items-center gap-1.5 text-[12px] text-slate-500">
               <Users className="h-3 w-3" /> {members} {members === 1 ? 'member' : 'members'} already in this room
             </div>
           </div>
@@ -124,7 +119,7 @@ export default function RoomGate({
                 <label className="label" htmlFor="gate-role">Your seat</label>
                 <select id="gate-role" className="field" value={role} onChange={(e) => setRole(e.target.value)}>
                   {ROLES.map((r) => (
-                    <option key={r.key} value={r.key} className="bg-ink-800">
+                    <option key={r.key} value={r.key} className="bg-white">
                       {ROLE_ICONS[r.key]} {r.label}
                     </option>
                   ))}
@@ -133,7 +128,7 @@ export default function RoomGate({
             </div>
 
             <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-              <summary className="flex cursor-pointer items-center gap-1.5 text-[11.5px] text-slate-500">
+              <summary className="flex cursor-pointer items-center gap-1.5 text-[12px] text-slate-500">
                 <Lock className="h-3 w-3 text-amber" /> Owner passcode <span className="text-slate-500">(only if this is your workspace)</span>
               </summary>
               <input
@@ -148,7 +143,7 @@ export default function RoomGate({
               />
             </details>
 
-            {error && <div className="mb-3 rounded-lg border border-rose/30 bg-rose/10 px-3 py-2 text-[11.5px] text-rose">{error}</div>}
+            {error && <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose">{error}</div>}
 
             <button type="button" className="btn-primary w-full py-2.5" onClick={() => enter()} disabled={busy !== null}>
               {busy === 'enter' || busy === 'resume' ? <Spinner className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
@@ -158,7 +153,7 @@ export default function RoomGate({
             <div className="mt-2.5 flex items-center gap-2">
               <button
                 type="button"
-                className="btn-ghost flex-1 py-2 text-[11.5px]"
+                className="btn-ghost flex-1 py-2 text-[12px]"
                 onClick={() => enter({ guest: true })}
                 disabled={busy !== null}
               >
@@ -166,7 +161,7 @@ export default function RoomGate({
               </button>
               <button
                 type="button"
-                className="btn-ghost flex-1 py-2 text-[11.5px]"
+                className="btn-ghost flex-1 py-2 text-[12px]"
                 onClick={() => enter({ guest: true, demo: true })}
                 disabled={busy !== null}
               >
@@ -174,13 +169,13 @@ export default function RoomGate({
               </button>
             </div>
 
-            <p className="mt-3 text-center text-[10px] leading-relaxed text-slate-500">
+            <p className="mt-3 text-center text-[13px] leading-relaxed text-slate-500">
               Guest entry needs no details. Only the owner passcode unlocks editing.
             </p>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-3 text-[10.5px] text-slate-500">
+        <div className="mt-4 flex items-center justify-center gap-3 text-[12px] text-slate-500">
           <Link href="/" className="hover:text-slate-500">Overview</Link>
           <span>·</span>
           <Link href="/join" className="hover:text-slate-500">Join form</Link>

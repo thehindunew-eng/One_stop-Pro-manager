@@ -184,3 +184,25 @@ is where the P1 items matter.
 ---
 
 *Companion file: `README.md` (deploy checklist and environment table) and `/setup` (live status of every integration).*
+
+## 7. Visual reset (this pass)
+
+"Not looking visually professional" was a real defect, not a matter of taste. The first light retint kept the dark
+theme's DNA: nine shades of micro-type between 9px and 13px, an Inter font family that was declared in CSS but never
+loaded, neon stage colours, gradient tiles and glow, a radial-gradient page wash, and backdrop blur on every sticky bar.
+
+What changed:
+
+| Defect | Fix |
+| --- | --- |
+| Inter declared, never loaded → Segoe UI/Roboto fallback | Self-hosted `@fontsource-variable/inter`, imported in `app/layout.tsx`. Ships woff2 in the bundle; no Google Fonts request. |
+| 8 hardcoded sizes below 12px (`text-[9px]` … `text-[11.5px]`) | 778 replacements; nothing renders below 11px now. Scale: 11 meta / 12 dense / 13 body / 14 prose / 16+ headings. |
+| Gradient logo, gradient tool tiles, avatar hue-gradients, `shadow-glow` | Flat solid marks: indigo square + mark, tinted initial tiles, solid avatar circles. `shadow-glow` is now `none`. |
+| Neon stage palette (`#22d3ee`, `#818cf8`, `#fbbf24`…) | Muted stage accents; `stageAccent()` maps the bright hexes already stored in Postgres so existing rooms change without a re-seed. |
+| Radial-gradient `.app-bg`, `grid-lines`, `backdrop-blur-xl` | Flat `#f7f8fa` canvas, white surfaces, 1px `#e4e7ec` borders, one hairline shadow. |
+| Wash-tinted "selected" states (`bg-electric/[0.08]`) | Neutral selected states: `bg-slate-50` + border, indigo only for primary actions and links. |
+| Landing hero: gradient text, blurred blobs, 58px headline | Solid headline at 46px, no blobs, alternating white/canvas section rhythm, real wordmark in nav and footer. |
+
+Guard rails for future work: use the primitives in `app/globals.css` (`.panel`, `.btn*`, `.chip`, `.field`, `.label`,
+`.tab`, `.section-label`) and the type scale in `tailwind.config.ts`. A new `text-[9.5px]` or `bg-gradient-to-*` should
+be treated as a regression.

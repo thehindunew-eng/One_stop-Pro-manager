@@ -7,10 +7,10 @@ import { del, patch, post } from '@/lib/client';
 import { Avatar, Pill, Spinner } from './ui';
 
 const COLUMNS: { key: TaskStatus; label: string; tone: string }[] = [
-  { key: 'todo', label: 'To do', tone: '#94a3b8' },
-  { key: 'doing', label: 'In progress', tone: '#fbbf24' },
-  { key: 'review', label: 'In review', tone: '#818cf8' },
-  { key: 'done', label: 'Done', tone: '#34d399' },
+  { key: 'todo', label: 'To do', tone: '#98a2b3' },
+  { key: 'doing', label: 'In progress', tone: '#4338ca' },
+  { key: 'review', label: 'In review', tone: '#b45309' },
+  { key: 'done', label: 'Done', tone: '#047857' },
 ];
 
 const PRIORITY_TONE: Record<string, 'rose' | 'amber' | 'slate'> = { P0: 'rose', P1: 'amber', P2: 'slate' };
@@ -109,15 +109,15 @@ export default function Board({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-ink-900/60 p-0.5">
-          <button type="button" onClick={() => setScope('stage')} className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'stage' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+        <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+          <button type="button" onClick={() => setScope('stage')} className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${scope === 'stage' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
             This stage
           </button>
-          <button type="button" onClick={() => setScope('all')} className={`rounded-md px-2.5 py-1.5 text-[11.5px] font-medium ${scope === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+          <button type="button" onClick={() => setScope('all')} className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${scope === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
             Whole product
           </button>
         </div>
-        <div className="ml-auto flex items-center gap-2 text-[11px] text-slate-500">
+        <div className="ml-auto flex items-center gap-2 text-[12px] text-slate-500">
           <span>{done}/{total} done</span>
           <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
             <div className="h-full rounded-full bg-mint transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
@@ -125,7 +125,7 @@ export default function Board({
         </div>
       </div>
 
-      {error && <div className="mb-3 rounded-lg border border-rose/30 bg-rose/10 px-3 py-2 text-[11.5px] text-rose">{error}</div>}
+      {error && <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose">{error}</div>}
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {COLUMNS.map((col) => {
@@ -133,7 +133,7 @@ export default function Board({
           return (
             <div
               key={col.key}
-              className="flex min-h-[160px] flex-col rounded-xl border border-slate-200/90 bg-slate-50/70 p-2"
+              className="flex min-h-[160px] flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-2"
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => {
                 const t = tasks.find((x) => x.id === dragging);
@@ -143,8 +143,8 @@ export default function Board({
             >
               <div className="mb-2 flex items-center gap-2 px-1">
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: col.tone }} />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">{col.label}</span>
-                <span className="ml-auto text-[10px] text-slate-500">{items.length}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">{col.label}</span>
+                <span className="ml-auto text-[12px] text-slate-500">{items.length}</span>
               </div>
 
               <div className="flex-1 space-y-2">
@@ -154,20 +154,20 @@ export default function Board({
                     draggable
                     onDragStart={() => setDragging(t.id)}
                     onDragEnd={() => setDragging(null)}
-                    className={`group cursor-grab rounded-lg border border-slate-200/90 bg-ink-800/80 p-2.5 active:cursor-grabbing ${
+                    className={`group cursor-grab rounded-lg border border-slate-200 bg-white p-2.5 shadow-card transition hover:border-slate-300 active:cursor-grabbing ${
                       dragging === t.id ? 'opacity-40' : ''
                     } ${t.status === 'done' ? 'opacity-70' : ''}`}
                   >
                     <div className="flex items-start gap-1.5">
-                      <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400 group-hover:text-slate-500" />
+                      <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500 group-hover:text-slate-500" />
                       <div className="min-w-0 flex-1">
                         <p className={`text-[12px] leading-snug ${t.status === 'done' ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
                           {t.title}
                         </p>
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                          <Pill tone={PRIORITY_TONE[t.priority] ?? 'slate'} className="!px-1.5 !py-0 !text-[9px]">{t.priority}</Pill>
+                          <Pill tone={PRIORITY_TONE[t.priority] ?? 'slate'} className="!px-1.5 !py-0 !text-[12px]">{t.priority}</Pill>
                           {scope === 'all' && (
-                            <span className="rounded bg-slate-100 px-1 py-0.5 text-[9px] uppercase tracking-wider text-slate-500">
+                            <span className="rounded bg-slate-100 px-1 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">
                               {stages.find((s) => s.key === t.stage_key)?.name ?? t.stage_key}
                             </span>
                           )}
@@ -175,8 +175,8 @@ export default function Board({
                             value={t.owner ?? ''}
                             onChange={(e) => assign(t, e.target.value || null)}
                             title="Who owns this?"
-                            className={`max-w-[92px] cursor-pointer truncate rounded px-1 py-0.5 text-[9.5px] outline-none ${
-                              t.owner ? 'bg-slate-100 text-slate-600' : 'bg-amber/10 text-amber'
+                            className={`max-w-[92px] cursor-pointer truncate rounded px-1 py-0.5 text-[12px] outline-none ${
+                              t.owner ? 'bg-slate-100 text-slate-600' : 'bg-amber-50 text-amber-800'
                             }`}
                           >
                             <option value="">Unassigned</option>
@@ -191,7 +191,7 @@ export default function Board({
                             type="button"
                             onClick={() => assign(t, me.name)}
                             title={`Assign to me (${me.name})`}
-                            className="rounded p-0.5 text-slate-400 opacity-0 transition hover:bg-electric/10 hover:text-electric group-hover:opacity-100"
+                            className="rounded p-0.5 text-slate-500 opacity-0 transition hover:bg-indigo-50 hover:text-electric group-hover:opacity-100"
                           >
                             <User className="h-2.5 w-2.5" />
                           </button>
@@ -202,7 +202,7 @@ export default function Board({
                           type="button"
                           onClick={() => move(t, nextStatus(t.status))}
                           title={`Move to ${nextStatus(t.status)}`}
-                          className="rounded p-0.5 text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-800 group-hover:opacity-100"
+                          className="rounded p-0.5 text-slate-500 opacity-0 transition hover:bg-slate-100 hover:text-slate-800 group-hover:opacity-100"
                         >
                           <ChevronRight className="h-3 w-3" />
                         </button>
@@ -210,7 +210,7 @@ export default function Board({
                           <button
                             type="button"
                             onClick={() => remove(t.id)}
-                            className="rounded p-0.5 text-slate-400 opacity-0 transition hover:bg-rose/10 hover:text-rose group-hover:opacity-100"
+                            className="rounded p-0.5 text-slate-500 opacity-0 transition hover:bg-rose/10 hover:text-rose group-hover:opacity-100"
                             aria-label="Delete task"
                           >
                             <Trash2 className="h-3 w-3" />
@@ -223,10 +223,10 @@ export default function Board({
               </div>
 
               {adding === col.key ? (
-                <div className="mt-2 space-y-1.5 rounded-lg border border-electric/30 bg-ink-900/80 p-2">
+                <div className="mt-2 space-y-1.5 rounded-lg border border-electric/30 bg-slate-50 p-2">
                   <input
                     autoFocus
-                    className="field px-2 py-1.5 text-[11.5px]"
+                    className="field px-2 py-1.5 text-[12px]"
                     placeholder="What needs doing?"
                     value={draft.title}
                     onChange={(e) => setDraft({ ...draft, title: e.target.value })}
@@ -236,23 +236,23 @@ export default function Board({
                     }}
                   />
                   <div className="flex gap-1.5">
-                    <select className="field px-1.5 py-1 text-[10.5px]" value={draft.owner} onChange={(e) => setDraft({ ...draft, owner: e.target.value })}>
+                    <select className="field px-1.5 py-1 text-[12px]" value={draft.owner} onChange={(e) => setDraft({ ...draft, owner: e.target.value })}>
                       <option value="">Unassigned</option>
                       {members.map((m) => (
                         <option key={m.user_id} value={m.name}>{m.name}</option>
                       ))}
                     </select>
-                    <select className="field px-1.5 py-1 text-[10.5px]" value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>
+                    <select className="field px-1.5 py-1 text-[12px]" value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>
                       <option value="P0">P0</option>
                       <option value="P1">P1</option>
                       <option value="P2">P2</option>
                     </select>
                   </div>
                   <div className="flex gap-1.5">
-                    <button type="button" className="btn-primary flex-1 px-2 py-1 text-[11px]" onClick={() => add(col.key)} disabled={busy}>
+                    <button type="button" className="btn-primary flex-1 px-2 py-1 text-[12px]" onClick={() => add(col.key)} disabled={busy}>
                       {busy ? <Spinner className="h-3 w-3" /> : <Plus className="h-3 w-3" />} Add
                     </button>
-                    <button type="button" className="btn-subtle px-2 py-1 text-[11px]" onClick={() => setAdding(null)}>Cancel</button>
+                    <button type="button" className="btn-subtle px-2 py-1 text-[12px]" onClick={() => setAdding(null)}>Cancel</button>
                   </div>
                 </div>
               ) : (
@@ -262,7 +262,7 @@ export default function Board({
                     setAdding(col.key);
                     setDraft((d) => ({ ...d, stage_key: stageKey }));
                   }}
-                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[11px] text-slate-500 transition hover:border-slate-300 hover:text-slate-400"
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[12px] text-slate-500 transition hover:border-slate-300 hover:text-slate-500"
                 >
                   <Plus className="h-3 w-3" /> Add task
                 </button>
@@ -272,7 +272,7 @@ export default function Board({
         })}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-[10.5px] text-slate-500">
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-[12px] text-slate-500">
         <Info className="h-3 w-3" />
         Drag cards between columns — or use the arrow for one-tap moves on a phone. Click a name to reassign; anyone in the
         room can hand work to anyone else.

@@ -6,7 +6,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Discover',
     tagline: 'Understand the real problem, the people who feel it and the evidence behind it.',
     icon: 'Compass',
-    color: '#22d3ee',
+    color: '#0e7490',
     position: 1,
     enabled: true,
     checklist: [
@@ -23,7 +23,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Define',
     tagline: 'Turn the problem into a scoped, testable product brief everyone agrees on.',
     icon: 'ClipboardList',
-    color: '#818cf8',
+    color: '#4338ca',
     position: 2,
     enabled: true,
     checklist: [
@@ -40,7 +40,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Ideate',
     tagline: 'Explore solution angles, kill weak ones and pick the smallest thing that proves value.',
     icon: 'Lightbulb',
-    color: '#fbbf24',
+    color: '#b45309',
     position: 3,
     enabled: true,
     checklist: [
@@ -56,7 +56,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Design',
     tagline: 'Make it usable: flows, wireframes, design system and a landing page that sells it.',
     icon: 'Palette',
-    color: '#f472b6',
+    color: '#be123c',
     position: 4,
     enabled: true,
     checklist: [
@@ -72,7 +72,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Architect',
     tagline: 'Choose a free-tier stack that ships now and scales without a rewrite.',
     icon: 'Boxes',
-    color: '#a78bfa',
+    color: '#6d28d9',
     position: 5,
     enabled: true,
     checklist: [
@@ -88,7 +88,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Build',
     tagline: 'Ship the MVP in weekly slices with a board, a repo and an AI pair.',
     icon: 'Code2',
-    color: '#34d399',
+    color: '#047857',
     position: 6,
     enabled: true,
     checklist: [
@@ -104,7 +104,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Test',
     tagline: 'Prove it works, prove it is safe, and prove real users can complete the job.',
     icon: 'FlaskConical',
-    color: '#38bdf8',
+    color: '#0369a1',
     position: 7,
     enabled: true,
     checklist: [
@@ -120,7 +120,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Launch',
     tagline: 'Deploy to the world with a story, a channel plan and a rollback plan.',
     icon: 'Rocket',
-    color: '#fb923c',
+    color: '#c2410c',
     position: 8,
     enabled: true,
     checklist: [
@@ -137,7 +137,7 @@ export const STAGE_SEED: Stage[] = [
     name: 'Grow',
     tagline: 'Measure what matters, learn from users and decide the next bet.',
     icon: 'TrendingUp',
-    color: '#2dd4bf',
+    color: '#0f766e',
     position: 9,
     enabled: true,
     checklist: [
@@ -369,3 +369,26 @@ export const ROOM_CODES = {
   demo: process.env.DEMO_PROJECT_CODE || 'studio',
   live: process.env.PROD_PROJECT_CODE || 'onestop',
 };
+
+/**
+ * The first release shipped a bright 400-weight palette. Rooms seeded before the
+ * visual reset still carry those hex values in Postgres, so map them at render
+ * time instead of asking the owner to re-seed.
+ */
+export const MUTED_STAGE_COLORS: Record<string, string> = {
+  '#22d3ee': '#0e7490',
+  '#818cf8': '#4338ca',
+  '#fbbf24': '#b45309',
+  '#f472b6': '#be123c',
+  '#a78bfa': '#6d28d9',
+  '#34d399': '#047857',
+  '#38bdf8': '#0369a1',
+  '#fb923c': '#c2410c',
+  '#2dd4bf': '#0f766e',
+};
+
+export function stageAccent(hex: string | undefined | null): string {
+  if (!hex) return '#4338ca';
+  const key = hex.toLowerCase();
+  return MUTED_STAGE_COLORS[key] ?? key;
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { guard, isGuard, bad } from '@/lib/api';
-import { clearStack, listStacks, setStack } from '@/lib/repo';
+import { clearStack, listStacks, listTools, setStack } from '@/lib/repo';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -18,6 +18,8 @@ export async function PATCH(req: Request) {
   const g = await guard(body.code);
   if (!isGuard(g)) return g;
   if (!body.tool_id) return bad('Missing tool id');
+  const known = (await listTools(true)).some((t) => t.id === body.tool_id);
+  if (!known) return bad('That tool is no longer in the catalogue.', 404);
   const ourUrl = body.our_url ? String(body.our_url).trim().slice(0, 500) : '';
   if (ourUrl && !/^https?:\/\//i.test(ourUrl)) return bad('Paste a full link that starts with http:// or https://');
   const stack = await setStack({
