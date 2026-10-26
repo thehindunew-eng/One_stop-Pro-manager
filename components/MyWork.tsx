@@ -275,7 +275,7 @@ export default function MyWork({
             onClick={m.action}
             className={`w-full rounded-lg border px-2.5 py-2 text-left transition ${
               m.tone === 'primary'
-                ? 'border-slate-300 bg-slate-50 hover:border-electric/50'
+                ? 'border-slate-900/25 bg-white/40 hover:border-electric/50'
                 : 'border-slate-900/25 bg-white/75 hover:border-slate-900/70'
             }`}
           >
@@ -302,7 +302,7 @@ export default function MyWork({
               <button
                 type="button"
                 onClick={() => claim(t)}
-                className="mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded border border-slate-300 text-transparent transition hover:border-mint hover:text-mint"
+                className="mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded border border-slate-900/25 text-transparent transition hover:border-mint hover:text-mint"
                 title={t.status === 'todo' ? 'Start this' : 'Mark done'}
               >
                 {busy === t.id ? <Spinner className="h-2.5 w-2.5 text-slate-500" /> : <Check className="h-2.5 w-2.5" />}
@@ -341,7 +341,7 @@ export default function MyWork({
         </div>
       )}
 
-      <div className="mt-2.5 border-t border-slate-200 pt-2">
+      <div className="mt-2.5 border-t border-slate-900/10 pt-2">
         <div className="mb-1 flex items-center justify-between">
           <span className="text-[11px] uppercase tracking-[.08em] text-slate-500">Your playbook</span>
           <span className="text-[12px] text-slate-500">tap to add as a task</span>
@@ -351,7 +351,7 @@ export default function MyWork({
             key={m}
             type="button"
             onClick={() => addPlaybookTask(m)}
-            className="flex w-full items-start gap-1.5 rounded px-1 py-1 text-left text-[12px] leading-snug text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
+            className="flex w-full items-start gap-1.5 rounded px-1 py-1 text-left text-[12px] leading-snug text-slate-500 transition hover:bg-white/40 hover:text-slate-800"
           >
             <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-electric/60" />
             <span className="min-w-0">{m}</span>
@@ -360,7 +360,7 @@ export default function MyWork({
         ))}
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-200 pt-2 text-[12px] text-slate-500">
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-900/10 pt-2 text-[12px] text-slate-500">
         <button type="button" onClick={() => onGotoStage(project.stage_key)} className="inline-flex items-center gap-1 hover:text-slate-800">
           <Target className="h-2.5 w-2.5 text-electric" /> {stage?.name} stage
         </button>

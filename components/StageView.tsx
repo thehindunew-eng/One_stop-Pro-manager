@@ -178,7 +178,7 @@ export default function StageView({
         </div>
       )}
       {/* stage strip */}
-      <div className="scroll-thin flex items-center gap-1.5 overflow-x-auto border-b border-slate-200 px-3 py-2">
+      <div className="scroll-thin flex items-center gap-1.5 overflow-x-auto border-b border-slate-900/10 px-3 py-2">
         {stages.map((s, i) => {
           const active = s.key === stage.key;
           const p = stageProgress(s.key);
@@ -190,7 +190,7 @@ export default function StageView({
                 className={`group flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
                   active
                     ? 'border-slate-900/40 bg-white/80'
-                    : 'border-transparent hover:border-slate-200 hover:bg-slate-100/70'
+                    : 'border-transparent hover:border-slate-900/10 hover:bg-white/60/70'
                 }`}
                 title={`${s.name} — ${p}% complete`}
               >
@@ -212,10 +212,10 @@ export default function StageView({
       </div>
 
       {/* stage header */}
-      <div className="border-b border-slate-200 px-4 py-3">
+      <div className="border-b border-slate-900/10 px-4 py-3">
         <div className="flex flex-wrap items-start gap-3">
           <div
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-900/10"
             style={{ background: `${stageAccent(stage.color)}16`, color: stageAccent(stage.color) }}
           >
             <StageIcon name={stage.icon} className="h-5 w-5" />
@@ -318,11 +318,11 @@ export default function StageView({
                         key={item}
                         type="button"
                         onClick={() => toggleChecklist(item)}
-                        className="flex w-full items-start gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-slate-50"
+                        className="flex w-full items-start gap-2.5 rounded-lg px-1.5 py-1.5 text-left transition hover:bg-white/40"
                       >
                         <span
                           className={`mt-px grid h-[17px] w-[17px] shrink-0 place-items-center rounded-md border transition ${
-                            done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-slate-50 text-transparent'
+                            done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-900/25 bg-white/40 text-transparent'
                           }`}
                         >
                           <Check className="h-3 w-3" />
@@ -416,7 +416,7 @@ export default function StageView({
                       <div key={m.user_id} className="flex items-center gap-2 text-[12px]">
                         <Circle className="h-2 w-2" style={{ color: m.role === 'pm' ? '#818cf8' : '#475569', fill: 'currentColor' }} />
                         <span className="text-slate-500">{m.name}</span>
-                        <span className="rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{m.role}</span>
+                        <span className="rounded bg-white/55 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{m.role}</span>
                         <span className="ml-auto text-[12px] text-slate-500">{owned.length ? `${done}/${owned.length}` : '—'}</span>
                       </div>
                     );

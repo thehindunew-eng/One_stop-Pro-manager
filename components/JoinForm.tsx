@@ -116,9 +116,9 @@ export default function JoinForm({
             </Link>
           </div>
 
-          <div className="mt-4 rounded-xl border border-dashed border-slate-200 p-3 text-[13px] leading-relaxed text-slate-500">
+          <div className="mt-4 rounded-xl border border-dashed border-slate-900/10 p-3 text-[13px] leading-relaxed text-slate-500">
             <span className="font-semibold text-slate-500">Owner?</span> Enter the passcode you set in
-            <code className="mx-1 rounded bg-slate-200/70 px-1.5 py-0.5 text-[12px] text-cyan-800">ADMIN_PASSCODE</code>
+            <code className="mx-1 rounded bg-slate-900/10 px-1.5 py-0.5 text-[12px] text-cyan-800">ADMIN_PASSCODE</code>
             to unlock the admin console. Default demo passcode: <span className="text-slate-500">amar-admin</span>.
           </div>
         </div>

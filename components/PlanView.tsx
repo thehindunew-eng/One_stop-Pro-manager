@@ -156,7 +156,7 @@ export default function PlanView({
 
         {/* readiness */}
         <div className="panel overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 border-b border-slate-200 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-3 border-b border-slate-900/10 px-4 py-3">
             <Flag className="h-4 w-4 text-slate-500" />
             <h2 className="text-[16px] font-semibold text-slate-900">Launch readiness</h2>
             <Pill tone={plan?.readiness.launchable ? 'mint' : 'slate'}>
@@ -207,9 +207,9 @@ export default function PlanView({
                   )}
                 </span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200">
+              <div className="meter mt-2 h-1.5">
                 <div
-                  className={`h-full rounded-full ${plan?.readiness.launchable ? 'bg-emerald-600' : 'bg-electric'}`}
+                  className={`meter-fill ${plan?.readiness.launchable ? 'meter-fill-mint' : ''}`}
                   style={{ width: `${plan?.readiness.score ?? 0}%` }}
                 />
               </div>
@@ -258,7 +258,7 @@ export default function PlanView({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-200 px-4 py-2 text-[12px] text-slate-600">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-900/10 px-4 py-2 text-[12px] text-slate-600">
             <span className="inline-flex items-center gap-1">
               <Target className="h-3 w-3 text-slate-400" /> {plan?.board.open ?? 0} open task{plan?.board.open === 1 ? '' : 's'}
             </span>
@@ -275,11 +275,11 @@ export default function PlanView({
 
         {/* role lanes */}
         <div className="panel">
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-2.5">
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-900/10 px-4 py-2.5">
             <h2 className="text-[16px] font-semibold text-slate-900">Who does what next</h2>
             <span className="text-[12px] text-slate-500">Read-only seats can still see the whole plan.</span>
           </div>
-          <div className="scroll-thin flex gap-1 overflow-x-auto border-b border-slate-200 px-3 py-2">
+          <div className="scroll-thin flex gap-1 overflow-x-auto border-b border-slate-900/10 px-3 py-2">
             {(plan?.lanes ?? []).map((l) => (
               <button
                 key={l.role}
@@ -313,8 +313,8 @@ export default function PlanView({
               </div>
               <div className="mt-2.5 space-y-1.5">
                 {activeLane.actions.map((a) => (
-                  <div key={`${a.kind}-${a.title}`} className="flex items-start gap-2 rounded-lg border border-slate-200 px-2.5 py-2">
-                    <span className={`mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full ${a.urgent ? 'bg-rose-100 text-rose' : 'bg-slate-100 text-slate-500'}`}>
+                  <div key={`${a.kind}-${a.title}`} className="flex items-start gap-2 rounded-lg border border-slate-900/10 px-2.5 py-2">
+                    <span className={`mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full ${a.urgent ? 'bg-rose-100 text-rose' : 'bg-white/55 text-slate-500'}`}>
                       {a.kind === 'doc' ? <FileText className="h-2.5 w-2.5" /> : <ArrowRight className="h-2.5 w-2.5" />}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -366,7 +366,7 @@ export default function PlanView({
 
         {/* stage gates */}
         <div className="panel">
-          <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-2.5">
+          <div className="flex items-center gap-2 border-b border-slate-900/10 px-4 py-2.5">
             <h2 className="text-[16px] font-semibold text-slate-900">Stage gates</h2>
             <span className="text-[12px] text-slate-500">
               A stage is finished when its criteria are met, not when the checklist is ticked.
@@ -406,7 +406,7 @@ export default function PlanView({
                               ? 'border-emerald-600 bg-emerald-600 text-white'
                               : c.manual
                                 ? 'border-slate-400 bg-white text-transparent hover:border-slate-600'
-                                : 'border-slate-200 bg-slate-100 text-transparent'
+                                : 'border-slate-900/10 bg-white/55 text-transparent'
                           } ${!c.manual ? 'cursor-default' : ''}`}
                         >
                           <Check className="h-2.5 w-2.5" />

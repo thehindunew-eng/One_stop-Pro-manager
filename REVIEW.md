@@ -411,3 +411,54 @@ engineering summary.
   is broken.
 - **"Multi-factor authorisation" is a named human with edit rights**, recorded in the database. Calling that
   multi-factor would be a lie.
+
+## 12. The control plane, and the run ceiling (this pass)
+
+The brief's architecture was re-reviewed against the shipped code. Result: `docs/AI-PM-CONTROLS.md` — a matrix of
+every control the brief asks for, the file that enforces it, and the command that proves it. Two things changed in
+code.
+
+**Added: a hard run ceiling.** The brief asks for token budgets so a stuck loop cannot keep spending. Here the slice is
+already bounded and a run makes at most one model call, so spend per run is roughly constant — the lever that actually
+bounds spend is the number of runs. `settings.aipm.maxRunsPerDay` (default 24) is checked at the top of `runAipm()`,
+before any read or model call, and `POST` returns **429** with the number. Verified: ceiling 2 → first run 200, second
+200, third 429; `GET` reports `runsToday` / `runsLeft`; the guard panel shows "N of M runs left today".
+
+**Written: the disagreements.** CRDT ghost cursors, a vector DB over the whole codebase, and a Neo4j ownership graph
+are all recorded as refused-or-deferred, with reasons, in section 5 of the new document. So is "multi-factor
+authorisation", which is renamed to what it is — a named human with edit rights and an audit row — because a security
+reviewer will read that sentence.
+
+**Recorded, not built: opt-in context sharing.** The brief's "incognito dev mode" has no local draft buffer to
+disconnect here. The faithful analogue (exclude a member's notes and commits from the slice while their board state
+stays visible) is designed in section 9 of the control doc and is *not* in this build. Saying so is the point: a
+control matrix that quietly omits a control is worse than no matrix.
+
+## 13. Theme v4 — liquid glass, cool graphite (this pass)
+
+The look was turned up: more translucent, more obviously glass, with colour in the light rather than in the chrome.
+
+**What changed in `app/globals.css`**
+
+| Before (v3) | Now (v4) |
+| --- | --- |
+| Grey canvas `#e8eaee`, two white light sources | Cool graphite `#dbe2ee`, four blooms (white, indigo, teal, blue haze) + 7% grain, so glass has something to refract |
+| Panel fill 92 → 66% white, `blur(22px) saturate(135%)` | Fill 62 → 36% with a 60% specular sheen, `blur(30px) saturate(180%)` |
+| One inset top highlight, one shadow | Four inset hairlines of light (top/bottom/left/right), 2px contact shadow + 26px ambient |
+| Grey accent, monochrome chrome | One deep-indigo accent (`#1e2f57`), indigo labels on the active tab, tinted semantic pills |
+| Buttons: colour change on hover only | Buttons lift 1px on hover, press 1px on `:active`, cubic-bezier easing, inner top light |
+| Flat progress bars | `.meter` / `.meter-fill` gauges with a light along the top edge |
+
+**Readability was measured, not eyeballed.** At the darkest point of the canvas with a 40% panel fill, body text is
+~11:1 and muted text ~5.4:1 against the composited background — so the 11px labels survive the extra translucency.
+`.panel-flat` and `.glass-card` are deliberately *denser* than `.panel` because they carry small text.
+
+**One bug the sweep caused and the build caught.** Replacing `border-slate-200` with `border-slate-900/12` produced a
+class Tailwind does not generate (`/12` is not in the opacity scale, which steps by 5). In `.tsx` an unknown class fails
+silently — the border simply disappears; `@apply` in CSS fails loudly, which is how it surfaced. Everything now uses
+`/10`, `/15`, `/20`… and a scan confirms no class outside the scale remains.
+
+**Not verified visually.** This sandbox has no browser and no way to fetch one, so the layout was checked through
+`next build`, the emitted CSS (each blur radius and fill confirmed present in the bundle) and the contrast maths above
+— not through a screenshot. If any surface looks off in the browser, the token block at the top of `app/globals.css` is
+the single place to tune it.

@@ -7,6 +7,7 @@ import {
   DEFAULT_AIPM_SETTINGS,
   getFinding,
   lastRun,
+  runsInLastDay,
   listFindings,
   setFindingStatus,
   type AipmSettings,
@@ -32,14 +33,18 @@ export async function GET(req: Request) {
   if (!isGuard(g)) return g;
 
   const repo = url.searchParams.get('repo');
-  const [snapshot, stored, run] = await Promise.all([
+  const [snapshot, stored, run, runsToday] = await Promise.all([
     aipmSnapshot(g.project, repo),
     listFindings(g.project.id),
     lastRun(g.project.id),
+    runsInLastDay(g.project.id),
   ]);
+  const settings = snapshot.settings;
 
   return NextResponse.json({
-    settings: snapshot.settings,
+    settings,
+    runsToday,
+    runsLeft: Math.max(0, settings.maxRunsPerDay - runsToday),
     promptVersion: PROMPT_VERSION,
     engine: snapshot.engine,
     findings: stored,
@@ -69,6 +74,12 @@ export async function POST(req: Request) {
       roomOnly: body.roomOnly === true,
       repo: typeof body.repo === 'string' ? body.repo : null,
     });
+    if (result.blocked) {
+      return NextResponse.json(
+        { error: result.blocked.reason, runsToday: result.blocked.runsToday, maxRunsPerDay: result.blocked.maxRunsPerDay },
+        { status: 429 },
+      );
+    }
     return NextResponse.json(result);
   }
 
@@ -83,6 +94,10 @@ export async function POST(req: Request) {
         typeof body.maxPerPersonPerDay === 'number'
           ? Math.max(0, Math.min(10, Math.round(body.maxPerPersonPerDay)))
           : current.maxPerPersonPerDay,
+      maxRunsPerDay:
+        typeof body.maxRunsPerDay === 'number'
+          ? Math.max(1, Math.min(500, Math.round(body.maxRunsPerDay)))
+          : current.maxRunsPerDay,
       digest: body.digest === 'weekly' || body.digest === 'off' || body.digest === 'daily' ? body.digest : current.digest,
     };
     const project = await updateProject(g.project.id, {
@@ -96,7 +111,7 @@ export async function POST(req: Request) {
       kind: 'system',
       content: `AI PM settings updated by ${g.user.name}: ${
         next.enabled ? 'guards on' : 'guards off'
-      }, strict architecture ${next.strict ? 'on' : 'off'}, ${next.maxPerPersonPerDay} findings per person per day.`,
+      }, strict architecture ${next.strict ? 'on' : 'off'}, ${next.maxPerPersonPerDay} findings per person per day, ${next.maxRunsPerDay} runs per day.`,
       meta: { aipm: 'settings' },
     });
     return NextResponse.json({ settings: aipmSettings(project) });

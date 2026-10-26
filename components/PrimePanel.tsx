@@ -231,7 +231,7 @@ export default function PrimePanel({
         className="glass-rail flex h-full w-full max-w-[480px] flex-col shadow-panel"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-slate-900/10 px-4 py-3">
           <div className="grid h-8 w-8 place-items-center rounded-full bg-electric text-white">
             <Sparkles className="h-4 w-4" />
           </div>
@@ -283,7 +283,7 @@ export default function PrimePanel({
                   <>
                     <PrimeBubble text={t.content} engine={t.engine} />
                     {!!t.actions?.length && (
-                      <div className="mt-2 border-t border-slate-200 pt-2">
+                      <div className="mt-2 border-t border-slate-900/10 pt-2">
                         <div className="mb-1 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
                           Do it from here
                         </div>
@@ -356,7 +356,7 @@ export default function PrimePanel({
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-200 px-3 py-2">
+        <div className="border-t border-slate-900/10 px-3 py-2">
           <div className="mb-1.5 flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
               {context.nextTask ? `Suggested next: ${context.nextTask.title}` : 'Try asking'}
@@ -383,7 +383,7 @@ export default function PrimePanel({
           </div>
         </div>
 
-        <div className="border-t border-slate-200 p-3">
+        <div className="border-t border-slate-900/10 p-3">
           <div className="flex items-end gap-2 rounded-xl border border-slate-900/20 bg-white/60 p-2 focus-within:border-electric/50">
             <textarea
               className="scroll-thin max-h-28 flex-1 resize-none bg-transparent px-1 py-1 text-[13px] text-slate-800 placeholder:text-slate-500 focus:outline-none"

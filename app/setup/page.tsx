@@ -111,14 +111,14 @@ export default async function SetupPage() {
                   const need = NEED_LABEL[i.need];
                   return (
                     <div key={i.id} className="panel overflow-hidden p-0">
-                      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-2.5">
+                      <div className="flex flex-wrap items-center gap-2 border-b border-slate-900/10 px-4 py-2.5">
                         <span className="text-[13px] font-semibold text-slate-900">{i.name}</span>
                         <Pill tone={need.tone} className="!text-[12px]">{need.text}</Pill>
                         <Pill tone={state.tone} className="!text-[12px]">
                           <StateIcon className="h-2.5 w-2.5" /> {state.text}
                         </Pill>
                         {i.variable && (
-                          <code className="ml-auto rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] text-slate-600">
+                          <code className="ml-auto rounded bg-white/55 px-1.5 py-0.5 font-mono text-[12px] text-slate-600">
                             {i.variable}
                           </code>
                         )}
@@ -137,7 +137,7 @@ export default async function SetupPage() {
                           <p className="text-[13px] leading-relaxed text-slate-600">{i.withIt}</p>
                         </div>
                       </div>
-                      <details className="border-t border-slate-200 px-4 py-2">
+                      <details className="border-t border-slate-900/10 px-4 py-2">
                         <summary className="cursor-pointer list-none text-[12px] font-medium text-electric">
                           How to set it up <ArrowRight className="inline h-2.5 w-2.5" />
                         </summary>

@@ -32,12 +32,14 @@ interface FindingRow {
 }
 
 interface GuardData {
-  settings: { enabled: boolean; strict: boolean; maxPerPersonPerDay: number; digest: string };
+  settings: { enabled: boolean; strict: boolean; maxPerPersonPerDay: number; maxRunsPerDay: number; digest: string };
   promptVersion: string;
   engine: { engine: string; live: boolean; provider: string | null; model: string | null };
   findings: FindingRow[];
   narrative: string;
   lastRun: { created_at: string; engine: string; kept: number } | null;
+  runsToday?: number;
+  runsLeft?: number;
   repo: string | null;
   canEdit: boolean;
   me: { name: string; id: string };
@@ -46,7 +48,7 @@ interface GuardData {
 const SEV: Record<string, { label: string; cls: string }> = {
   HIGH: { label: 'High', cls: 'border-rose-300 text-rose' },
   MEDIUM: { label: 'Medium', cls: 'border-amber-300 text-amber-800' },
-  LOW: { label: 'Low', cls: 'border-slate-300 text-slate-600' },
+  LOW: { label: 'Low', cls: 'border-slate-900/25 text-slate-600' },
 };
 
 const KIND_ICON: Record<string, any> = {
@@ -208,6 +210,10 @@ export default function GuardPanel({
           <span className="text-slate-500">{counts.low} low</span>
           <span className="ml-auto text-slate-500">
             prompt <span className="font-mono text-[11px]">{data?.promptVersion ?? '—'}</span> · last run {ago(data?.lastRun?.created_at ?? null)}
+            {typeof data?.runsLeft === 'number' && data.settings.maxRunsPerDay ? (
+              <> · <span className="tnum">{data.runsLeft}</span> of{' '}
+              <span className="tnum">{data.settings.maxRunsPerDay}</span> runs left today</>
+            ) : null}
           </span>
         </div>
       </div>
@@ -233,8 +239,8 @@ export default function GuardPanel({
               <span className="text-[12px] text-slate-600">for {f.target || 'the room'}</span>
               {f.status !== 'open' && <Pill tone="slate">{f.status}</Pill>}
               <span className="ml-auto flex items-center gap-1.5 text-[11px] text-slate-500">
-                <span className="h-1 w-16 overflow-hidden rounded-full bg-slate-200">
-                  <span className="block h-full rounded-full bg-slate-700" style={{ width: `${Math.round(f.confidence * 100)}%` }} />
+                <span className="meter h-1 w-16">
+                  <span className="meter-fill meter-fill-ink" style={{ width: `${Math.round(f.confidence * 100)}%` }} />
                 </span>
                 <span className="tnum">{Math.round(f.confidence * 100)}%</span>
               </span>

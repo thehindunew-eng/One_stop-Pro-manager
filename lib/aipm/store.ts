@@ -36,6 +36,15 @@ export interface AipmSettings {
   /** Strict architecture mode: a HIGH deviation blocks completing the task, nothing else. */
   strict: boolean;
   maxPerPersonPerDay: number;
+  /**
+   * Hard ceiling on guard runs per room per 24 hours.
+   *
+   * The brief calls for a token budget so a stuck loop cannot bill forever. The
+   * slice is already bounded and only one model call happens per run, so the
+   * thing worth capping is the number of runs: it bounds spend, load and noise
+   * in a single number a product manager can reason about.
+   */
+  maxRunsPerDay: number;
   digest: 'daily' | 'weekly' | 'off';
 }
 
@@ -43,6 +52,7 @@ export const DEFAULT_AIPM_SETTINGS: AipmSettings = {
   enabled: true,
   strict: false,
   maxPerPersonPerDay: 3,
+  maxRunsPerDay: 24,
   digest: 'daily',
 };
 
@@ -56,6 +66,10 @@ export function aipmSettings(project: Project): AipmSettings {
       typeof stored.maxPerPersonPerDay === 'number' && stored.maxPerPersonPerDay >= 0
         ? Math.min(10, Math.round(stored.maxPerPersonPerDay))
         : DEFAULT_AIPM_SETTINGS.maxPerPersonPerDay,
+    maxRunsPerDay:
+      typeof stored.maxRunsPerDay === 'number' && stored.maxRunsPerDay >= 1
+        ? Math.min(500, Math.round(stored.maxRunsPerDay))
+        : DEFAULT_AIPM_SETTINGS.maxRunsPerDay,
     digest: stored.digest === 'weekly' || stored.digest === 'off' ? stored.digest : 'daily',
   };
 }
@@ -172,6 +186,15 @@ export async function recordRun(input: {
       input.createdBy,
     ],
   );
+}
+
+/** Runs started in the last 24h — the hard ceiling is computed from this. */
+export async function runsInLastDay(projectId: string): Promise<number> {
+  const rows = await sql<{ n: number | string }>(
+    "SELECT count(*)::int AS n FROM aipm_runs WHERE project_id = $1 AND created_at > now() - interval '24 hours'",
+    [projectId],
+  );
+  return Number(rows[0]?.n ?? 0);
 }
 
 export async function lastRun(projectId: string): Promise<{ created_at: string; engine: string; kept: number } | null> {

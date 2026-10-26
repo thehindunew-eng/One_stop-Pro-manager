@@ -161,7 +161,7 @@ export default function MeetingRoom({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* status bar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-900/10 px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose/40" />
@@ -220,7 +220,7 @@ export default function MeetingRoom({
                     {isPrime ? 'Prime' : m.author}
                     {mine && !isPrime && <span className="ml-1 text-[12px] font-normal text-slate-500">(you)</span>}
                   </span>
-                  <span className="rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{m.role}</span>
+                  <span className="rounded bg-white/55 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{m.role}</span>
                   {m.kind !== 'chat' && (
                     <span
                       className="inline-flex items-center gap-1 rounded px-1 py-px text-[11px] font-semibold uppercase tracking-wider"
@@ -299,7 +299,7 @@ export default function MeetingRoom({
       </div>
 
       {/* analyze bar */}
-      <div className="border-t border-slate-200 px-4 py-2.5">
+      <div className="border-t border-slate-900/10 px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
           <div className="text-[12px] text-slate-500">
             {pains ? `${pains} pains captured` : 'No signals extracted yet'} · engine {engine}
@@ -315,7 +315,7 @@ export default function MeetingRoom({
       </div>
 
       {/* composer */}
-      <div className="border-t border-slate-200 p-3">
+      <div className="border-t border-slate-900/10 p-3">
         {error && <div className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[12px] text-rose">{error}</div>}
         <div className="rounded-xl border border-slate-900/20 bg-white/60 focus-within:border-electric/50">
           <textarea
@@ -331,7 +331,7 @@ export default function MeetingRoom({
               }
             }}
           />
-          <div className="flex flex-wrap items-center gap-1 border-t border-slate-200 px-2 py-1.5">
+          <div className="flex flex-wrap items-center gap-1 border-t border-slate-900/10 px-2 py-1.5">
             {(['chat', 'idea', 'decision', 'question', 'note'] as MessageKind[]).map((k) => {
               const meta = KIND_META[k];
               return (
@@ -353,7 +353,7 @@ export default function MeetingRoom({
               onClick={toggleMic}
               title={listening ? 'Stop dictating' : 'Dictate into the room'}
               className={`ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] font-medium transition ${
-                listening ? 'bg-rose/10 text-rose' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                listening ? 'bg-rose/10 text-rose' : 'text-slate-500 hover:bg-white/60 hover:text-slate-800'
               }`}
             >
               {listening ? <MicOff className="h-3.5 w-3.5 animate-pulse" /> : <Mic className="h-3.5 w-3.5" />}
@@ -377,7 +377,7 @@ export default function MeetingRoom({
 
       {/* transcript import */}
       {importOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/40 p-4-sm" onClick={() => setImportOpen(false)}>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-slate-900/35 backdrop-blur-[3px] p-4-sm" onClick={() => setImportOpen(false)}>
           <div className="panel w-full max-w-2xl p-4" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 flex items-center gap-2">
               <ClipboardPaste className="h-4 w-4 text-electric" />
@@ -387,7 +387,7 @@ export default function MeetingRoom({
               </button>
             </div>
             <p className="mb-2 text-[13px] leading-relaxed text-slate-500">
-              One line per message. Use <code className="rounded bg-slate-100 px-1">Name: what they said</code> to keep
+              One line per message. Use <code className="rounded bg-white/55 px-1">Name: what they said</code> to keep
               speakers — otherwise each line is attributed to you. Everything lands as transcript messages for analysis.
             </p>
             <textarea

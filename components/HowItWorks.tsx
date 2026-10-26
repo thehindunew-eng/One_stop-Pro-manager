@@ -57,9 +57,9 @@ export default function HowItWorks({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-900/40 p-4-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] grid place-items-center bg-slate-900/35 backdrop-blur-[3px] p-4-sm" onClick={onClose}>
       <div className="panel w-full max-w-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-slate-900/10 px-4 py-3">
           <div className="grid h-8 w-8 place-items-center rounded-full bg-electric text-white">
             <Sparkles className="h-4 w-4" />
           </div>

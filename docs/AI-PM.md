@@ -9,6 +9,8 @@ so the intent is on record and the differences are not a surprise later.
 - Storage: `aipm_findings`, `aipm_runs` (`lib/aipm/store.ts`)
 - Interface: `GET/POST /api/aipm`, `components/GuardPanel.tsx` (Build → *AI PM guard*), owner toggles in
   `/room/<code>/admin` → *Live*
+- **Control plane:** every control in the brief, where it is enforced and how to prove it →
+  [`docs/AI-PM-CONTROLS.md`](AI-PM-CONTROLS.md) (includes the directive quoted copy-ready)
 
 ---
 
@@ -82,6 +84,7 @@ file-level line numbers are exactly the detail this platform cannot see and woul
 
 ```
 POST /api/aipm { action: 'run' }
+   ├─ 0. run ceiling       ≥ maxRunsPerDay in 24h → 429 before any read or model call
    ├─ 1. buildSlice()      bounded, scrubbed context (tasks, notes, docs, commits, gates, presence)
    ├─ 2. guards.ts         overlap · spec · velocity · gate   ← deterministic, no network, always on
    ├─ 3. callLLM()         only if a provider is configured; same slice, JSON-only answer
@@ -109,6 +112,7 @@ after a push or a status change. There is no keystroke-level trigger because the
 | Human named on every action | `aipm_findings.confirmed_by`, room transcript entry on confirm | act on a finding, open `aipm_findings` |
 | No repeats | fingerprint `kind|task|citation-refs`, `UNIQUE(project_id, fingerprint)` | run twice; second run reports `duplicates` |
 | Noise budget | per-target count over 24h, plus one HIGH per task per day | set 0 in the owner console and run |
+| Spend ceiling | `maxRunsPerDay` counted from `aipm_runs`, checked at the top of `runAipm()` | set it to 2, run three times — the third returns 429 |
 | Confidence + citations always | `Finding` type requires both; model findings without valid citations are dropped | inspect a stored row |
 
 ---

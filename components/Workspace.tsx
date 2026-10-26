@@ -182,11 +182,11 @@ export default function Workspace({
           <Link href="/" className="shrink-0" title="Home">
             <Wordmark compact />
           </Link>
-          <div className="hidden h-6 w-px bg-slate-200 sm:block" />
+          <div className="hidden h-6 w-px bg-slate-900/10 sm:block" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-[13px] font-semibold text-slate-900">{project.name}</h1>
-              <span className="hidden rounded border border-slate-200 bg-slate-100/70 px-1.5 py-0.5 font-mono text-[12px] text-slate-500 sm:inline">
+              <span className="hidden rounded border border-slate-900/10 bg-white/70 px-1.5 py-0.5 font-mono text-[12px] text-slate-500 sm:inline">
                 /room/{project.code}
               </span>
               <Pill tone="electric" className="hidden md:inline-flex">
@@ -205,7 +205,7 @@ export default function Workspace({
             <p className="truncate text-[12px] text-slate-500">{project.tagline || 'One room, one thread, one launch.'}</p>
           </div>
 
-          <div className="well hidden items-center gap-1 rounded-lg p-0.5 md:flex">
+          <div className="well hidden items-center gap-1 p-1 md:flex">
             <button
               type="button"
               onClick={() => setView('meeting')}
@@ -267,13 +267,13 @@ export default function Workspace({
               </Link>
             )}
             <div className="relative">
-              <button type="button" onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-1.5 rounded-lg px-1 py-1 hover:bg-slate-100">
+              <button type="button" onClick={() => setMenuOpen((v) => !v)} className="flex items-center gap-1.5 rounded-lg px-1 py-1 hover:bg-white/60">
                 <Avatar name={me.name} size={26} />
                 <ChevronDown className="hidden h-3 w-3 text-slate-500 sm:block" />
               </button>
               {menuOpen && (
                 <div className="panel scroll-thin absolute right-0 top-10 z-40 max-h-[72vh] w-60 overflow-y-auto p-2" onMouseLeave={() => setMenuOpen(false)}>
-                  <div className="border-b border-slate-200 px-2 py-1.5">
+                  <div className="border-b border-slate-900/10 px-2 py-1.5">
                     <div className="text-[12px] font-semibold text-slate-900">{me.name}</div>
                     <div className="text-[12px] text-slate-500">{me.role} · {me.isAdmin ? 'platform admin' : 'member'}</div>
                   </div>
@@ -283,35 +283,35 @@ export default function Workspace({
                   <button
                     type="button"
                     onClick={() => navigator.clipboard?.writeText(shareUrl)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-white/60"
                   >
                     <Share2 className="h-3.5 w-3.5" /> Copy invite link
                   </button>
                   <Link
                     href="/setup"
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-white/60"
                   >
                     <KeyRound className="h-3.5 w-3.5" /> Setup &amp; access keys
                   </Link>
                   <a
                     href={`/api/export?code=${project.code}`}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-white/60"
                   >
                     <Download className="h-3.5 w-3.5" /> Download product pack
                   </a>
                   {me.canAdmin && (
                     <Link
                       href={`/room/${project.code}/admin`}
-                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-slate-100"
+                      className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-slate-600 hover:bg-white/60"
                     >
                       <ShieldCheck className="h-3.5 w-3.5" /> Owner console
                     </Link>
                   )}
-                  <div className="mt-1 flex gap-1 border-t border-slate-200 px-2 pb-1 pt-2">
+                  <div className="mt-1 flex gap-1 border-t border-slate-900/10 px-2 pb-1 pt-2">
                     <Link
                       href={`/room/${siblings.live}`}
                       className={`flex-1 rounded-md px-1.5 py-1 text-center text-[12px] font-medium ${
-                        isDemo ? 'text-slate-500 hover:bg-slate-100' : 'bg-emerald-50 text-emerald-700'
+                        isDemo ? 'text-slate-500 hover:bg-white/60' : 'bg-emerald-50 text-emerald-700'
                       }`}
                     >
                       Live
@@ -319,13 +319,13 @@ export default function Workspace({
                     <Link
                       href={`/room/${siblings.demo}`}
                       className={`flex-1 rounded-md px-1.5 py-1 text-center text-[12px] font-medium ${
-                        isDemo ? 'bg-amber-50 text-amber-800' : 'text-slate-500 hover:bg-slate-100'
+                        isDemo ? 'bg-amber-50 text-amber-800' : 'text-slate-500 hover:bg-white/60'
                       }`}
                     >
                       Demo
                     </Link>
                   </div>
-                  <div className="mt-1 border-t border-slate-200 px-2 pb-1 pt-2 text-[11px] uppercase tracking-[.08em] text-slate-500">
+                  <div className="mt-1 border-t border-slate-900/10 px-2 pb-1 pt-2 text-[11px] uppercase tracking-[.08em] text-slate-500">
                     My rooms
                   </div>
                   {rooms.slice(0, 5).map((r) => (
@@ -333,7 +333,7 @@ export default function Workspace({
                       key={r.code}
                       href={`/room/${r.code}`}
                       className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] ${
-                        r.code === project.code ? 'text-slate-900' : 'text-slate-500 hover:bg-slate-100'
+                        r.code === project.code ? 'text-slate-900' : 'text-slate-500 hover:bg-white/60'
                       }`}
                     >
                       <span className={`h-1.5 w-1.5 rounded-full ${r.code === project.code ? 'bg-mint' : 'bg-slate-600'}`} />
@@ -343,7 +343,7 @@ export default function Workspace({
                   ))}
                   <Link
                     href="/join?create=1"
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-electric hover:bg-slate-100"
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[12px] text-electric hover:bg-white/60"
                   >
                     + New product room
                   </Link>
@@ -361,7 +361,7 @@ export default function Workspace({
         </div>
 
         {/* mobile view switch */}
-        <div className="flex items-center gap-1 border-t border-slate-200 px-3 py-1.5 md:hidden">
+        <div className="flex items-center gap-1 border-t border-slate-900/10 px-3 py-1.5 md:hidden">
           <button type="button" onClick={() => setView('meeting')} className={`tab ${view === 'meeting' ? 'tab-active' : ''}`}>
             <MessagesSquare className="h-3.5 w-3.5" /> Meeting
           </button>
@@ -526,7 +526,7 @@ export default function Workspace({
               <span className="ml-auto text-[12px] text-slate-500">{doneRatio}% shipped</span>
             </div>
             {nextTasks.slice(0, 3).map((t) => (
-              <div key={t.id} className="flex items-start gap-2 border-t border-slate-200/70 py-1.5 first:border-0 first:pt-0">
+              <div key={t.id} className="flex items-start gap-2 border-t border-slate-900/10/70 py-1.5 first:border-0 first:pt-0">
                 <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-amber" />
                 <div className="min-w-0">
                   <p className="line-clamp-2 text-[12px] leading-snug text-slate-500">{t.title}</p>
@@ -556,7 +556,7 @@ export default function Workspace({
                   <Avatar name={m.name} size={22} />
                   <span className="truncate text-[12px] text-slate-700">{m.name}</span>
                   {m.user_id === project.owner_id && <ShieldCheck className="h-3 w-3 shrink-0 text-amber" />}
-                  <span className="ml-auto shrink-0 rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">
+                  <span className="ml-auto shrink-0 rounded bg-white/55 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">
                     {m.role}
                   </span>
                 </div>

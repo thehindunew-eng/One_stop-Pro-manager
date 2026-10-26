@@ -156,8 +156,8 @@ export default function DocView({
                 }}
                 className={`min-w-[200px] shrink-0 rounded-xl border p-2.5 text-left transition lg:min-w-0 ${
                   selected
-                    ? 'border-slate-300 bg-slate-50'
-                    : 'border-slate-900/20 bg-white/60 hover:border-slate-900/70 hover:bg-slate-100/70'
+                    ? 'border-slate-900/25 bg-white/40'
+                    : 'border-slate-900/20 bg-white/60 hover:border-slate-900/70 hover:bg-white/60/70'
                 }`}
               >
                 <div className="flex items-center justify-between gap-1">
@@ -166,7 +166,7 @@ export default function DocView({
                 </div>
                 <div className="mt-1 flex items-center gap-1.5">
                   <span className={`rounded px-1 py-0.5 text-[11px] font-semibold uppercase tracking-wider ${
-                    a.content ? 'bg-slate-100 text-slate-500' : 'bg-amber-50 text-amber-800'
+                    a.content ? 'bg-white/55 text-slate-500' : 'bg-amber-50 text-amber-800'
                   }`}>
                     {a.content ? a.status : 'empty'}
                   </span>
@@ -183,7 +183,7 @@ export default function DocView({
         <div className="panel min-h-[420px] overflow-hidden">
           {active ? (
             <>
-              <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-3.5 py-2.5">
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-900/10 px-3.5 py-2.5">
                 <div className="min-w-0">
                   <h3 className="truncate text-[13px] font-semibold text-slate-900">{active.title}</h3>
                   <div className="text-[12px] text-slate-500">
@@ -257,7 +257,7 @@ export default function DocView({
               ) : active.content ? (
                 <div className="scroll-thin max-h-[600px] overflow-y-auto p-4">
                   <Markdown text={active.content} />
-                  <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
+                  <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-900/10 pt-3">
                     <span className="text-[11px] uppercase tracking-[.08em] text-slate-500">Mark as</span>
                     {['draft', 'ready', 'approved'].map((s) => (
                       <button
