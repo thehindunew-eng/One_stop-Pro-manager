@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { guard, isGuard, bad } from '@/lib/api';
 import { createTask, deleteTask, listTasks, updateTask } from '@/lib/repo';
+import { aipmSettings, openFindingsFor } from '@/lib/aipm/store';
 
 /** Accepts YYYY-MM-DD or null; anything else is treated as "no date". */
 function normaliseDate(value: unknown): string | null {
@@ -43,6 +44,27 @@ export async function PATCH(req: Request) {
   const g = await guard(body.code);
   if (!isGuard(g)) return g;
   if (!body.id) return bad('Missing task id');
+
+  /*
+   * Strict Architecture Mode, as adapted: the guard never blocks typing — there
+   * is no editor to block — it blocks *claiming* work is finished while a HIGH
+   * spec deviation is open on that task. Never silent: the refusal names the
+   * finding, and a human can dismiss it and try again.
+   */
+  if (body.status === 'done' && aipmSettings(g.project).strict) {
+    const open = await openFindingsFor(g.project.id, String(body.id));
+    const severe = open.find((f) => f.severity === 'HIGH' && f.kind === 'DEVIATION');
+    if (severe) {
+      return NextResponse.json(
+        {
+          error: `Strict architecture mode: “${severe.message.slice(0, 140)}” is still open.`,
+          guard: { findingId: severe.id, kind: severe.kind, severity: severe.severity, confidence: severe.confidence },
+        },
+        { status: 409 },
+      );
+    }
+  }
+
   await updateTask(g.project.id, String(body.id), {
     title: body.title,
     detail: body.detail,

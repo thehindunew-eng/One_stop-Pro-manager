@@ -153,7 +153,7 @@ export default async function SetupPage() {
                             rel="noreferrer noopener"
                             className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-electric hover:underline"
                           >
-                            <KeyRound className="h-3 w-3" /> Official sign-up page
+                            <KeyRound className="h-3 w-3" /> {i.docsLabel ?? 'Official sign-up page'}
                           </a>
                         )}
                       </details>

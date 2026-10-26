@@ -34,8 +34,32 @@ export default function AdminConsole({
   const [tab, setTab] = useState<Tab>('stages');
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [aipm, setAipm] = useState({ enabled: true, strict: false, maxPerPersonPerDay: 3, digest: 'daily' });
+  const [aipmSaving, setAipmSaving] = useState(false);
 
   const code = state.project.code;
+
+  useEffect(() => {
+    api<{ settings: typeof aipm }>(`/api/aipm?code=${encodeURIComponent(code)}`)
+      .then((d) => setAipm(d.settings))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
+
+  async function saveAipm(patch: Partial<typeof aipm>) {
+    const next = { ...aipm, ...patch };
+    setAipm(next);
+    setAipmSaving(true);
+    try {
+      const res = await post<{ settings: typeof aipm }>('/api/aipm', { code, action: 'settings', ...next });
+      setAipm(res.settings);
+      flash('AI PM settings saved');
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setAipmSaving(false);
+    }
+  }
 
   useEffect(() => {
     setAuthToken(token);
@@ -601,6 +625,80 @@ export default function AdminConsole({
 
         {tab === 'live' && (
           <div className="space-y-4">
+            <div className="panel overflow-hidden">
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-900/15 px-4 py-2.5">
+                <ShieldCheck className="h-4 w-4 text-slate-700" />
+                <h3 className="text-[14px] font-semibold text-slate-900">AI PM governance</h3>
+                <span className="text-[12px] text-slate-500">
+                  The guard reads the room, the plan and — with a member&apos;s token — the repo. It never writes.
+                </span>
+                <button
+                  type="button"
+                  className="btn-ghost ml-auto h-7 px-2 text-[12px]"
+                  onClick={() => saveAipm(aipm)}
+                  disabled={aipmSaving}
+                >
+                  {aipmSaving ? <Spinner className="h-3 w-3" /> : <Check className="h-3 w-3" />} Save
+                </button>
+              </div>
+              <div className="grid gap-3 px-4 py-3 sm:grid-cols-2">
+                <label className="flex items-start gap-2 text-[13px] text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 accent-slate-900"
+                    checked={aipm.enabled}
+                    onChange={(e) => setAipm({ ...aipm, enabled: e.target.checked })}
+                  />
+                  <span>
+                    Guards on
+                    <span className="block text-[12px] text-slate-500">
+                      Overlap, spec drift, stalls and gate order. Off means nobody can run them in this room.
+                    </span>
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 text-[13px] text-slate-700">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 accent-slate-900"
+                    checked={aipm.strict}
+                    onChange={(e) => setAipm({ ...aipm, strict: e.target.checked })}
+                  />
+                  <span>
+                    Strict architecture mode
+                    <span className="block text-[12px] text-slate-500">
+                      A HIGH spec deviation blocks marking that task done — nothing else. There is no editor to block.
+                    </span>
+                  </span>
+                </label>
+                <div>
+                  <label className="label">Findings per person per day</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    className="field h-9 py-0"
+                    value={aipm.maxPerPersonPerDay}
+                    onChange={(e) => setAipm({ ...aipm, maxPerPersonPerDay: Number(e.target.value) })}
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500">The noise budget. High-severity repeats are capped separately.</p>
+                </div>
+                <div>
+                  <label className="label">Digest cadence</label>
+                  <select
+                    className="field h-9 py-0"
+                    value={aipm.digest}
+                    onChange={(e) => setAipm({ ...aipm, digest: e.target.value })}
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="off">Off</option>
+                  </select>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Stored with the room; the digest itself is generated on demand in the Build → AI PM guard tab.
+                  </p>
+                </div>
+              </div>
+            </div>
             <div>
               <h2 className="text-[18px] font-semibold text-slate-900">What the team is doing</h2>
               <p className="text-[12px] text-slate-500">

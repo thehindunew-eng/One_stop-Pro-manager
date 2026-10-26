@@ -320,6 +320,42 @@ CREATE TABLE IF NOT EXISTS task_notes (
 );
 CREATE INDEX IF NOT EXISTS task_notes_task_idx ON task_notes (task_id, created_at);
 
+CREATE TABLE IF NOT EXISTS aipm_findings (
+  id text PRIMARY KEY,
+  project_id text NOT NULL,
+  fingerprint text NOT NULL,
+  kind text NOT NULL,
+  severity text NOT NULL,
+  target text DEFAULT '',
+  task_id text,
+  message text DEFAULT '',
+  action text DEFAULT '',
+  confidence real DEFAULT 0,
+  citations jsonb DEFAULT '[]'::jsonb,
+  status text DEFAULT 'open',
+  prompt_version text DEFAULT '',
+  engine text DEFAULT '',
+  created_by text,
+  confirmed_by text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE (project_id, fingerprint)
+);
+CREATE INDEX IF NOT EXISTS aipm_findings_project_idx ON aipm_findings (project_id, created_at);
+
+CREATE TABLE IF NOT EXISTS aipm_runs (
+  id text PRIMARY KEY,
+  project_id text NOT NULL,
+  engine text DEFAULT '',
+  prompt_version text DEFAULT '',
+  found integer DEFAULT 0,
+  kept integer DEFAULT 0,
+  ms integer DEFAULT 0,
+  gaps jsonb DEFAULT '[]'::jsonb,
+  created_by text,
+  created_at timestamptz DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS app_settings (
   key text PRIMARY KEY,
   value jsonb NOT NULL,

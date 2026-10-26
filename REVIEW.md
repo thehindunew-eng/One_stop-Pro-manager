@@ -347,3 +347,67 @@ inside a glass tile so the wall stays scannable. Everything is documented in REA
   real token on a normal host the same calls hit GitHub.
 - **A development-default vault key is visible in the UI.** Set `CREDENTIAL_SECRET` before the team stores tokens.
 - **Polished, not audited.** No rate limit on credential writes beyond the shared limiter, and no rotation reminders.
+
+## 11. The AI PM guard (this pass)
+
+The architecture brief asked for a real-time IDE orchestrator reading CRDT buffers, a code graph and Jira/Linear. Two
+of those three do not exist here, so shipping the brief verbatim would have produced a feature that invents conflicts
+it cannot see. `docs/AI-PM.md` records the original text beside the adaptation and the reasons; this section is the
+engineering summary.
+
+### What was built
+
+| Piece | File |
+| --- | --- |
+| Directive, versioned (`aipm.room/1.0`) | `lib/aipm/prompt.ts` |
+| Bounded, scrubbed context slice | `lib/aipm/context.ts` |
+| Four guards + the PM digest | `lib/aipm/guards.ts` |
+| Orchestration, model merge, noise budget | `lib/aipm/index.ts` |
+| Findings + run audit (`aipm_findings`, `aipm_runs`) | `lib/aipm/store.ts` |
+| Privacy gate (`@aipm-ignore`, token shapes) | `lib/aipm/scrub.ts` |
+| API: read for the room, act for humans | `app/api/aipm/route.ts` |
+| UI | `components/GuardPanel.tsx` (Build → *AI PM guard*), owner settings in `/room/<code>/admin` → *Live* |
+| Export | `Appendix D` in `app/api/export/route.ts` |
+| Checks | `npm run test:aipm`, `npm run test:guards` |
+
+### What the adaptation changed, and why
+
+- **Guards run on room events, not keystrokes.** No editor, no CRDT: triggers are work-log entries, branch/PR links,
+  status changes and an explicit run. "Live" is never claimed.
+- **File/line output became task + artefact.** `file_path` and `line_range` would be invented without a code index; the
+  output contract is `target`, `task_id`, `citations`.
+- **Strict Architecture Mode blocks completion, not typing.** There is nothing to block while typing, so it blocks the
+  claim that work is done while a HIGH deviation is open.
+- **The model is optional by design.** All four guards are deterministic. With a provider configured, the same slice is
+  sent with the directive and only findings that cite something in the slice survive validation.
+
+### Verified by request (not by assumption)
+
+- A scenario with a shared file, a hard-coded value against a ready document, an overdue task, dependency language and
+  an open gate produced: 2 CONFLICT, 1 DEVIATION, 2 VELOCITY, 1 GATE — each with citations and confidence.
+- Second run: `duplicates` (no repeats). Budget of 1/person: 4 findings suppressed, 0 kept.
+- A GitHub token pasted into a work-log note never appeared in any finding (0 occurrences of `ghp_`).
+- Confirming a finding created a `Fix: …` board task, wrote the note onto the task, and logged a `decision` message in
+  the transcript; the row records `confirmed_by`.
+- Strict mode: `PATCH /api/tasks {status:'done'}` → **409** naming the open HIGH deviation; after the human confirms,
+  the same request returns 200.
+- Member permissions: run → 403, dismissing someone else's finding → 403; the owner and the named person can.
+- Export: `Appendix D — AI PM guard findings` with severity, kind, target, confidence and citations.
+
+### Bugs the checks caught
+
+- The velocity guard had a sign error that reported **future** due dates as "N days past its date". Fixed; the unit
+  check asserts a late task fires and a future one does not.
+- `words()` was shadowed inside the spec guard, so tense differences ("refactor"/"refactored") silently failed to match.
+  Renamed and stemmed; the check asserts a hard-coded value is caught against a *ready* document.
+
+### Honest limits
+
+- **No line-level collisions.** Overlap compares declared artefacts — files named in notes, branch prefixes, commit
+  files — with confidence 0.55–0.72 to say so.
+- **No PR comments, no auto-run.** Commenting needs `pull_request: write` on each member's token; the loop runs when a
+  human presses the button (a cron job is a small, separate change).
+- **No test or deploy evidence.** A guard can say a change contradicts a written requirement; it cannot say the build
+  is broken.
+- **"Multi-factor authorisation" is a named human with edit rights**, recorded in the database. Calling that
+  multi-factor would be a lie.

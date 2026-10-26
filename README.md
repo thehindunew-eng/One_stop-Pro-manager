@@ -46,6 +46,7 @@ the black hairline is treated as a regression.
 | Owner console — edit stages, icons, colours, checklists; add/retire tools; manage team roles; workspace identity | `/room/<code>/admin` |
 | **Build room** — each member attaches their own GitHub / Vercel / database / model credentials (encrypted, write-only), picks a repo, creates the branch for a task with their own token, links the PR and logs progress | `Build` tab |
 | **Live status** — every seat: online now, the task in hand, open/late counts, notes this week, access attached. The owner sees the same table in the console | `Build` → *Live status*, `/room/<code>/admin` → *Live* |
+| **AI PM guard** — overlap, spec drift, stalls and gate order checked against the room, the plan and (with a member's GitHub token) the repo. Findings carry a confidence and citations; a human acts on each one | `Build` → *AI PM guard* |
 | **Run plan** — launch readiness, the blocking list, a lane per seat with its next actions, and the gate checklist for every stage | `Run plan` tab |
 | **Stage gates** — a stage is finished when its exit criteria are met, not when the board looks busy. Advancing early asks, then records the override | `Lifecycle` → *Advance* |
 | **Due dates** — per-task dates on the board, overdue counts, "3d late" on your own work | `Board`, `My work` |
@@ -75,6 +76,30 @@ The room is not a meeting tool that stops at the plan — it is where the work h
 
 Honest limit: the room does not execute code. Running arbitrary build commands on a serverless platform would be a
 security disaster; the repo, CI and Vercel do the running, and the room keeps the thread between task, branch and PR.
+
+### The AI PM — governance, not autopilot
+
+Ported from an IDE-orchestrator brief and adapted to what this platform can actually observe (the reasoning and the
+full directive are in **[`docs/AI-PM.md`](docs/AI-PM.md)**, version `aipm.room/1.0`).
+
+- **Four guards, four questions.** *Overlap* — are two people changing the same file or feature area? *Spec* — does a
+  commit message or work-log note contradict a document that is marked ready? *Velocity* — what is late, quiet, or
+  waiting on someone by name? *Gate* — is later-stage work running ahead of the current stage's exit criteria?
+- **Deterministic first.** All four run on room data alone — no key, no model, no network. A configured model
+  (Ollama or a hosted key) adds the prose-level findings arithmetic cannot see; it never decides whether a task is
+  late.
+- **Every finding is argued.** A confidence number and citations to the exact task, note, commit, document section or
+  gate criterion. No citation, no finding — the validator drops anything the slice cannot support.
+- **The agent proposes; a person acts.** `run`, `settings`, `confirm`, `dismiss` are the only verbs. Confirming creates
+  a board task and writes the finding into the task's work log, with the human's name on the row and a line in the
+  transcript. Nothing in `lib/aipm/` can push, merge or close anything.
+- **Noise is capped, not hoped for.** Three findings per person per day, one HIGH per task per day, and an identical
+  fingerprint never repeats — the second run reports `duplicates`.
+- **Privacy gate.** `lib/aipm/scrub.ts` strips GitHub/OpenAI/Anthropic/Google/Groq/Figma tokens, connection strings,
+  JWTs, bearer headers and `*_SECRET=` assignments before anything reaches a model, and honours `@aipm-ignore` …
+  `@aipm-ignore-end` blocks. `npm run test:aipm` and `npm run test:guards` pin both behaviours.
+- **Strict Architecture Mode, adapted.** There is no editor to block: strict mode refuses to mark a task *done* while a
+  HIGH spec deviation is open on it (409, naming the finding), and a human dismissal unblocks it.
 
 ### The run plan — how the team actually ships
 
@@ -315,6 +340,7 @@ mutation, parameterised SQL only, no API keys exposed to the browser.
 | POST | `/api/admin/stages` | Stage editing / creation |
 | POST | `/api/admin/team` | Members and roles |
 | GET · POST · DELETE | `/api/credentials?code=` | Attach, rotate or remove a member credential (write-only; masked reads) |
+| GET · POST | `/api/aipm?code=` | AI PM: findings + digest; `run`, `settings`, `confirm`, `dismiss` |
 | GET · POST | `/api/build?code=` | Build room: my GitHub repos, task branches/PRs, work log, live status; create a branch, link a PR, log work |
 | GET · POST | `/api/plan?code=` | The run plan for the room; `action:'gate'` ticks a manual criterion, `action:'launch_date'` sets the date |
 | GET | `/api/export?code=` | Download the team launch pack (Markdown) |

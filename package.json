@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test:ollama": "node scripts/fake-ollama.cjs",
     "typecheck": "tsc --noEmit",
-    "test:github": "node scripts/fake-github.cjs"
+    "test:github": "node scripts/fake-github.cjs",
+    "test:aipm": "node scripts/check-aipm.cjs",
+    "test:guards": "node scripts/check-guards.cjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",

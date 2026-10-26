@@ -16,6 +16,8 @@ export interface Integration {
   withIt: string;
   how: string[];
   docs?: string;
+  /** Link text when the link is documentation rather than a sign-up page. */
+  docsLabel?: string;
 }
 
 /**
@@ -187,6 +189,25 @@ export async function integrations(): Promise<Integration[]> {
         'Generate a long random string and set it as CREDENTIAL_SECRET in the deployment.',
         'Rotating it invalidates stored credentials — everyone re-attaches their tokens once.',
         'Secrets are write-only from the browser: the API returns a masked tail, never the value.',
+      ],
+    },
+    {
+      id: 'aipm',
+      name: 'AI PM guard',
+      category: 'AI',
+      need: 'optional',
+      state: 'on',
+      variable: 'no keys needed (uses the AI provider if one is set)',
+      without: '—',
+      withIt:
+        'Four deterministic guards (overlap, spec drift, velocity, gate order) run on room data alone. With a provider configured, the same slice is also read by the model for prose-level drift.',
+      docs: 'https://github.com/thehindunew-eng/One_stop-Pro-manager/blob/main/docs/AI-PM.md',
+      docsLabel: 'How the guard works — docs/AI-PM.md',
+      how: [
+        'Open Build → AI PM guard.',
+        'Press Run (room only) for the arithmetic findings, or Run guards to include the configured model.',
+        'Act on a finding to turn it into a board task — a person confirms, the guard never writes by itself.',
+        'Owner settings live in the admin console under Live: on/off, strict mode, noise budget, digest cadence.',
       ],
     },
     {
