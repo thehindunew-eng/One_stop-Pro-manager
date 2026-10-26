@@ -9,24 +9,30 @@ stages, tools and copy from inside the app — no redeploy, no code.
 
 ---
 
-## Visual system (v3) — grey-and-white liquid glass
+## Visual system (v4) — liquid glass, cool graphite
 
-The look is now **opaque glass panels on a grey canvas, every panel framed by a 1px black hairline**. It replaced the
-flat white cards of v2 at the owner's request: the chrome should feel like physical glass sheets, not a web template.
+Translucent glass sheets over a **cool graphite canvas with light behind them**, every surface framed by a 1px
+near-black hairline. v4 keeps v3's discipline — light, professional, no neon — and turns the translucency up: the
+canvas now carries colour, so the panels have something to refract.
 
 | Layer | Decision |
 | --- | --- |
 | Typeface | **Inter Variable**, self-hosted through `@fontsource-variable/inter` and loaded in `app/layout.tsx`. No Google Fonts request, no fallback to Segoe UI. |
 | Type scale | Eight steps only: 11 / 12 / 13 / 14 / 16 / 20 / 24 / 30px (`tailwind.config.ts`). Nothing renders below 11px; body copy is 13–14px with 1.5–1.7 line height. |
-| Colour | Monochrome chrome: grey canvas `#e8eaee` with two soft white light sources, ink `#0b0f17`, and **one black hairline `#111827`** around every glass surface. The accent is graphite (`electric` now resolves to ink), and three semantic colours are reserved for meaning (emerald = done, amber = attention, rose = risk). |
-| Glass | `.panel` / `.glass` share one recipe: a white-to-grey translucent gradient, `backdrop-filter: blur(22px) saturate(135%)`, an inset top highlight and one soft shadow — **opaque enough to keep 11px text legible**. `.panel-flat`, `.glass-card`, `.well`, `.glass-bar` and `.glass-rail` are the same idea at lighter weights for nested surfaces, chrome and the context rail. |
-| Without blur | `@supports not (backdrop-filter: …)` falls back to a near-opaque white so old browsers never get mush. |
-| Marks | Tool tiles are glass squares with a brand-tinted gradient and the black hairline; avatars are graphite, not confetti — the chrome is grey, so people are grey. |
-| Components | `app/globals.css` defines the primitives — `.panel`, `.glass-card`, `.well`, `.btn*`, `.chip`, `.field`, `.label`, `.tab`, `.section-label`, `.tnum`. A new screen inherits the system instead of inventing one. |
-| Motion | One 4px fade-up and a soft pulse for live indicators. `prefers-reduced-motion` disables both. |
+| Canvas | Cool graphite `#dbe2ee` between `#eef2f9` and `#d6deeb`, lit by four very low-alpha blooms (white top-left, **indigo** top-right, **teal** bottom-right, a faint blue haze mid-page) plus 7% noise grain. This is where the colour lives — the chrome stays grey and white. |
+| Accent | One: **deep indigo `#1e2f57`** (gradient `#2b3f6d → #121d36` on buttons). It reads as ink with a blue undertone, which is why the product carries colour without looking colourful. Three semantic tones stay reserved for meaning: emerald = done, amber = attention, rose = risk. |
+| Glass | `.panel` / `.glass`: a specular sheen plus a 62→36% translucent fill, `backdrop-filter: blur(30px) saturate(180%)`, **four inset hairlines of light** (top, bottom, left, right), a 2px contact shadow and a 26px ambient one. `.panel-flat`, `.glass-card`, `.well`, `.glass-bar` and `.glass-rail` are the same recipe at lighter weights for nested surfaces, chrome and the context rail. |
+| Buttons | Every button lifts 1px on hover, presses 1px and flattens its shadow on `:active`, and carries an inner top highlight. Primary is the indigo key; ghost is a raised sheet of glass; both transition on a `cubic-bezier(.2,.7,.3,1)` curve. |
+| Readability guard | Translucency is bounded by measured contrast, not by taste: at the darkest canvas point with a 40% fill, body text is ~11:1, muted ~5.4:1 — so 11px labels stay legible on glass. `.panel-flat` and `.glass-card` are denser than `.panel` precisely because they carry small text. |
+| Meters | `.meter` / `.meter-fill`: a recessed track with a light along the top edge of the fill, so readiness and confidence read as gauges rather than flat bars. |
+| Without blur | `@supports not (backdrop-filter: …)` falls back to a 96% white sheet so old browsers never get mush. |
+| Marks | Tool tiles are glass squares with a brand-tinted gradient and the black hairline; avatars are cool jewel tones (navy, steel, slate-plum) with an inner light — distinguishable at 26px, still professional. |
+| Components | `app/globals.css` defines the primitives — `.panel`, `.glass-card`, `.well`, `.meter`, `.btn*`, `.chip`, `.field`, `.label`, `.tab`, `.section-label`, `.tnum`. A new screen inherits the system instead of inventing one. |
+| Motion | One 4px fade-up, a soft pulse for live indicators, and 140–200ms hover transitions. `prefers-reduced-motion` disables all of it. |
 
-If you add UI, use the primitives and the scale above. Hard-coded `text-[9.5px]`, a coloured glow or a panel without
-the black hairline is treated as a regression.
+If you add UI, use the primitives and the scale above. Hard-coded `text-[9.5px]`, a coloured glow, a `slate-*` opacity
+outside Tailwind's scale (it silently emits nothing — `/12` is not a class, `/10` is), or a panel without the black
+hairline is treated as a regression.
 
 ---
 

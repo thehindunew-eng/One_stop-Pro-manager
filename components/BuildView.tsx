@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle, ArrowRight, ArrowUpRight, Check, CheckCircle2, Circle, ExternalLink, GitBranch, GitPullRequest,
-  KeyRound, Loader2, Lock, Plus, RefreshCw, ShieldCheck, Terminal, Trash2, User,
+  KeyRound, Loader2, Lock, Plus, RefreshCw, ShieldCheck, Terminal, Trash2, User, Users,
 } from 'lucide-react';
 import type { CredentialView, TaskNote } from '@/lib/types';
 import { ApiError, api, del, post } from '@/lib/client';
@@ -296,12 +296,12 @@ export default function BuildView({
             </button>
           </div>
         </div>
-        <div className="flex gap-1 px-3 py-2">
+        <div className="well mx-3 my-2 flex w-fit max-w-[calc(100%-1.5rem)] gap-1 overflow-x-auto p-1 scroll-thin">
           {([
             ['work', 'My build', Terminal],
             ['guard', 'AI PM guard', ShieldCheck],
             ['connections', 'Connections', KeyRound],
-            ['team', 'Live status', ShieldCheck],
+            ['team', 'Live status', Users],
           ] as const).map(([key, text, Icon]) => (
             <button key={key} type="button" onClick={() => setTab(key)} className={`tab ${tab === key ? 'tab-active' : ''}`}>
               <Icon className="h-3.5 w-3.5" /> {text}
@@ -505,7 +505,7 @@ export default function BuildView({
                           <div className="space-y-1 border-t border-slate-900/10 pt-1.5">
                             {(notesByTask.get(task.id) ?? []).slice(0, 4).map((n) => (
                               <div key={n.id} className="flex items-start gap-1.5 text-[12px] leading-snug text-slate-600">
-                                <span className="mt-0.5 shrink-0 rounded bg-slate-100 px-1 text-[10px] uppercase tracking-wide text-slate-600">
+                                <span className="mt-0.5 shrink-0 rounded bg-white/55 px-1 text-[10px] uppercase tracking-wide text-slate-600">
                                   {n.kind}
                                 </span>
                                 <span className="min-w-0 flex-1">
@@ -570,7 +570,7 @@ export default function BuildView({
                 <div key={n.id} className="flex items-start gap-2 px-4 py-2 text-[12px]">
                   <span
                     className={`mt-0.5 shrink-0 rounded px-1 text-[10px] font-semibold uppercase tracking-wide ${
-                      n.kind === 'blocker' ? 'bg-rose-100 text-rose' : 'bg-slate-100 text-slate-600'
+                      n.kind === 'blocker' ? 'bg-rose-100 text-rose' : 'bg-white/55 text-slate-600'
                     }`}
                   >
                     {n.kind}

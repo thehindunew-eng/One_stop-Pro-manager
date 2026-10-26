@@ -66,7 +66,7 @@ export function ProblemPanel({
 
   return (
     <div className="panel overflow-hidden">
-      <div className="border-b border-slate-200 px-3.5 py-2.5">
+      <div className="border-b border-slate-900/10 px-3.5 py-2.5">
         <div className="flex items-center gap-1.5">
           <Target className="h-3.5 w-3.5 text-electric" />
           <h3 className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Problem statement</h3>
@@ -77,9 +77,9 @@ export function ProblemPanel({
         <p className="text-[13px] font-medium leading-snug text-slate-900">{problem.statement}</p>
 
         <div className="mt-2.5 flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200">
+          <div className="meter h-1.5 flex-1">
             <div
-              className="h-full rounded-full transition-all"
+              className="meter-fill"
               style={{
                 width: `${problem.confidence}%`,
                 background: problem.confidence > 70 ? '#34d399' : problem.confidence > 50 ? '#fbbf24' : '#fb7185',
@@ -90,9 +90,9 @@ export function ProblemPanel({
         </div>
 
         <div className="mt-2 flex flex-wrap gap-1">
-          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[12px] text-slate-500">{problem.productType}</span>
+          <span className="rounded bg-white/55 px-1.5 py-0.5 text-[12px] text-slate-500">{problem.productType}</span>
           {problem.users.slice(0, 2).map((u) => (
-            <span key={u} className="max-w-[130px] truncate rounded bg-slate-100 px-1.5 py-0.5 text-[12px] text-slate-500">{u}</span>
+            <span key={u} className="max-w-[130px] truncate rounded bg-white/55 px-1.5 py-0.5 text-[12px] text-slate-500">{u}</span>
           ))}
         </div>
 
@@ -183,9 +183,9 @@ export function ProblemModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/35 backdrop-blur-[3px] p-4-sm" onClick={onClose}>
       <div className="panel my-6 w-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-slate-900/10 px-4 py-3">
           <Target className="h-4 w-4 text-electric" />
           <h2 className="text-[14px] font-semibold text-slate-900">The problem we are solving</h2>
           <Pill tone="electric" className="ml-auto hidden sm:inline-flex"><Sparkles className="h-3 w-3" /> {draft.engine}</Pill>
@@ -257,7 +257,7 @@ export function ProblemModal({
               />
               <div className="mt-2 flex flex-wrap gap-1">
                 {draft.tags.slice(0, 8).map((t) => (
-                  <span key={t} className="rounded bg-slate-100 px-1.5 py-0.5 text-[12px] text-slate-500">{t}</span>
+                  <span key={t} className="rounded bg-white/55 px-1.5 py-0.5 text-[12px] text-slate-500">{t}</span>
                 ))}
               </div>
             </div>
@@ -294,7 +294,7 @@ export function ProblemModal({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-slate-900/10 px-4 py-3">
           <button type="button" className="btn-primary px-3 py-2 text-[12px]" onClick={() => save()} disabled={saving || !canEdit}>
             {saving ? <Spinner className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />} Save changes
           </button>

@@ -2,12 +2,12 @@ import type { Config } from 'tailwindcss';
 import colors from 'tailwindcss/colors';
 
 /**
- * Grey-and-white glass system.
+ * Liquid-glass system, cool graphite.
  *
- * The chrome is monochrome: a black 1px hairline around every glass surface, a
- * grey canvas behind it, and three semantic colours reserved for meaning (late,
- * attention, done). Depth comes from the hairline plus one soft shadow — no
- * coloured glow anywhere in the product.
+ * The chrome is grey and white with a black 1px hairline around every surface;
+ * the only colour is one deep-indigo accent and three semantic tones. Depth
+ * comes from a translucent fill, a heavy backdrop blur, four specular insets
+ * and one soft shadow — light, never neon.
  */
 const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './lib/**/*.{ts,tsx}'],
@@ -17,19 +17,20 @@ const config: Config = {
         // Legacy surface names kept so existing components keep working.
         // They are all neutral now: 900 = canvas, 850/800 = paper, 700 = sunken.
         ink: {
-          900: '#e8eaee',
+          900: '#dbe2ee',
           850: '#ffffff',
           800: '#ffffff',
-          700: '#f0f2f5',
-          600: '#e5e8ed',
-          500: '#d3d8e0',
+          700: '#eef2f9',
+          600: '#e2e8f2',
+          500: '#cfd8e6',
         },
-        /* The accent is graphite: buttons, active tabs and icons read as ink. */
-        electric: { DEFAULT: '#111827', soft: '#111827', 600: '#1f2937', 700: '#000000' },
-        mint: { ...colors.emerald, DEFAULT: '#047857' },
-        amber: { ...colors.amber, DEFAULT: '#b45309' },
-        rose: { ...colors.rose, DEFAULT: '#be123c' },
-        cyan: { ...colors.cyan, DEFAULT: '#0e7490' },
+        /* One accent: deep indigo. It reads as ink with a blue undertone, which
+           is how the product carries colour without looking colourful. */
+        electric: { DEFAULT: '#1e2f57', soft: '#33477a', 600: '#2a3f6b', 700: '#16233f' },
+        mint: { ...colors.emerald, DEFAULT: '#046c4e' },
+        amber: { ...colors.amber, DEFAULT: '#8a4b06' },
+        rose: { ...colors.rose, DEFAULT: '#9f1239' },
+        cyan: { ...colors.cyan, DEFAULT: '#155e75' },
       },
       fontFamily: {
         sans: [
@@ -58,17 +59,23 @@ const config: Config = {
         '3xl': ['30px', { lineHeight: '38px' }],
       },
       borderRadius: {
-        md: '7px',
-        lg: '9px',
-        xl: '11px',
-        '2xl': '14px',
+        md: '8px',
+        lg: '10px',
+        xl: '12px',
+        '2xl': '16px',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(11, 15, 23, 0.06)',
-        panel: '0 14px 30px -22px rgba(11, 15, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
-        pop: '0 24px 48px -24px rgba(11, 15, 23, 0.45), 0 2px 8px rgba(11, 15, 23, 0.08)',
-        glass: '0 14px 30px -22px rgba(11, 15, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.95)',
+        card: '0 1px 2px rgba(11, 18, 32, 0.07)',
+        panel:
+          '0 1px 1px rgba(11, 18, 32, 0.08), 0 20px 38px -26px rgba(11, 18, 32, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.96), inset 0 -1px 0 rgba(255, 255, 255, 0.4)',
+        pop: '0 2px 4px rgba(11, 18, 32, 0.08), 0 28px 56px -26px rgba(11, 18, 32, 0.5)',
+        glass:
+          '0 1px 1px rgba(11, 18, 32, 0.08), 0 20px 38px -26px rgba(11, 18, 32, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.96), inset 0 -1px 0 rgba(255, 255, 255, 0.4)',
         glow: 'none',
+      },
+      backdropBlur: {
+        xs: '4px',
+        glass: '30px',
       },
       keyframes: {
         'fade-up': { from: { opacity: '0', transform: 'translateY(4px)' }, to: { opacity: '1', transform: 'translateY(0)' } },

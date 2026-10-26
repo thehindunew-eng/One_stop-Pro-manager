@@ -242,7 +242,7 @@ export default function AdminConsole({
       <header className="glass-bar sticky top-0 z-30">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <Wordmark compact />
-          <div className="h-6 w-px bg-slate-200" />
+          <div className="h-6 w-px bg-slate-900/10" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-[13px] font-semibold text-slate-900">Owner console</h1>
@@ -330,7 +330,7 @@ export default function AdminConsole({
                           <label className="label">Colour</label>
                           <input
                             type="color"
-                            className="h-[42px] w-12 cursor-pointer rounded-lg border border-slate-200 bg-transparent"
+                            className="h-[42px] w-12 cursor-pointer rounded-lg border border-slate-900/10 bg-transparent"
                             value={s.color}
                             onChange={(e) => setStageEdits((v) => ({ ...v, [raw.key]: { ...v[raw.key], color: e.target.value } }))}
                           />
@@ -363,7 +363,7 @@ export default function AdminConsole({
                           }
                         />
                       </div>
-                    <div className="mt-3 rounded-lg border border-slate-900/20 bg-white/5560 p-3">
+                    <div className="mt-3 rounded-lg border border-slate-900/20 bg-white/60 p-3">
                       <div className="mb-1.5 flex flex-wrap items-center gap-2">
                         <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
                           Gate criteria — what “done” means
@@ -392,7 +392,7 @@ export default function AdminConsole({
                           <div key={`${raw.key}-gate-${i}`} className="flex items-center gap-1.5">
                             <span
                               className={`shrink-0 rounded px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
-                                rule.kind === 'manual' ? 'bg-amber-50 text-amber-800' : 'bg-slate-200 text-slate-600'
+                                rule.kind === 'manual' ? 'bg-amber-50 text-amber-800' : 'bg-slate-900/10 text-slate-600'
                               }`}
                               title={
                                 rule.kind === 'manual'
@@ -458,12 +458,12 @@ export default function AdminConsole({
                       <div className="flex flex-col items-end justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span
-                            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200"
+                            className="grid h-9 w-9 place-items-center rounded-lg border border-slate-900/10"
                             style={{ background: `${stageAccent(s.color)}18`, color: stageAccent(s.color) }}
                           >
                             <StageIcon name={s.icon} className="h-4 w-4" />
                           </span>
-                          <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[12px] text-slate-500">{s.key}</span>
+                          <span className="rounded bg-white/55 px-1.5 py-0.5 font-mono text-[12px] text-slate-500">{s.key}</span>
                         </div>
                         <button type="button" className={`${dirty ? 'btn-primary' : 'btn-ghost'} px-3 py-1.5 text-[12px]`} onClick={() => saveStage(raw)} disabled={!dirty}>
                           <Save className="h-3.5 w-3.5" /> {dirty ? 'Save stage' : 'Saved'}
@@ -519,7 +519,7 @@ export default function AdminConsole({
                   <input className="field" placeholder="Free tier (e.g. 1,000 events / month)" value={newTool.free_tier ?? ''} onChange={(e) => setNewTool({ ...newTool, free_tier: e.target.value })} />
                   <input className="field" placeholder="What it is for" value={newTool.description ?? ''} onChange={(e) => setNewTool({ ...newTool, description: e.target.value })} />
                   <div className="flex items-center gap-2">
-                    <input type="color" className="h-[42px] w-12 cursor-pointer rounded-lg border border-slate-200 bg-transparent" value={`#${newTool.color}`} onChange={(e) => setNewTool({ ...newTool, color: e.target.value.replace('#', '') })} />
+                    <input type="color" className="h-[42px] w-12 cursor-pointer rounded-lg border border-slate-900/10 bg-transparent" value={`#${newTool.color}`} onChange={(e) => setNewTool({ ...newTool, color: e.target.value.replace('#', '') })} />
                     <button type="button" className="btn-primary flex-1" onClick={createTool}><Plus className="h-4 w-4" /> Add</button>
                   </div>
                 </div>
@@ -538,7 +538,7 @@ export default function AdminConsole({
                               : [...(newTool.stages ?? []), s.key],
                           })
                         }
-                        className={`rounded-full border px-2 py-0.5 text-[12px] ${on ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                        className={`rounded-full border px-2 py-0.5 text-[12px] ${on ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-900/10 text-slate-500 hover:bg-white/40'}`}
                       >
                         {s.name}
                       </button>
@@ -569,7 +569,7 @@ export default function AdminConsole({
                         </select>
                         <input className="field" value={t.free_tier} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], free_tier: e.target.value } }))} />
                         <div className="flex items-center gap-1.5">
-                          <input type="color" className="h-9 w-9 cursor-pointer rounded-lg border border-slate-200 bg-transparent" value={`#${t.color.replace('#', '')}`} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], color: e.target.value.replace('#', '') } }))} />
+                          <input type="color" className="h-9 w-9 cursor-pointer rounded-lg border border-slate-900/10 bg-transparent" value={`#${t.color.replace('#', '')}`} onChange={(e) => setToolEdits((v) => ({ ...v, [raw.id]: { ...v[raw.id], color: e.target.value.replace('#', '') } }))} />
                           <button
                             type="button"
                             title={raw.enabled === false ? 'Enable tool' : 'Disable tool'}
@@ -609,7 +609,7 @@ export default function AdminConsole({
                                   },
                                 }))
                               }
-                              className={`rounded-full border px-1.5 py-0.5 text-[12px] ${on ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                              className={`rounded-full border px-1.5 py-0.5 text-[12px] ${on ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-900/10 text-slate-500 hover:bg-white/40'}`}
                             >
                               {s.name}
                             </button>

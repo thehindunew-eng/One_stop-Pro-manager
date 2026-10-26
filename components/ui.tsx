@@ -22,8 +22,14 @@ export function StageIcon({ name, className }: { name: string; className?: strin
 export function Logo({ size = 32, className = '' }: { size?: number; className?: string }) {
   return (
     <div
-      className={`grid shrink-0 place-items-center rounded-[9px] bg-electric text-white ${className}`}
-      style={{ width: size, height: size }}
+      className={`grid shrink-0 place-items-center rounded-[10px] text-white ${className}`}
+      style={{
+        width: size,
+        height: size,
+        background: 'linear-gradient(160deg, #35508a 0%, #1e2f57 48%, #14203c 100%)',
+        border: '1px solid #0b1220',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.34), inset 0 -1px 0 rgba(0,0,0,.35), 0 6px 14px -10px rgba(20,35,70,.9)',
+      }}
       aria-hidden
     >
       <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none">
@@ -108,9 +114,9 @@ export function ToolIcon({
         fontSize: Math.max(10, size * 0.36),
         letterSpacing: '-0.01em',
         /* Glass tile: the brand tint stays, the black hairline keeps it in the system. */
-        background: `linear-gradient(160deg, rgba(255,255,255,.92), ${tint(`#${safe}`, 0.82)})`,
-        borderColor: 'rgba(17,24,39,.85)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.9)',
+        background: `linear-gradient(158deg, rgba(255,255,255,.86), ${tint(`#${safe}`, 0.76)})`,
+        borderColor: 'rgba(11,18,32,.8)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(255,255,255,.35), 0 2px 6px -5px rgba(11,18,32,.7)',
         color: darken(`#${safe}`, 0.4),
       }}
       title={name}
@@ -123,8 +129,18 @@ export function ToolIcon({
 
 /* ------------------------------- people --------------------------------- */
 
-/* Monochrome on purpose: the chrome is grey, so people are graphite, not confetti. */
-const AVATAR_COLORS = ['#2b3442', '#3f4a5a', '#545f70', '#1f2733', '#37414f', '#46525f'];
+/*
+ * Cool jewel tones: navy, steel, slate-blue, graphite-plum. Professional, still
+ * distinguishable at 26px, and each carries a light ring so it reads on glass.
+ */
+const AVATAR_COLORS = [
+  ['#2c4270', '#1b2b4d'],
+  ['#3a5170', '#243449'],
+  ['#4a5478', '#2e3450'],
+  ['#2f4a58', '#1d3039'],
+  ['#414a63', '#282f44'],
+  ['#525a74', '#343a4f'],
+];
 
 export function Avatar({ name, size = 26 }: { name: string; size?: number; accent?: string }) {
   const initials = name
@@ -135,6 +151,7 @@ export function Avatar({ name, size = 26 }: { name: string; size?: number; accen
     .join('')
     .toUpperCase();
   const hash = [...name].reduce((n, c) => n + c.charCodeAt(0), 0);
+  const pair = AVATAR_COLORS[hash % AVATAR_COLORS.length];
   return (
     <div
       className="grid shrink-0 place-items-center rounded-full font-semibold text-white"
@@ -142,7 +159,9 @@ export function Avatar({ name, size = 26 }: { name: string; size?: number; accen
         width: size,
         height: size,
         fontSize: Math.max(9, size * 0.38),
-        background: AVATAR_COLORS[hash % AVATAR_COLORS.length],
+        background: `linear-gradient(160deg, ${pair[0]}, ${pair[1]})`,
+        border: '1px solid rgba(11,18,32,.65)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.28)',
       }}
       title={name}
     >
@@ -162,18 +181,22 @@ export function Pill({
   tone?: 'slate' | 'mint' | 'amber' | 'rose' | 'electric' | 'cyan';
   className?: string;
 }) {
-  /* One glass chip; the tone is carried by the text colour, not a coloured fill. */
+  /*
+   * A tinted sheet of glass: the tone is carried by the text colour plus a 6%
+   * wash of the same hue, so a status is legible at a glance without a
+   * saturated fill that would fight the monochrome chrome.
+   */
   const tones: Record<string, string> = {
-    slate: 'text-slate-600',
-    mint: 'text-emerald-700',
-    amber: 'text-amber-800',
-    rose: 'text-rose-700',
-    electric: 'text-slate-900',
-    cyan: 'text-cyan-800',
+    slate: 'text-slate-700 border-slate-900/30 bg-white/55',
+    mint: 'text-mint border-emerald-800/30 bg-emerald-500/10',
+    amber: 'text-amber border-amber-800/30 bg-amber-500/10',
+    rose: 'text-rose border-rose-800/30 bg-rose-500/10',
+    electric: 'text-electric border-indigo-900/35 bg-indigo-500/10',
+    cyan: 'text-cyan border-cyan-800/30 bg-cyan-500/10',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-slate-900/40 bg-white/75 px-1.5 py-0.5 text-[12px] font-medium leading-4 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[12px] font-medium leading-4 shadow-[inset_0_1px_0_rgba(255,255,255,.85)] ${tones[tone]} ${className}`}
     >
       {children}
     </span>

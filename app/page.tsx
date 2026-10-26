@@ -46,7 +46,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 md:pt-24">
           <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
             <div className="animate-fade-up">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-slate-900/25 bg-white/75 px-2.5 py-1 text-[12px] font-medium text-slate-600">
+              <div className="chip mb-5 text-slate-600">
                 <Sparkles className="h-3.5 w-3.5" />
                 Meeting IDE · AI problem extraction · 9 stages to launch
               </div>
@@ -98,7 +98,7 @@ export default function LandingPage() {
                     <div key={name} className="rounded-xl border border-slate-900/20 bg-white/60 p-2.5">
                       <div className="mb-1 flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
                         <span className="text-slate-800">{name}</span>
-                        <span className="rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{role}</span>
+                        <span className="rounded bg-white/55 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{role}</span>
                       </div>
                       <p className="text-[13px] leading-relaxed text-slate-500">{text}</p>
                     </div>
@@ -106,11 +106,11 @@ export default function LandingPage() {
                 </div>
 
                 <div className="my-3 flex items-center gap-2">
-                  <div className="h-px flex-1 bg-slate-200" />
+                  <div className="h-px flex-1 bg-slate-900/10" />
                   <span className="chip border-indigo-200 bg-indigo-50 text-indigo-700">
                     <Wand2 className="h-3 w-3" /> problem extracted
                   </span>
-                  <div className="h-px flex-1 bg-slate-200" />
+                  <div className="h-px flex-1 bg-slate-900/10" />
                 </div>
 
                 <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3.5">
@@ -124,7 +124,7 @@ export default function LandingPage() {
                   </p>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
                     {['product teams', 'hand-off tax', 'rework', 'one workspace'].map((t) => (
-                      <span key={t} className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[12px] text-slate-500">{t}</span>
+                      <span key={t} className="rounded-md bg-white/55 px-1.5 py-0.5 text-[12px] text-slate-500">{t}</span>
                     ))}
                   </div>
                 </div>
@@ -168,7 +168,7 @@ export default function LandingPage() {
               { icon: Blocks, title: 'Operationalise', body: 'Once approved, the problem becomes the spine: PRDs, scope, architecture, tests and launch copy all build against it.', tone: '#b45309' },
             ].map((f) => (
               <div key={f.title} className="panel card-hover p-5">
-                <div className="mb-4 grid h-9 w-9 place-items-center rounded-lg border border-slate-200" style={{ background: `${f.tone}12`, color: f.tone }}>
+                <div className="mb-4 grid h-9 w-9 place-items-center rounded-lg border border-slate-900/10" style={{ background: `${f.tone}12`, color: f.tone }}>
                   <f.icon className="h-5 w-5" />
                 </div>
                 <h3 className="text-[16px] font-semibold text-slate-900">{f.title}</h3>
@@ -180,7 +180,7 @@ export default function LandingPage() {
       </section>
 
       {/* lifecycle */}
-      <section id="lifecycle" className="border-t border-slate-200 py-16">
+      <section id="lifecycle" className="border-t border-slate-900/10 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-2xl">
@@ -202,7 +202,7 @@ export default function LandingPage() {
               <div key={s.key} className="panel card-hover group relative overflow-hidden p-4">
                 <div className="flex items-start gap-3">
                   <div
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-200"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-slate-900/10"
                     style={{ background: `${stageAccent(s.color)}12`, color: stageAccent(s.color) }}
                   >
                     <StageIcon name={s.icon} className="h-5 w-5" />
@@ -215,7 +215,7 @@ export default function LandingPage() {
                     <p className="mt-1 text-[13px] leading-relaxed text-slate-500">{s.tagline}</p>
                     <div className="mt-2.5 flex flex-wrap gap-1">
                       {s.checklist.slice(0, 2).map((c) => (
-                        <span key={c} className="rounded bg-slate-100/70 px-1.5 py-0.5 text-[12px] text-slate-500">
+                        <span key={c} className="rounded bg-white/70 px-1.5 py-0.5 text-[12px] text-slate-500">
                           {c.length > 34 ? `${c.slice(0, 33)}…` : c}
                         </span>
                       ))}
@@ -246,7 +246,7 @@ export default function LandingPage() {
               <div key={group.cat}>
                 <div className="mb-2.5 flex items-center gap-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">{group.cat}</span>
-                  <div className="h-px flex-1 bg-slate-100" />
+                  <div className="h-px flex-1 bg-white/55" />
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
                   {group.tools.map((t) => (
@@ -272,7 +272,7 @@ export default function LandingPage() {
       </section>
 
       {/* roles */}
-      <section className="border-t border-slate-200 py-16">
+      <section className="border-t border-slate-900/10 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr]">
             <div>
@@ -353,7 +353,7 @@ export default function LandingPage() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[13px] font-medium text-slate-900">{s.title}</span>
-                      <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">{s.tag}</span>
+                      <span className="rounded bg-white/55 px-1.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">{s.tag}</span>
                     </div>
                     <p className="text-[13px] leading-relaxed text-slate-500">{s.body}</p>
                   </div>
@@ -365,7 +365,7 @@ export default function LandingPage() {
       </section>
 
       {/* access checklist */}
-      <section id="access" className="border-t border-slate-200 py-14">
+      <section id="access" className="border-t border-slate-900/10 py-14">
         <div className="mx-auto max-w-5xl px-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -410,7 +410,7 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2">
                   <x.icon className={`h-4 w-4 ${x.tone}`} />
                   <span className="text-[13px] font-semibold text-slate-900">{x.title}</span>
-                  <span className="ml-auto rounded bg-slate-100 px-1.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">
+                  <span className="ml-auto rounded bg-white/55 px-1.5 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">
                     {x.tag}
                   </span>
                 </div>
@@ -425,7 +425,7 @@ export default function LandingPage() {
       </section>
 
       {/* cta */}
-      <section className="border-t border-slate-200 py-20">
+      <section className="border-t border-slate-900/10 py-20">
         <div className="mx-auto max-w-3xl px-5 text-center">
           
           <h2 className="text-[26px] font-semibold tracking-tight text-slate-900 md:text-[32px]">
@@ -445,7 +445,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-slate-200 py-8">
+      <footer className="border-t border-slate-900/10 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 text-[12px] text-slate-500 sm:flex-row">
           <div className="flex items-center gap-2">
             <Link href="/"><Wordmark compact /></Link>

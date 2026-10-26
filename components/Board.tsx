@@ -142,8 +142,8 @@ export default function Board({
         <div className="ml-auto flex items-center gap-2 text-[12px] text-slate-500">
           {overdue > 0 && <span className="text-rose">{overdue} overdue</span>}
           <span>{done}/{total} done</span>
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
-            <div className="h-full rounded-full bg-mint transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+          <div className="meter h-1.5 w-24">
+            <div className="meter-fill meter-fill-mint" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
           </div>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function Board({
                         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <Pill tone={PRIORITY_TONE[t.priority] ?? 'slate'} className="!px-1.5 !py-0 !text-[12px]">{t.priority}</Pill>
                           {scope === 'all' && (
-                            <span className="rounded bg-slate-100 px-1 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">
+                            <span className="rounded bg-white/55 px-1 py-0.5 text-[11px] uppercase tracking-wider text-slate-500">
                               {stages.find((s) => s.key === t.stage_key)?.name ?? t.stage_key}
                             </span>
                           )}
@@ -199,7 +199,7 @@ export default function Board({
                             onChange={(e) => assign(t, e.target.value || null)}
                             title="Who owns this?"
                             className={`max-w-[92px] cursor-pointer truncate rounded px-1 py-0.5 text-[12px] outline-none ${
-                              t.owner ? 'bg-slate-100 text-slate-600' : 'bg-amber-50 text-amber-800'
+                              t.owner ? 'bg-white/55 text-slate-600' : 'bg-amber-50 text-amber-800'
                             }`}
                           >
                             <option value="">Unassigned</option>
@@ -244,7 +244,7 @@ export default function Board({
                           type="button"
                           onClick={() => move(t, nextStatus(t.status))}
                           title={`Move to ${nextStatus(t.status)}`}
-                          className="rounded p-0.5 text-slate-500 opacity-0 transition hover:bg-slate-100 hover:text-slate-800 group-hover:opacity-100"
+                          className="rounded p-0.5 text-slate-500 opacity-0 transition hover:bg-white/60 hover:text-slate-800 group-hover:opacity-100"
                         >
                           <ChevronRight className="h-3 w-3" />
                         </button>
@@ -311,7 +311,7 @@ export default function Board({
                     setAdding(col.key);
                     setDraft((d) => ({ ...d, stage_key: stageKey }));
                   }}
-                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[12px] text-slate-500 transition hover:border-slate-900/70 hover:text-slate-500"
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-900/10 py-1.5 text-[12px] text-slate-500 transition hover:border-slate-900/70 hover:text-slate-500"
                 >
                   <Plus className="h-3 w-3" /> Add task
                 </button>

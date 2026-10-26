@@ -11,41 +11,74 @@
     'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Grey and white, one black hairline. No colour anywhere in the chrome. */
-  --canvas: #e8eaee;
-  --paper: rgba(255, 255, 255, 0.74);
-  --paper-solid: #fbfcfd;
-  --sunken: rgba(240, 242, 245, 0.72);
+  /*
+   * The colour lives in the light *behind* the glass, not in the chrome.
+   *
+   * A cool graphite canvas with two very low-alpha blooms (indigo top-left, a
+   * teal catch-light bottom-right) gives the panels something to refract. The
+   * chrome itself stays grey-and-white with a black hairline, so the product
+   * reads as professional rather than decorated.
+   */
+  --canvas: #dbe2ee;
+  --canvas-top: #eef2f9;
+  --canvas-bottom: #d6deeb;
+  --bloom-indigo: rgba(88, 112, 176, 0.22);
+  --bloom-teal: rgba(52, 130, 138, 0.14);
+  --bloom-white: rgba(255, 255, 255, 0.9);
+  --bloom-haze: rgba(120, 140, 196, 0.16);
 
-  --edge: #111827;
-  --line: #c7cdd6;
-  --line-soft: #dde1e7;
+  --paper: rgba(255, 255, 255, 0.46);
+  --paper-solid: #f8fafd;
+  --sunken: rgba(255, 255, 255, 0.22);
 
-  --ink: #0b0f17;
-  --body: #2b3240;
-  --muted: #56606e;
-  --faint: #8a94a3;
+  /* The hairline. Every glass surface is framed by it — that is what keeps this
+     professional instead of decorative. */
+  --edge: #0b1220;
+  --edge-soft: rgba(11, 18, 32, 0.42);
+  --line: #c3ccda;
+  --line-soft: rgba(11, 18, 32, 0.1);
 
-  --accent: #111827;
-  --accent-hover: #000000;
-  --accent-soft: rgba(17, 24, 39, 0.06);
+  --ink: #0a1020;
+  --body: #26303f;
+  --muted: #55607a;
+  --faint: #5f6a7a;
+
+  /* One accent, deep indigo: buttons, active tabs, focus, links. It reads as
+     ink with a blue undertone, which is why it can carry colour without the
+     product feeling colourful. */
+  --accent: #1e2f57;
+  --accent-hover: #16233f;
+  --accent-line: #33477a;
+  --accent-soft: rgba(30, 47, 87, 0.08);
 
   --ok: #046c4e;
-  --warn: #9a5b09;
-  --danger: #b21e3f;
+  --warn: #8a4b06;
+  --danger: #9f1239;
 
-  --radius: 12px;
+  --radius: 14px;
 
-  /* One recipe for every glass surface, so panels never drift apart. */
+  /*
+   * One recipe for every glass surface, so panels never drift apart:
+   * a specular sheen, a cool translucent fill, a deep blur that saturates what
+   * is behind it, and four inset hairlines of light around a soft shadow.
+   */
+  --glass-sheen: linear-gradient(118deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 46%);
   --glass-fill: linear-gradient(
-    158deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(255, 255, 255, 0.74) 46%,
-    rgba(243, 245, 248, 0.66) 100%
+    152deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.42) 44%,
+    rgba(232, 238, 248, 0.36) 100%
   );
-  --glass-blur: blur(22px) saturate(135%);
-  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(17, 24, 39, 0.05),
-    0 14px 30px -22px rgba(11, 15, 23, 0.55);
+  --glass-blur: blur(30px) saturate(180%);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+    inset 1px 0 0 rgba(255, 255, 255, 0.5), inset -1px 0 0 rgba(255, 255, 255, 0.26),
+    0 2px 4px rgba(11, 18, 32, 0.06), 0 26px 48px -30px rgba(11, 18, 32, 0.62);
+  /* ...and the same four insets for inner surfaces, where the blur is lighter. */
+  --glass-shadow-tight: inset 0 1px 0 rgba(255, 255, 255, 0.92), inset 0 -1px 0 rgba(255, 255, 255, 0.34),
+    0 1px 1px rgba(11, 18, 32, 0.05), 0 10px 20px -18px rgba(11, 18, 32, 0.5);
+
+  /* Grain: 3% of noise so a translucent panel has something to sit on. */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='.07'/></svg>");
 }
 
 * {
@@ -58,9 +91,12 @@ html {
 
 body {
   background-color: var(--canvas);
-  background-image: radial-gradient(1000px 560px at 8% -12%, #ffffff 0%, rgba(255, 255, 255, 0) 60%),
-    radial-gradient(860px 520px at 102% -6%, #f4f6f9 0%, rgba(244, 246, 249, 0) 58%),
-    linear-gradient(180deg, #eceef2 0%, #e4e7ec 100%);
+  background-image: radial-gradient(1100px 620px at 6% -14%, var(--bloom-white) 0%, rgba(255, 255, 255, 0) 58%),
+    radial-gradient(920px 560px at 100% -8%, var(--bloom-indigo) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(900px 700px at 88% 108%, var(--bloom-teal) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(760px 520px at 34% 62%, var(--bloom-haze) 0%, rgba(255, 255, 255, 0) 66%),
+    var(--grain),
+    linear-gradient(180deg, var(--canvas-top) 0%, var(--canvas-bottom) 100%);
   background-attachment: fixed;
   color: var(--body);
   font-family: var(--font-sans);
@@ -80,28 +116,39 @@ h4 {
 }
 
 ::selection {
-  background: rgba(17, 24, 39, 0.14);
-  color: #0b0f17;
+  background: rgba(30, 47, 87, 0.16);
+  color: var(--ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-line);
   outline-offset: 2px;
 }
 
-/* The canvas: soft grey light behind the glass, never a coloured wash. */
+/* The canvas, for every page that is not the body itself. */
 .app-bg {
   background-color: var(--canvas);
-  background-image: radial-gradient(1000px 560px at 8% -12%, #ffffff 0%, rgba(255, 255, 255, 0) 60%),
-    radial-gradient(860px 520px at 102% -6%, #f4f6f9 0%, rgba(244, 246, 249, 0) 58%),
-    linear-gradient(180deg, #eceef2 0%, #e4e7ec 100%);
+  background-image: radial-gradient(1100px 620px at 6% -14%, var(--bloom-white) 0%, rgba(255, 255, 255, 0) 58%),
+    radial-gradient(920px 560px at 100% -8%, var(--bloom-indigo) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(900px 700px at 88% 108%, var(--bloom-teal) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(760px 520px at 34% 62%, var(--bloom-haze) 0%, rgba(255, 255, 255, 0) 66%),
+    var(--grain),
+    linear-gradient(180deg, var(--canvas-top) 0%, var(--canvas-bottom) 100%);
   background-attachment: fixed;
 }
 
+/* Grain sits above the base gradient and under the blooms, so it textures the
+   canvas without touching the light. */
+body,
+.app-bg {
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat, no-repeat;
+  background-size: auto, auto, auto, auto, 160px 160px, auto;
+}
+
 .grid-lines {
-  background-image: linear-gradient(to right, rgba(16, 24, 40, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(16, 24, 40, 0.04) 1px, transparent 1px);
-  background-size: 64px 64px;
+  background-image: linear-gradient(to right, rgba(16, 24, 40, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 24, 40, 0.05) 1px, transparent 1px);
+  background-size: 68px 68px;
   mask-image: linear-gradient(to bottom, #000, transparent 72%);
 }
 
@@ -111,13 +158,13 @@ h4 {
 
 @layer components {
   /*
-   * Glass. Opaque enough to stay readable at 11px, blurred at the edges so it
-   * reads as a physical sheet over the grey canvas, and always framed by a
-   * 1px black hairline — that outline is what keeps it professional rather
-   * than decorative.
+   * Glass. Translucent enough that the canvas light moves through it, blurred
+   * hard enough that 11px text never fights the backdrop, and always framed by
+   * a 1px near-black hairline with a specular top edge.
    */
   .glass {
-    background: var(--glass-fill);
+    @apply relative isolate rounded-2xl;
+    background: var(--glass-sheen), var(--glass-fill);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--edge);
@@ -125,63 +172,98 @@ h4 {
   }
 
   .panel {
-    @apply rounded-2xl;
-    background: var(--glass-fill);
+    @apply relative isolate rounded-2xl;
+    background: var(--glass-sheen), var(--glass-fill);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
     border: 1px solid var(--edge);
     box-shadow: var(--glass-shadow);
   }
 
-  /* Frosted but lighter — for surfaces inside a panel. */
+  /* Frosted but denser — for a surface that sits *inside* a panel and carries
+     small text, so it must stay quieter than the panel it lives on. */
   .panel-flat {
     @apply rounded-xl;
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 251, 0.72));
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
-    backdrop-filter: blur(14px) saturate(120%);
-    border: 1px solid rgba(17, 24, 39, 0.55);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: linear-gradient(158deg, rgba(255, 255, 255, 0.74), rgba(247, 250, 254, 0.52));
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(18px) saturate(150%);
+    border: 1px solid var(--edge-soft);
+    box-shadow: var(--glass-shadow-tight);
   }
 
   /* Cards and rows that sit on top of a glass panel. */
   .glass-card {
     @apply rounded-xl;
-    background: linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(247, 248, 251, 0.8));
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: linear-gradient(162deg, rgba(255, 255, 255, 0.8), rgba(244, 248, 253, 0.58));
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    backdrop-filter: blur(16px) saturate(150%);
     border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 #fff, 0 6px 16px -14px rgba(11, 15, 23, 0.6);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+      0 1px 1px rgba(11, 18, 32, 0.05), 0 8px 18px -16px rgba(11, 18, 32, 0.55);
   }
 
-  /* A recessed well: board columns, quote blocks, read-only strips. */
+  /* A recessed well: segmented nav, board columns, quote blocks, read-only
+     strips. Depth goes the other way — light collects in the top edge. */
   .well {
     @apply rounded-xl;
-    background: rgba(238, 240, 244, 0.6);
-    border: 1px solid rgba(17, 24, 39, 0.16);
-    box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.05);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(226, 233, 244, 0.28));
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid rgba(11, 18, 32, 0.22);
+    box-shadow: inset 0 1px 3px rgba(11, 18, 32, 0.09), inset 0 -1px 0 rgba(255, 255, 255, 0.7);
   }
 
   /* Sticky chrome: the header of a room or the owner console. */
   .glass-bar {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(250, 251, 252, 0.7) 100%);
-    -webkit-backdrop-filter: blur(20px) saturate(140%);
-    backdrop-filter: blur(20px) saturate(140%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(246, 249, 254, 0.5) 100%);
+    -webkit-backdrop-filter: blur(28px) saturate(185%);
+    backdrop-filter: blur(28px) saturate(185%);
     border-bottom: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 8px 20px -18px rgba(11, 15, 23, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.98), 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 14px 26px -24px rgba(11, 18, 32, 0.7);
   }
 
   .glass-rail {
-    background: linear-gradient(180deg, rgba(252, 253, 254, 0.72), rgba(244, 246, 249, 0.6));
-    -webkit-backdrop-filter: blur(18px) saturate(130%);
-    backdrop-filter: blur(18px) saturate(130%);
-    border-left: 1px solid rgba(17, 24, 39, 0.5);
+    background: linear-gradient(180deg, rgba(252, 253, 255, 0.56), rgba(238, 243, 250, 0.42));
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    border-left: 1px solid var(--edge-soft);
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.7);
   }
 
+  /* Lift on hover: cards feel like sheets that can be picked up. */
   .card-hover {
-    @apply transition-colors duration-150;
+    @apply transition duration-200;
+    transition-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
   }
   .card-hover:hover {
     border-color: #000;
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+      0 2px 3px rgba(11, 18, 32, 0.07), 0 18px 30px -22px rgba(11, 18, 32, 0.65);
+  }
+
+  /* Meters: a recessed track and a fill with a light along its top edge, so a
+     percentage reads as a physical gauge rather than a flat bar. */
+  .meter {
+    @apply overflow-hidden rounded-full;
+    background: rgba(11, 18, 32, 0.1);
+    box-shadow: inset 0 1px 2px rgba(11, 18, 32, 0.12), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+  }
+  .meter-fill {
+    @apply block h-full rounded-full;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(90deg, #3d5a94, #1e2f57);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: width 420ms cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .meter-fill-mint {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(90deg, #0d8a66, #046c4e);
+  }
+  .meter-fill-ink {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(90deg, #46536b, #26303f);
   }
 
   .section-label {
@@ -189,82 +271,114 @@ h4 {
   }
 
   .btn {
-    @apply inline-flex h-9 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3
-      text-[13px] font-medium leading-none transition
+    @apply relative inline-flex h-9 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3
+      text-[13px] font-medium leading-none
       disabled:pointer-events-none disabled:opacity-50;
+    transition: transform 140ms cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 160ms ease, background 160ms ease,
+      border-color 160ms ease, color 160ms ease;
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px) scale(0.995);
   }
 
-  /* Primary: a black key on a glass page. */
+  /* Primary: a black key with an indigo undertone on a glass page. */
   .btn-primary {
     @apply btn text-white;
-    background: linear-gradient(180deg, #262f3d 0%, #0b0f17 100%);
-    border: 1px solid #000;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 18px -14px rgba(11, 15, 23, 0.9);
+    background: linear-gradient(180deg, #2b3f6d 0%, #1a2a4d 52%, #121d36 100%);
+    border: 1px solid #060b16;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+      0 1px 1px rgba(6, 11, 22, 0.3), 0 12px 22px -16px rgba(20, 35, 70, 0.9);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
   }
   .btn-primary:hover {
-    background: linear-gradient(180deg, #323c4b 0%, #141a24 100%);
+    background: linear-gradient(180deg, #36508a 0%, #223458 52%, #17233f 100%);
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+      0 2px 3px rgba(6, 11, 22, 0.24), 0 18px 28px -16px rgba(20, 35, 70, 0.85);
+  }
+  .btn-primary:active:not(:disabled) {
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   }
 
+  /* Secondary: a sheet of glass raised off the page. */
   .btn-ghost {
     @apply btn text-slate-800;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 247, 250, 0.78));
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(244, 248, 253, 0.52));
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
     border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 #fff, 0 4px 12px -12px rgba(11, 15, 23, 0.7);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(255, 255, 255, 0.35),
+      0 1px 1px rgba(11, 18, 32, 0.06), 0 8px 16px -14px rgba(11, 18, 32, 0.6);
   }
   .btn-ghost:hover {
-    background: linear-gradient(180deg, #ffffff, #f1f3f7);
-    box-shadow: inset 0 1px 0 #fff, 0 6px 16px -12px rgba(11, 15, 23, 0.8);
+    color: var(--ink);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 254, 0.72));
+    transform: translateY(-1px);
+    box-shadow: inset 0 1px 0 #fff, 0 2px 3px rgba(11, 18, 32, 0.07), 0 14px 22px -16px rgba(11, 18, 32, 0.6);
+  }
+  .btn-ghost:active:not(:disabled) {
+    box-shadow: inset 0 2px 5px rgba(11, 18, 32, 0.12);
   }
 
+  /* Tertiary: text only, with a tinted well on hover. */
   .btn-subtle {
-    @apply btn text-slate-600 hover:text-slate-900;
+    @apply btn text-slate-600;
   }
   .btn-subtle:hover {
-    background: rgba(17, 24, 39, 0.06);
+    color: var(--ink);
+    background: var(--accent-soft);
   }
 
   .btn-danger {
     @apply btn text-rose;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(253, 244, 246, 0.8));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(252, 240, 243, 0.6));
     border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 #fff;
+    box-shadow: inset 0 1px 0 #fff, 0 8px 16px -14px rgba(159, 18, 57, 0.45);
   }
   .btn-danger:hover {
-    background: #fdf2f4;
+    background: linear-gradient(180deg, #fff, #fdeef1);
+    transform: translateY(-1px);
   }
 
   .btn-mint {
     @apply btn text-mint;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(244, 251, 248, 0.8));
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(238, 250, 245, 0.62));
     border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 #fff;
+    box-shadow: inset 0 1px 0 #fff, 0 8px 16px -14px rgba(4, 108, 78, 0.4);
+  }
+  .btn-mint:hover {
+    background: linear-gradient(180deg, #fff, #eafaf3);
+    transform: translateY(-1px);
   }
 
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-slate-700;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(17, 24, 39, 0.45);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.52);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(11, 18, 32, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
   }
 
   .field {
     @apply w-full rounded-xl px-3 py-2 text-[13px] text-slate-900 placeholder:text-slate-400;
-    background: rgba(255, 255, 255, 0.88);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.56));
     border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.06), inset 0 1px 0 #fff;
-    transition: box-shadow 140ms ease, background 140ms ease;
+    box-shadow: inset 0 1px 3px rgba(11, 18, 32, 0.08), inset 0 -1px 0 rgba(255, 255, 255, 0.7);
+    transition: box-shadow 150ms ease, background 150ms ease, border-color 150ms ease;
+  }
+  .field:hover {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.68));
   }
   .field:focus,
   .field:focus-visible {
     outline: none;
     background: #ffffff;
-    border-color: #000;
-    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12), inset 0 1px 0 #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent-line), inset 0 1px 0 #fff;
   }
   .field::placeholder {
-    color: #98a2b3;
+    color: #8b95a5;
   }
 
   .label {
@@ -272,55 +386,70 @@ h4 {
   }
 
   .tab {
-    @apply inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-slate-600 transition;
+    @apply inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-slate-600;
     border: 1px solid transparent;
+    transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
   }
   .tab:hover {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.5);
     color: var(--ink);
   }
 
+  /* The active segment: white glass, indigo label, and a soft indigo rule
+     inside the bottom edge so the eye finds it without a coloured pill. */
   .tab-active {
-    @apply text-slate-900;
-    background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 100%);
+    color: var(--accent);
+    background: linear-gradient(180deg, #ffffff 0%, rgba(246, 249, 254, 0.82) 100%);
     border: 1px solid var(--edge);
-    box-shadow: inset 0 1px 0 #fff, 0 6px 14px -12px rgba(11, 15, 23, 0.8);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgba(30, 47, 87, 0.42), 0 1px 1px rgba(11, 18, 32, 0.06),
+      0 8px 16px -14px rgba(11, 18, 32, 0.7);
   }
 
   .tab-active:hover {
-    background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 100%);
+    color: var(--accent);
+    background: linear-gradient(180deg, #ffffff 0%, rgba(246, 249, 254, 0.82) 100%);
   }
 
   .link {
-    @apply text-slate-900 underline decoration-slate-400 underline-offset-2 hover:decoration-slate-900;
+    @apply underline decoration-slate-400 underline-offset-2;
+    color: var(--accent);
+  }
+  .link:hover {
+    text-decoration-color: var(--accent);
   }
 
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: #b6bec9 transparent;
+    scrollbar-color: #aab4c2 transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background: #b6bec9;
+    background: rgba(11, 18, 32, 0.22);
     border-radius: 999px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(11, 18, 32, 0.34);
   }
   .scroll-thin::-webkit-scrollbar-track {
     background: transparent;
   }
 }
 
-/* Browsers without backdrop-filter get the opaque version rather than mush. */
+/* Browsers without backdrop-filter get a denser sheet rather than mush. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .panel,
   .glass,
-  .glass-card,
   .panel-flat,
+  .glass-card,
   .glass-bar,
   .glass-rail {
-    background: rgba(255, 255, 255, 0.97);
+    background: rgba(255, 255, 255, 0.96);
+  }
+  .well {
+    background: #e8edf5;
   }
 }
 
@@ -343,7 +472,7 @@ h4 {
   @apply mb-3 mt-2 text-[22px] font-semibold leading-tight text-slate-900;
 }
 .md h2 {
-  @apply mb-2 mt-7 border-b border-slate-200 pb-1.5 text-[16px] font-semibold text-slate-900;
+  @apply mb-2 mt-7 border-b border-slate-900/10 pb-1.5 text-[16px] font-semibold text-slate-900;
 }
 .md h3 {
   @apply mb-1.5 mt-5 text-[14px] font-semibold text-slate-900;
@@ -367,28 +496,28 @@ h4 {
   @apply text-electric underline decoration-electric/30 underline-offset-2 hover:decoration-electric;
 }
 .md code {
-  @apply rounded border border-slate-200 bg-slate-50 px-1 py-0.5 font-mono text-[12.5px] text-slate-800;
+  @apply rounded border border-slate-900/15 bg-white/60 px-1 py-0.5 font-mono text-[12.5px] text-slate-800;
 }
 .md pre {
-  @apply my-3 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-3 text-[12.5px] leading-relaxed text-slate-800;
+  @apply my-3 overflow-x-auto rounded-lg border border-slate-900/15 bg-white/55 p-3 text-[12.5px] leading-relaxed text-slate-800;
 }
 .md pre code {
   @apply border-0 bg-transparent p-0 text-[12.5px] text-slate-800;
 }
 .md blockquote {
-  @apply my-3 border-l-2 border-slate-300 pl-3 text-slate-600;
+  @apply my-3 border-l-2 border-slate-900/25 pl-3 text-slate-600;
 }
 .md table {
   @apply my-3 w-full border-collapse text-[13px];
 }
 .md th {
-  @apply border-b border-slate-300 bg-slate-50 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-slate-600;
+  @apply border-b border-slate-900/25 bg-white/50 px-2.5 py-1.5 text-left text-xs font-semibold uppercase tracking-[0.04em] text-slate-600;
 }
 .md td {
-  @apply border-b border-slate-200 px-2.5 py-1.5 align-top;
+  @apply border-b border-slate-900/10 px-2.5 py-1.5 align-top;
 }
 .md hr {
-  @apply my-6 border-slate-200;
+  @apply my-6 border-slate-900/10;
 }
 .md strong {
   @apply font-semibold text-slate-900;
@@ -398,7 +527,7 @@ h4 {
 }
 
 textarea.md-input {
-  @apply h-full w-full resize-none rounded-lg border border-slate-300 bg-white p-4 font-mono text-[13px] leading-relaxed text-slate-800
+  @apply h-full w-full resize-none rounded-lg border border-slate-900/25 bg-white/80 p-4 font-mono text-[13px] leading-relaxed text-slate-800
     focus:border-electric focus:outline-none focus:ring-[3px] focus:ring-electric/15;
 }
 
@@ -407,7 +536,7 @@ textarea.md-input {
 /* ------------------------------------------------------------------------- */
 
 .skeleton {
-  @apply animate-pulse rounded-md bg-slate-200/70;
+  @apply animate-pulse rounded-md bg-slate-900/10;
 }
 
 @media (prefers-reduced-motion: reduce) {

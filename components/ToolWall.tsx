@@ -13,7 +13,7 @@ const STATUS: Record<StackStatus, { label: string; blurb: string; tone: string; 
   planned: { label: 'Planned', blurb: 'We intend to use it', tone: 'border-slate-900/40 bg-white/80 text-slate-600', dot: '#667085' },
   trial: { label: 'Trial', blurb: 'Someone is testing it', tone: 'border-amber-300 bg-amber-50 text-amber-800', dot: '#b45309' },
   using: { label: 'In use', blurb: 'This is our live tool', tone: 'border-emerald-300 bg-emerald-50 text-emerald-800', dot: '#047857' },
-  parked: { label: 'Parked', blurb: 'Not for this product', tone: 'border-slate-200 bg-slate-100 text-slate-500', dot: '#98a2b3' },
+  parked: { label: 'Parked', blurb: 'Not for this product', tone: 'border-slate-900/10 bg-white/55 text-slate-500', dot: '#98a2b3' },
 };
 
 export default function ToolWall({
@@ -162,7 +162,7 @@ export default function ToolWall({
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100/80 p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-slate-900/10 bg-white/80 p-0.5">
           {stageKey && (
             <button
               type="button"
@@ -205,7 +205,7 @@ export default function ToolWall({
             <div className="mb-2 flex items-center gap-2">
               <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">{cat}</span>
               <span className="text-[12px] text-slate-500">{list.length}</span>
-              <div className="h-px flex-1 bg-slate-200" />
+              <div className="h-px flex-1 bg-slate-900/10" />
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {list.map((t) => {
@@ -265,7 +265,7 @@ export default function ToolWall({
             className="panel max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none rounded-t-2xl sm:rounded-xl scroll-thin"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-start gap-3 border-b border-slate-200 px-4 py-3.5">
+            <div className="flex items-start gap-3 border-b border-slate-900/10 px-4 py-3.5">
               <ToolIcon name={active.name} color={active.color} size={44} rounded={12} />
               <div className="min-w-0 flex-1">
                 <h3 className="text-[16px] font-semibold text-slate-900">{active.name}</h3>
@@ -355,7 +355,7 @@ export default function ToolWall({
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 border-t border-slate-900/20 bg-white/5570 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2 border-t border-slate-900/20 bg-white/70 px-4 py-3">
               <button type="button" className="btn-primary px-3 py-2 text-[12px]" onClick={save} disabled={busy !== null}>
                 {busy === 'save' ? <Spinner className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />} Save
               </button>
