@@ -98,6 +98,9 @@ full directive are in **[`docs/AI-PM.md`](docs/AI-PM.md)**, version `aipm.room/1
 - **Privacy gate.** `lib/aipm/scrub.ts` strips GitHub/OpenAI/Anthropic/Google/Groq/Figma tokens, connection strings,
   JWTs, bearer headers and `*_SECRET=` assignments before anything reaches a model, and honours `@aipm-ignore` …
   `@aipm-ignore-end` blocks. `npm run test:aipm` and `npm run test:guards` pin both behaviours.
+- **Controls, enforced not promised.** A run ceiling (`maxRunsPerDay`, checked before any read or model call), a
+  per-person noise budget, owner-only settings, and findings any member can read — the full matrix, with the file that
+  enforces each one, is in [`docs/AI-PM-CONTROLS.md`](docs/AI-PM-CONTROLS.md).
 - **Strict Architecture Mode, adapted.** There is no editor to block: strict mode refuses to mark a task *done* while a
   HIGH spec deviation is open on it (409, naming the finding), and a human dismissal unblocks it.
 

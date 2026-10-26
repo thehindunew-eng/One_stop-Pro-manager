@@ -12,6 +12,7 @@ import {
   persistFinding,
   recentBudget,
   recordRun,
+  runsInLastDay,
   type AipmSettings,
   type FindingRow,
 } from './store';
@@ -46,6 +47,8 @@ export interface AipmRunResult {
   settings: AipmSettings;
   /** True when only the deterministic guards ran. */
   roomOnly: boolean;
+  /** Set when the hard run ceiling stopped this run before it started. */
+  blocked?: { reason: string; runsToday: number; maxRunsPerDay: number };
 }
 
 const MAX_FINDINGS = 6;
@@ -130,6 +133,34 @@ export async function runAipm(input: {
   const started = Date.now();
   const { project } = input;
   const settings = aipmSettings(project);
+
+  /*
+   * The hard ceiling. Checked before any read or model call, so a loop that
+   * keeps pressing Run costs nothing: no slice is assembled, no token is spent.
+   */
+  const runsToday = await runsInLastDay(project.id);
+  if (runsToday >= settings.maxRunsPerDay) {
+    return {
+      findings: await listFindings(project.id),
+      ran: false,
+      engine: 'ceiling',
+      promptVersion: PROMPT_VERSION,
+      found: 0,
+      kept: 0,
+      duplicates: 0,
+      suppressed: 0,
+      ms: Date.now() - started,
+      gaps: [],
+      narrative: '',
+      settings,
+      roomOnly: true,
+      blocked: {
+        reason: `This room has used all ${settings.maxRunsPerDay} guard runs for today. The ceiling exists so a stuck loop cannot keep spending — raise it in the admin console, or run again after 24 hours.`,
+        runsToday,
+        maxRunsPerDay: settings.maxRunsPerDay,
+      },
+    };
+  }
 
   const [stages, tasks, notes, artifacts, signals, members] = await Promise.all([
     listStages(false),

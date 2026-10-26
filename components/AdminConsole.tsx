@@ -34,7 +34,7 @@ export default function AdminConsole({
   const [tab, setTab] = useState<Tab>('stages');
   const [toast, setToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [aipm, setAipm] = useState({ enabled: true, strict: false, maxPerPersonPerDay: 3, digest: 'daily' });
+  const [aipm, setAipm] = useState({ enabled: true, strict: false, maxPerPersonPerDay: 3, maxRunsPerDay: 24, digest: 'daily' });
   const [aipmSaving, setAipmSaving] = useState(false);
 
   const code = state.project.code;
@@ -683,6 +683,20 @@ export default function AdminConsole({
                   <p className="mt-1 text-[11px] text-slate-500">The noise budget. High-severity repeats are capped separately.</p>
                 </div>
                 <div>
+                  <label className="label">Guard runs per day (hard ceiling)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    className="field h-9 py-0"
+                    value={aipm.maxRunsPerDay}
+                    onChange={(e) => setAipm({ ...aipm, maxRunsPerDay: Number(e.target.value) })}
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Spend control. Checked before any read or model call, so a stuck loop costs nothing.
+                  </p>
+                </div>
+                <div>
                   <label className="label">Digest cadence</label>
                   <select
                     className="field h-9 py-0"
@@ -694,7 +708,7 @@ export default function AdminConsole({
                     <option value="off">Off</option>
                   </select>
                   <p className="mt-1 text-[11px] text-slate-500">
-                    Stored with the room; the digest itself is generated on demand in the Build → AI PM guard tab.
+                    Stored with the room; the digest is generated on demand in the Build → AI PM guard tab.
                   </p>
                 </div>
               </div>

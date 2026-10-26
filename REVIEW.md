@@ -411,3 +411,25 @@ engineering summary.
   is broken.
 - **"Multi-factor authorisation" is a named human with edit rights**, recorded in the database. Calling that
   multi-factor would be a lie.
+
+## 12. The control plane, and the run ceiling (this pass)
+
+The brief's architecture was re-reviewed against the shipped code. Result: `docs/AI-PM-CONTROLS.md` — a matrix of
+every control the brief asks for, the file that enforces it, and the command that proves it. Two things changed in
+code.
+
+**Added: a hard run ceiling.** The brief asks for token budgets so a stuck loop cannot keep spending. Here the slice is
+already bounded and a run makes at most one model call, so spend per run is roughly constant — the lever that actually
+bounds spend is the number of runs. `settings.aipm.maxRunsPerDay` (default 24) is checked at the top of `runAipm()`,
+before any read or model call, and `POST` returns **429** with the number. Verified: ceiling 2 → first run 200, second
+200, third 429; `GET` reports `runsToday` / `runsLeft`; the guard panel shows "N of M runs left today".
+
+**Written: the disagreements.** CRDT ghost cursors, a vector DB over the whole codebase, and a Neo4j ownership graph
+are all recorded as refused-or-deferred, with reasons, in section 5 of the new document. So is "multi-factor
+authorisation", which is renamed to what it is — a named human with edit rights and an audit row — because a security
+reviewer will read that sentence.
+
+**Recorded, not built: opt-in context sharing.** The brief's "incognito dev mode" has no local draft buffer to
+disconnect here. The faithful analogue (exclude a member's notes and commits from the slice while their board state
+stays visible) is designed in section 9 of the control doc and is *not* in this build. Saying so is the point: a
+control matrix that quietly omits a control is worse than no matrix.

@@ -32,12 +32,14 @@ interface FindingRow {
 }
 
 interface GuardData {
-  settings: { enabled: boolean; strict: boolean; maxPerPersonPerDay: number; digest: string };
+  settings: { enabled: boolean; strict: boolean; maxPerPersonPerDay: number; maxRunsPerDay: number; digest: string };
   promptVersion: string;
   engine: { engine: string; live: boolean; provider: string | null; model: string | null };
   findings: FindingRow[];
   narrative: string;
   lastRun: { created_at: string; engine: string; kept: number } | null;
+  runsToday?: number;
+  runsLeft?: number;
   repo: string | null;
   canEdit: boolean;
   me: { name: string; id: string };
@@ -208,6 +210,10 @@ export default function GuardPanel({
           <span className="text-slate-500">{counts.low} low</span>
           <span className="ml-auto text-slate-500">
             prompt <span className="font-mono text-[11px]">{data?.promptVersion ?? '—'}</span> · last run {ago(data?.lastRun?.created_at ?? null)}
+            {typeof data?.runsLeft === 'number' && data.settings.maxRunsPerDay ? (
+              <> · <span className="tnum">{data.runsLeft}</span> of{' '}
+              <span className="tnum">{data.settings.maxRunsPerDay}</span> runs left today</>
+            ) : null}
           </span>
         </div>
       </div>
