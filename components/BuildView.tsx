@@ -10,6 +10,7 @@ import { ApiError, api, del, post } from '@/lib/client';
 import { PROVIDERS, providerInfo, type ProviderInfo } from '@/lib/providers';
 import { Avatar, Pill, Spinner } from './ui';
 import LiveStatus from './LiveStatus';
+import GuardPanel from './GuardPanel';
 
 interface BuildTask {
   id: string;
@@ -102,7 +103,7 @@ export default function BuildView({
   stageNames: Record<string, string>;
   onToast: (message: string) => void;
 }) {
-  const [tab, setTab] = useState<'work' | 'connections' | 'team'>('work');
+  const [tab, setTab] = useState<'work' | 'guard' | 'connections' | 'team'>('work');
   const [build, setBuild] = useState<BuildData | null>(null);
   const [creds, setCreds] = useState<CredData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -298,6 +299,7 @@ export default function BuildView({
         <div className="flex gap-1 px-3 py-2">
           {([
             ['work', 'My build', Terminal],
+            ['guard', 'AI PM guard', ShieldCheck],
             ['connections', 'Connections', KeyRound],
             ['team', 'Live status', ShieldCheck],
           ] as const).map(([key, text, Icon]) => (
@@ -591,6 +593,9 @@ export default function BuildView({
           </div>
         </>
       )}
+
+      {/* ---------------------------------------------------------------- guard */}
+      {tab === 'guard' && <GuardPanel code={code} repo={repo} onToast={onToast} />}
 
       {/* --------------------------------------------------------- connections */}
       {tab === 'connections' && (

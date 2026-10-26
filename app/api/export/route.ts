@@ -3,6 +3,8 @@ import { listArtifacts, listMembers, listSignals, listStages, listStacks, listTa
 import { buildPlan, type PlanAction } from '@/lib/plan';
 import { ROLE_LABELS } from '@/lib/defaults';
 import { isOverdue, shortDate } from '@/lib/dates';
+import { listFindings } from '@/lib/aipm/store';
+import { PROMPT_VERSION } from '@/lib/aipm/prompt';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -299,6 +301,35 @@ export async function GET(req: Request) {
   push('| --- | --- | --- |');
   for (const r of plan.rhythm) push(`| ${r.when} | ${r.what} | ${r.who} |`);
   push('');
+
+  /*
+   * Appendix D is only written when the guards have produced something. An
+   * empty governance section in a handover document is worse than none: it
+   * implies the room was checked and clean.
+   */
+  const findings = await listFindings(project.id, 40);
+  const open = findings.filter((f) => f.status === 'open');
+  if (open.length) {
+    push('## Appendix D — AI PM guard findings');
+    push('');
+    push(
+      `Open findings raised against this room. Each one carries a confidence and the exact sources it came from (prompt ${PROMPT_VERSION}).`,
+    );
+    push('');
+    push('| Severity | Kind | About | Finding | Confidence | Sources |');
+    push('| --- | --- | --- | --- | --- | --- |');
+    for (const f of open.slice(0, 20)) {
+      const cite = (f.citations ?? []).map((c) => `\`${c.ref}\``).join(', ');
+      push(
+        `| ${f.severity} | ${f.kind} | ${f.target || 'the room'} | ${f.message.replace(/\|/g, '/')} | ${Math.round(
+          f.confidence * 100,
+        )}% | ${cite || '—'} |`,
+      );
+    }
+    push('');
+    push('**What to do with this:** every row is a proposal, not an action. A named person confirms or dismisses each one in Build → AI PM guard; nothing here changed the board or the repository on its own.');
+    push('');
+  }
   push('---');
   push('');
   push('_Exported from One Stop Pro Manager. Gates, owners and due dates are live in the room — export again after the next working session._');
