@@ -8,6 +8,7 @@ import {
 import type { Member, Stage, Tool, WorkspaceState, StageKey } from '@/lib/types';
 import { api, del, patch, post, setAuthToken } from '@/lib/client';
 import { stageAccent } from '@/lib/defaults';
+import { defaultGate, describeRule, gateFor, type GateRule } from '@/lib/plan';
 import { Avatar, Pill, StageIcon, STAGE_ICONS, Spinner, ToolIcon, Wordmark } from './ui';
 import LocalAI from './LocalAI';
 
@@ -79,6 +80,7 @@ export default function AdminConsole({
         position: edit.position,
         enabled: edit.enabled,
         checklist: edit.checklist,
+        gate: (edit as Stage & { gate?: GateRule[] }).gate,
       });
       setState((v) => ({ ...v, stages: res.stages }));
       setStageEdits((v) => {
@@ -335,6 +337,98 @@ export default function AdminConsole({
                           }
                         />
                       </div>
+                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                      <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
+                          Gate criteria — what “done” means
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          {(s as Stage & { gate?: GateRule[] }).gate?.length
+                            ? 'custom'
+                            : 'the default for this stage'}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn-subtle ml-auto h-6 px-1.5 text-[11px]"
+                          onClick={() =>
+                            setStageEdits((v) => ({
+                              ...v,
+                              [raw.key]: { ...v[raw.key], gate: defaultGate(raw.key) },
+                            }))
+                          }
+                          title="Restore the default criteria for this stage"
+                        >
+                          Reset to default
+                        </button>
+                      </div>
+                      <div className="space-y-1">
+                        {gateFor(s).map((rule, i) => (
+                          <div key={`${raw.key}-gate-${i}`} className="flex items-center gap-1.5">
+                            <span
+                              className={`shrink-0 rounded px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                                rule.kind === 'manual' ? 'bg-amber-50 text-amber-800' : 'bg-slate-200 text-slate-600'
+                              }`}
+                              title={
+                                rule.kind === 'manual'
+                                  ? 'A person ticks this in the Run plan'
+                                  : 'Read automatically from the room'
+                              }
+                            >
+                              {rule.kind === 'manual' ? 'human' : 'auto'}
+                            </span>
+                            <input
+                              className="field h-7 py-0 text-[12px]"
+                              value={rule.label ?? describeRule(rule)}
+                              onChange={(e) => {
+                                const current = gateFor(s);
+                                const next = current.map((r, idx) =>
+                                  idx === i ? ({ ...r, label: e.target.value } as GateRule) : r,
+                                );
+                                setStageEdits((v) => ({ ...v, [raw.key]: { ...v[raw.key], gate: next } }));
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose"
+                              title="Remove this criterion"
+                              onClick={() => {
+                                const next = gateFor(s).filter((_, idx) => idx !== i);
+                                setStageEdits((v) => ({ ...v, [raw.key]: { ...v[raw.key], gate: next } }));
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                        {!gateFor(s).length && (
+                          <p className="text-[12px] text-slate-500">
+                            No criteria yet. A stage without a gate can never be proven done.
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-ghost mt-1.5 h-7 px-2 text-[11px]"
+                        onClick={() => {
+                          const next: GateRule[] = [
+                            ...gateFor(s),
+                            {
+                              kind: 'manual',
+                              id: `${raw.key}.custom.${Date.now().toString(36)}`,
+                              label: 'Something a person must confirm',
+                            },
+                          ];
+                          setStageEdits((v) => ({ ...v, [raw.key]: { ...v[raw.key], gate: next } }));
+                        }}
+                      >
+                        <Plus className="h-3 w-3" /> Add a human criterion
+                      </button>
+                      <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                        Auto criteria read the room: the approved problem, document state, board progress, accepted decisions
+                        and tools in use. Human criteria are ticked from the Run plan by whoever did the work.
+                      </p>
+                    </div>
+
                       <div className="flex flex-col items-end justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <span

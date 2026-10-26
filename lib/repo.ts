@@ -326,7 +326,19 @@ async function seedDemoProject(): Promise<void> {
     }
   }
 
-  await seedStageTasks(project.id, contactByRole);
+  await seedStageTasks(
+    project.id,
+    contactByRole,
+    undefined,
+    (stage, idx, status) => {
+      // Closed stages are dated in the past, the live stage this week, later
+      // stages further out — so the board reads like a plan, not a template.
+      const order = STAGE_SEED.findIndex((x) => x.key === stage);
+      if (status === 'done') return dayOffset(-21 + order * 2 + idx);
+      if (stage === 'discover') return dayOffset(1 + idx);
+      return dayOffset(2 + order * 3 + idx);
+    },
+  );
 
   await sql(
     `INSERT INTO messages (id, project_id, user_id, author, role, kind, content, meta)
@@ -343,6 +355,14 @@ async function seedDemoProject(): Promise<void> {
   );
 }
 
+
+/** YYYY-MM-DD, `offset` days from today. Used to seed a believable board. */
+function dayOffset(offset: number): string {
+  const d = new Date();
+  d.setUTCHours(12, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + offset);
+  return d.toISOString().slice(0, 10);
+}
 
 /* ------------------------------------------------------------------ */
 /* the live workspace — the real product, real decisions               */
@@ -588,6 +608,11 @@ async function seedLiveProject(): Promise<void> {
     if (stage === 'build') return idx < 4 ? 'done' : idx === 4 ? 'doing' : 'todo';
     if (stage === 'test') return idx === 0 ? 'doing' : 'todo';
     return 'todo';
+  }, (stage, idx, status) => {
+    if (status === 'done') return dayOffset(-30 + STAGE_SEED.findIndex((x) => x.key === stage) * 2 + idx);
+    if (stage === 'test') return dayOffset(1 + idx);
+    if (stage === 'launch') return dayOffset(3 + idx);
+    return dayOffset(1 + idx);
   });
 
   await sql(
@@ -610,6 +635,7 @@ async function seedStageTasks(
   projectId: string,
   contacts?: Map<Role, User>,
   statusFor?: (stage: StageKey, index: number) => string,
+  dueFor?: (stage: StageKey, index: number, status: string) => string | null,
 ): Promise<void> {
   const ownerFor = (role: Role) => contacts?.get(role)?.name ?? null;
   const ownerByStage: Record<string, string | null> = {
@@ -634,8 +660,8 @@ async function seedStageTasks(
             ? 'doing'
             : 'todo';
       await sql(
-        `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position, due_date)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
         [
           newId('tsk'),
           projectId,
@@ -647,6 +673,7 @@ async function seedStageTasks(
           idx === 0 ? 'P0' : idx < 3 ? 'P1' : 'P2',
           [2, 3, 5][idx % 3],
           pos++,
+          dueFor ? dueFor(stage.key, idx, status) : null,
         ],
       );
     }
@@ -934,8 +961,18 @@ export async function setArtifactStatus(projectId: string, id: string, status: s
   ]);
 }
 
+/** Dates must reach the browser as plain YYYY-MM-DD, never a UTC timestamp. */
+export function tidyTask<T extends { due_date?: unknown }>(t: Task | T): Task {
+  const task = t as Task;
+  const due = task.due_date as unknown;
+  if (typeof due === 'string') task.due_date = due.slice(0, 10);
+  else if (due instanceof Date) task.due_date = due.toISOString().slice(0, 10);
+  return task;
+}
+
 export async function listTasks(projectId: string): Promise<Task[]> {
-  return sql<Task>('SELECT * FROM tasks WHERE project_id = $1 ORDER BY position ASC, created_at ASC', [projectId]);
+  const rows = await sql<Task>('SELECT * FROM tasks WHERE project_id = $1 ORDER BY position ASC, created_at ASC', [projectId]);
+  return rows.map(tidyTask);
 }
 
 export async function createTask(projectId: string, input: {
@@ -946,11 +983,12 @@ export async function createTask(projectId: string, input: {
   owner?: string | null;
   priority?: string;
   points?: number;
+  due_date?: string | null;
 }): Promise<Task> {
   const max = await sql<{ max: number | null }>('SELECT max(position) AS max FROM tasks WHERE project_id = $1', [projectId]);
   const rows = await sql<Task>(
-    `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position, due_date)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
     [
       newId('tsk'),
       projectId,
@@ -962,16 +1000,18 @@ export async function createTask(projectId: string, input: {
       input.priority ?? 'P1',
       input.points ?? 3,
       (max[0]?.max ?? 0) + 1,
+      input.due_date ?? null,
     ],
   );
-  return rows[0];
+  return tidyTask(rows[0]);
 }
 
 export async function updateTask(projectId: string, id: string, patch: Partial<Task>): Promise<void> {
   const current = (await sql<Task>('SELECT * FROM tasks WHERE project_id = $1 AND id = $2', [projectId, id]))[0];
   if (!current) return;
   await sql(
-    `UPDATE tasks SET title=$3, detail=$4, status=$5, owner=$6, priority=$7, points=$8, position=$9, stage_key=$10
+    `UPDATE tasks SET title=$3, detail=$4, status=$5, owner=$6, priority=$7, points=$8, position=$9, stage_key=$10,
+       due_date=$11
      WHERE project_id=$1 AND id=$2`,
     [
       projectId,
@@ -984,6 +1024,7 @@ export async function updateTask(projectId: string, id: string, patch: Partial<T
       patch.points ?? current.points,
       patch.position ?? current.position,
       patch.stage_key ?? current.stage_key,
+      patch.due_date === undefined ? current.due_date : patch.due_date,
     ],
   );
 }
@@ -1084,7 +1125,8 @@ export async function saveStage(input: Partial<Stage> & { key: string; name: str
        color = COALESCE($5, color),
        position = COALESCE($6, position),
        enabled = COALESCE($7, enabled),
-       checklist = COALESCE($8::jsonb, checklist)
+       checklist = COALESCE($8::jsonb, checklist),
+       gate = COALESCE($9::jsonb, gate)
      WHERE key = $1 RETURNING *`,
     [
       input.key,
@@ -1095,6 +1137,7 @@ export async function saveStage(input: Partial<Stage> & { key: string; name: str
       input.position ?? null,
       input.enabled ?? null,
       input.checklist ? asJson(input.checklist) : null,
+      input.gate ? asJson(input.gate) : null,
     ],
   );
   return rows[0];

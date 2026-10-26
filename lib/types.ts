@@ -157,6 +157,8 @@ export interface Task {
   priority: 'P0' | 'P1' | 'P2';
   points: number;
   position: number;
+  /** ISO date (YYYY-MM-DD) the team promised this by. Null = not scheduled. */
+  due_date: string | null;
   created_at: string;
 }
 
@@ -183,6 +185,8 @@ export interface Stage {
   position: number;
   enabled: boolean;
   checklist: string[];
+  /** Exit criteria for this stage. Owner-editable; falls back to GATE_SEED. */
+  gate?: unknown[];
 }
 
 export interface WorkspaceState {

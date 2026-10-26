@@ -20,6 +20,18 @@ export function getAuthToken(): string | null {
   return authToken;
 }
 
+/** A failed request, with the HTTP status and the parsed body kept. */
+export class ApiError extends Error {
+  status: number;
+  data: any;
+  constructor(message: string, status: number, data: any) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.data = data;
+  }
+}
+
 export async function api<T = any>(path: string, init?: RequestInit): Promise<T> {
   const token = getAuthToken();
   const res = await fetch(path, {
@@ -31,7 +43,7 @@ export async function api<T = any>(path: string, init?: RequestInit): Promise<T>
     },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as any)?.error || `Request failed (${res.status})`);
+  if (!res.ok) throw new ApiError((data as any)?.error || `Request failed (${res.status})`, res.status, data);
   return data as T;
 }
 

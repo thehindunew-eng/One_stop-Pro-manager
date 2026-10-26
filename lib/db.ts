@@ -250,6 +250,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   priority text DEFAULT 'P1',
   points integer DEFAULT 3,
   position integer DEFAULT 0,
+  due_date date,
   created_at timestamptz DEFAULT now()
 );
 
@@ -275,7 +276,8 @@ CREATE TABLE IF NOT EXISTS stages (
   color text DEFAULT '#6366f1',
   position integer DEFAULT 0,
   enabled boolean DEFAULT true,
-  checklist jsonb DEFAULT '[]'::jsonb
+  checklist jsonb DEFAULT '[]'::jsonb,
+  gate jsonb DEFAULT '[]'::jsonb
 );
 
 CREATE TABLE IF NOT EXISTS tool_stacks (
@@ -346,6 +348,8 @@ async function migrate(): Promise<void> {
     'ALTER TABLE members ADD COLUMN IF NOT EXISTS last_seen timestamptz DEFAULT now()',
     'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS points integer DEFAULT 3',
     'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS position integer DEFAULT 0',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date date',
+    'ALTER TABLE stages ADD COLUMN IF NOT EXISTS gate jsonb DEFAULT \'{}\'::jsonb',
     'ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS updated_by text',
   ];
   for (const statement of statements) {

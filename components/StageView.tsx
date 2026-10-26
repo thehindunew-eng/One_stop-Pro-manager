@@ -9,10 +9,18 @@ import { ProgressRing, Pill, StageIcon, ToolIcon } from './ui';
 import DocView from './DocView';
 import Board from './Board';
 import ToolWall from './ToolWall';
-import { post, safeHref } from '@/lib/client';
+import { ApiError, post, safeHref } from '@/lib/client';
 import { stageAccent } from '@/lib/defaults';
 
 type Tab = 'plan' | 'docs' | 'board' | 'tools';
+
+interface GateBlock {
+  stage: string;
+  met: number;
+  total: number;
+  next?: string;
+  missing: { id: string; label: string; evidence: string; manual: boolean }[];
+}
 
 export default function StageView({
   code,
@@ -93,19 +101,30 @@ export default function StageView({
     return Math.round((t.filter((x) => x.status === 'done').length / t.length) * 100);
   };
 
-  async function advance() {
+  const [gateBlock, setGateBlock] = useState<GateBlock | null>(null);
+
+  async function advance(force = false) {
     if (!next) return;
-    // Advancing with most of the stage open is legitimate, but it should be a
-    // decision the PM makes on purpose rather than a click that feels free.
-    if (pct < 50) {
-      const ok = window.confirm(
-        `${pct}% of ${stage.name} is done. Moving to ${next.name} keeps the open items on the board but takes them out of the current stage.\n\nAdvance anyway?`,
-      );
-      if (!ok) return;
+    // A stage is a gate: the server refuses to move forward while exit criteria
+    // are open unless someone consciously overrides. We show what is missing
+    // first, then let them decide — no silent skipping.
+    try {
+      const res = await post<{ project: Project }>('/api/project', {
+        code,
+        stage_key: next.key,
+        ...(force ? { force: true } : {}),
+      });
+      setGateBlock(null);
+      onProject(res.project);
+      await onStage(next.key);
+    } catch (e) {
+      const err = e as ApiError;
+      if (err instanceof ApiError && err.status === 409 && err.data?.gate) {
+        setGateBlock({ ...(err.data.gate as GateBlock), next: next.name });
+        return;
+      }
+      window.alert(err.message || 'Could not move the stage.');
     }
-    const res = await post<{ project: Project }>('/api/project', { code, stage_key: next.key });
-    onProject(res.project);
-    await onStage(next.key);
   }
 
   async function toggleChecklist(title: string) {
@@ -217,12 +236,52 @@ export default function StageView({
               </a>
             ))}
             {next && (
-              <button type="button" className="btn-ghost ml-1 px-2.5 py-1.5 text-[12px]" onClick={advance}>
+              <button type="button" className="btn-ghost ml-1 px-2.5 py-1.5 text-[12px]" onClick={() => advance()}>
                 Advance to {next.name} <ArrowRight className="h-3 w-3" />
               </button>
             )}
           </div>
         </div>
+
+        {gateBlock && (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[13px] font-semibold text-amber-900">
+                {stage.name} is not finished — {gateBlock.total - gateBlock.met} of {gateBlock.total} exit criteria are open
+              </span>
+              <span className="text-[12px] text-amber-800">
+                {gateBlock.met}/{gateBlock.total} met
+              </span>
+            </div>
+            <ul className="mt-2 space-y-1">
+              {gateBlock.missing.map((m) => (
+                <li key={m.id} className="flex items-start gap-1.5 text-[12px] leading-snug text-amber-900">
+                  <Circle className="mt-0.5 h-2.5 w-2.5 shrink-0" />
+                  <span>
+                    <strong className="font-medium">{m.label}</strong>
+                    <span className="text-amber-800"> — {m.evidence}</span>
+                    {m.manual && <span className="ml-1 rounded bg-white px-1 text-[10px] uppercase tracking-wide text-amber-800">confirm in Run plan</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                className="btn-ghost h-7 border-amber-300 bg-white px-2.5 text-[12px] text-amber-900"
+                onClick={() => advance(true)}
+              >
+                Move to {gateBlock.next} anyway
+              </button>
+              <button type="button" className="btn-ghost h-7 px-2 text-[12px]" onClick={() => setGateBlock(null)}>
+                Stay and finish this stage
+              </button>
+              <span className="text-[11px] text-amber-800">
+                Overriding is recorded in the room — the gate stays open until it is met.
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="mt-3 flex items-center gap-1">
           {TABS.map((t) => (

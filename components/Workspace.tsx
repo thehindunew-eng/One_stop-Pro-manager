@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowRight, Bell, Check, ChevronDown, CircleHelp, Download, KeyRound, LayoutDashboard, LogOut, MessagesSquare,
+  ArrowRight, Bell, Check, ChevronDown, CircleHelp, Download, Flag, KeyRound, LayoutDashboard, LogOut, MessagesSquare,
   Share2, ShieldCheck, Sparkles, Target, Users, Zap, X,
 } from 'lucide-react';
 import type { Artifact, Message, ProblemStatement, Project, Signal, StageKey, Task, WorkspaceState } from '@/lib/types';
-import { api, post, setAuthToken } from '@/lib/client';
+import { api, patch, post, setAuthToken } from '@/lib/client';
 import { Avatar, CopyButton, Pill, Spinner, StageIcon, ToolIcon, Wordmark } from './ui';
+import PlanView from './PlanView';
 import MeetingRoom from './MeetingRoom';
 import StageView from './StageView';
 import SignalRail from './SignalRail';
@@ -17,7 +18,7 @@ import MyWork from './MyWork';
 import HowItWorks from './HowItWorks';
 import { ProblemModal, ProblemPanel } from './ProblemPanel';
 
-type View = 'meeting' | 'stage';
+type View = 'meeting' | 'stage' | 'plan';
 
 export default function Workspace({
   initialState,
@@ -123,6 +124,31 @@ export default function Workspace({
 
   const appendMessage = (m: Message) => setState((s) => ({ ...s, messages: [...s.messages, m] }));
 
+  /**
+   * From the run plan: take an unowned task, or jump to the board where it lives.
+   * Claiming is a normal member action — no owner rights needed.
+   */
+  const claimTask = useCallback(
+    async (id: string) => {
+      const task = tasks.find((t) => t.id === id);
+      if (!task) return;
+      if (task.owner && task.owner !== me.name) {
+        setToast(`“${task.title}” is ${task.owner}'s. Opening the board so you can talk about it.`);
+        setStageKey(task.stage_key);
+        setView('stage');
+        return;
+      }
+      try {
+        const res = await patch<{ tasks: Task[] }>('/api/tasks', { code: project.code, id, owner: me.name });
+        setState((s) => ({ ...s, tasks: res.tasks }));
+        setToast(task.status === 'todo' ? `Taken: ${task.title}` : `Assigned to you: ${task.title}`);
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    },
+    [me.name, project.code, tasks],
+  );
+
   const nextTasks = useMemo(
     () => tasks.filter((t) => t.status !== 'done').sort((a, b) => (a.priority === b.priority ? 0 : a.priority < b.priority ? -1 : 1)),
     [tasks],
@@ -192,6 +218,14 @@ export default function Workspace({
               className={`tab ${view === 'stage' ? 'tab-active' : ''}`}
             >
               <LayoutDashboard className="h-3.5 w-3.5" /> Lifecycle
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('plan')}
+              className={`tab ${view === 'plan' ? 'tab-active' : ''}`}
+              title="Gates, owners and the next step for every seat"
+            >
+              <Flag className="h-3.5 w-3.5" /> Run plan
             </button>
           </div>
 
@@ -325,6 +359,9 @@ export default function Workspace({
           <button type="button" onClick={() => setView('stage')} className={`tab ${view === 'stage' ? 'tab-active' : ''}`}>
             <LayoutDashboard className="h-3.5 w-3.5" /> Lifecycle
           </button>
+          <button type="button" onClick={() => setView('plan')} className={`tab ${view === 'plan' ? 'tab-active' : ''}`}>
+            <Flag className="h-3.5 w-3.5" /> Plan
+          </button>
           <button type="button" onClick={() => setMobileContext(true)} className="tab ml-auto">
             <Target className="h-3.5 w-3.5" /> Problem
           </button>
@@ -402,6 +439,21 @@ export default function Workspace({
               onOpenProblem={() => setProblemOpen(true)}
             />
           )}
+          {view === 'plan' && (
+            <PlanView
+              code={project.code}
+              project={project}
+              stagesMeta={stages.map((s) => ({ key: s.key, name: s.name, icon: s.icon, color: s.color }))}
+              me={me}
+              onGotoStage={(key) => void selectStage(key)}
+              onOpenDoc={(kind) => {
+                setFocusDoc(kind);
+                setView('stage');
+              }}
+              onClaimTask={(id) => void claimTask(id)}
+              onRefreshRoom={() => void refresh()}
+            />
+          )}
         </main>
 
         {/* context rail */}
@@ -419,6 +471,7 @@ export default function Workspace({
             onTasks={(t) => setState((s) => ({ ...s, tasks: t }))}
             onGotoStage={(key) => void selectStage(key as StageKey)}
             onOpenProblem={() => setProblemOpen(true)}
+            onOpenPlan={() => setView('plan')}
           />
           <ProblemPanel
             code={project.code}
@@ -557,6 +610,10 @@ export default function Workspace({
                 onOpenProblem={() => {
                   setMobileContext(false);
                   setProblemOpen(true);
+                }}
+                onOpenPlan={() => {
+                  setMobileContext(false);
+                  setView('plan');
                 }}
               />
               <ProblemPanel

@@ -43,8 +43,32 @@ a regression.
 | **Prime** — an agent you can ask about scope, risk, metrics, stack; always ends with one next action | `Ask Prime` |
 | **Local AI** — any Ollama model (qwen3, llama3.1, qwen2.5-coder…), switchable from the owner console, plus optional `nomic-embed-text` document ranking | `/room/<code>/admin` → Workspace |
 | Owner console — edit stages, icons, colours, checklists; add/retire tools; manage team roles; workspace identity | `/room/<code>/admin` |
-| Export the whole product pack as Markdown | profile menu → *Download product pack* |
+| **Run plan** — launch readiness, the blocking list, a lane per seat with its next actions, and the gate checklist for every stage | `Run plan` tab |
+| **Stage gates** — a stage is finished when its exit criteria are met, not when the board looks busy. Advancing early asks, then records the override | `Lifecycle` → *Advance* |
+| **Due dates** — per-task dates on the board, overdue counts, "3d late" on your own work | `Board`, `My work` |
+| Export the whole room as a **team launch pack** (Markdown) — who does what next, launch readiness, stage gates, board with dates, every document | profile menu → *Download launch pack* |
 | Share by link, role-aware seats, live presence, 14s auto-refresh | Header |
+
+### The run plan — how the team actually ships
+
+Documents describe the product; the run plan is what the team works from on a Tuesday morning.
+
+- **Every stage has a gate.** Six or seven exit criteria per stage, seeded from `lib/defaults.ts` (`GATE_SEED`).
+  Most are read from the room automatically — is the problem approved, is the document *ready*, are there three
+  pieces of evidence, are two decisions accepted, is a tool marked in use. The rest are **human confirmations**
+  (a user interview happened, a walkthrough was reviewed, the deploy is live) that a person ticks in `Run plan`.
+- **Advancing a stage is checked.** `PATCH /api/project` refuses to move forward while the current stage's gate is
+  open, and returns exactly what is missing. Overriding is allowed — plans slip — but it is a stated click, and the
+  override is written into the room transcript.
+- **One lane per seat.** PM, design, engineering, QA and growth each get a ranked list: the gate criteria they are
+  expected to clear, their own open and overdue work, and unclaimed board tasks routed to the seat that owns the
+  stage. Work is never recommended in two lanes at once, and a seat nobody holds says so instead of pretending.
+- **Launch readiness is one number.** Percentage of every criterion from Discover through Launch. When it hits 100%
+  the room is launchable by its own definition. Set a launch date and the plan tells you how many days you have.
+- **The rhythm is written down**: daily standup from the board, twice-weekly gate clearing, a weekly meeting in the
+  room, a reviewer at every gate, launch day on the checklist, weekly metrics after.
+
+The owner edits gate criteria in `/room/<code>/admin` → Lifecycle → *Gate criteria* — no code changes.
 
 ### The intelligence works without any API key
 
@@ -263,7 +287,8 @@ mutation, parameterised SQL only, no API keys exposed to the browser.
 | POST · DELETE | `/api/admin/tools` | Tool catalogue |
 | POST | `/api/admin/stages` | Stage editing / creation |
 | POST | `/api/admin/team` | Members and roles |
-| GET | `/api/export?code=` | Download the product pack (Markdown) |
+| GET · POST | `/api/plan?code=` | The run plan for the room; `action:'gate'` ticks a manual criterion, `action:'launch_date'` sets the date |
+| GET | `/api/export?code=` | Download the team launch pack (Markdown) |
 | GET | `/api/health` | Database, rooms, catalogue and AI engine status |
 
 ---

@@ -1,11 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-  ArrowRight, Check, CheckCircle2, Circle, ClipboardList, FileText, Target, Users2, AlertTriangle,
+  ArrowRight, Check, CheckCircle2, Circle, ClipboardList, FileText, Gauge, Target, Users2, AlertTriangle,
 } from 'lucide-react';
 import type { Artifact, Member, ProblemStatement, Project, Signal, Stage, Task } from '@/lib/types';
-import { patch, post } from '@/lib/client';
+import { getAuthToken, patch, post } from '@/lib/client';
+import { dayDiff, isoDate, shortDate } from '@/lib/dates';
 import { Avatar, Pill, Spinner } from './ui';
 
 const ROLE_PLAYBOOK: Record<string, { title: string; blurb: string; moves: string[] }> = {
@@ -65,6 +66,23 @@ const ROLE_PLAYBOOK: Record<string, { title: string; blurb: string; moves: strin
   },
 };
 
+/** Plain-language due date: what a PM would say out loud. */
+function dueLabel(t: Task): string {
+  const days = dayDiff(isoDate(t.due_date));
+  if (days === null) return '';
+  if (days < 0) return `${Math.abs(days)}d overdue`;
+  if (days === 0) return 'due today';
+  if (days === 1) return 'due tomorrow';
+  if (days <= 7) return `due in ${days}d`;
+  return `due ${shortDate(t.due_date)}`;
+}
+
+function dueTone(t: Task): string {
+  const days = dayDiff(isoDate(t.due_date));
+  if (days === null) return 'text-slate-500';
+  return days < 0 ? 'text-rose' : days <= 3 ? 'text-amber-800' : 'text-slate-500';
+}
+
 export default function MyWork({
   code,
   project,
@@ -78,6 +96,7 @@ export default function MyWork({
   onTasks,
   onGotoStage,
   onOpenProblem,
+  onOpenPlan,
 }: {
   code: string;
   project: Project;
@@ -91,9 +110,33 @@ export default function MyWork({
   onTasks: (t: Task[]) => void;
   onGotoStage: (key: string) => void;
   onOpenProblem: () => void;
+  onOpenPlan: () => void;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
   const playbook = ROLE_PLAYBOOK[me.role] ?? ROLE_PLAYBOOK.member;
+  const [gate, setGate] = useState<{ score: number; met: number; total: number; blockers: number } | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/plan?code=${encodeURIComponent(code)}`, {
+      headers: getAuthToken() ? { 'x-ospm-token': getAuthToken() as string } : {},
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!alive || !d) return;
+        const current = (d.stages ?? []).find((x: any) => x.key === project.stage_key);
+        setGate({
+          score: d.readiness?.score ?? 0,
+          met: current?.met ?? 0,
+          total: current?.total ?? 0,
+          blockers: (d.readiness?.blocking ?? []).length,
+        });
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [code, project.stage_key]);
   const stage = stages.find((s) => s.key === project.stage_key) ?? stages[0];
 
   const mine = useMemo(
@@ -208,6 +251,22 @@ export default function MyWork({
 
       <p className="mb-2.5 text-[13px] leading-relaxed text-slate-500">{playbook.blurb}</p>
 
+      {gate && (
+        <button
+          type="button"
+          onClick={onOpenPlan}
+          className="mb-2.5 flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left transition hover:border-electric/40"
+        >
+          <Gauge className="h-3.5 w-3.5 shrink-0 text-electric" />
+          <span className="min-w-0 flex-1 text-[12px] leading-snug text-slate-600">
+            <strong className="font-medium text-slate-800">{stage?.name} gate {gate.met}/{gate.total}</strong>
+            {' · '}launch {gate.score}%
+            {gate.blockers > 0 && <span className="text-rose"> · {gate.blockers} blocking</span>}
+          </span>
+          <ArrowRight className="h-3 w-3 shrink-0 text-slate-500" />
+        </button>
+      )}
+
       <div className="space-y-1.5">
         {nextMoves.slice(0, 3).map((m) => (
           <button
@@ -252,6 +311,12 @@ export default function MyWork({
                 <p className="line-clamp-2 text-[12px] leading-snug text-slate-700">{t.title}</p>
                 <span className="text-[11px] uppercase tracking-wider text-slate-500">
                   {stages.find((s) => s.key === t.stage_key)?.name} · {t.status}
+                  {t.due_date && (
+                    <span className={dueTone(t)}>
+                      {' · '}
+                      {dueLabel(t)}
+                    </span>
+                  )}
                 </span>
               </div>
             </div>

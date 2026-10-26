@@ -249,3 +249,55 @@ no quota, no document ever leaving the machine.
 - **Tested against a protocol stand-in, not your hardware.** This pass verified the full path (discovery, switching,
   permissions, chat, JSON extraction, embeddings, fallbacks) against a fake Ollama server (`npm run test:ollama`)
   matching the documented API; actual token throughput and JSON reliability depend on the model and machine.
+
+## 9. From documents to a shipping plan (this pass)
+
+The exported pack was 30 good documents with no spine. It told a reader what the product is; it did not tell
+anyone **who does what next, by when, or when a stage is actually finished**. A team could read the whole thing and
+still not start work on Monday. That is what this pass fixes — inside the product, so the pack is generated from a
+live plan instead of being the plan itself.
+
+### What a stage gate is
+
+Every stage now carries 6–7 exit criteria (`GATE_SEED` in `lib/defaults.ts`). Two kinds:
+
+| Kind | Example | How it is decided |
+| --- | --- | --- |
+| Automatic | "Problem Canvas is written", "Two decisions are recorded", "At least one tool is in use" | Read from real room state on every request |
+| Human | "Three real user conversations happened", "Deployed to production on the real domain" | Ticked by a person in Run plan; stored in `projects.settings.gates` |
+
+Most criteria are automatic on purpose: a gate that depends only on honesty is decoration. The human ones are the
+things software genuinely cannot know.
+
+### What is enforced, not suggested
+
+- `PATCH /api/project` returns **409** with the unmet criteria when someone tries to advance a stage whose gate is
+  open. The UI shows the list and offers *Move anyway*; that override is written into the room transcript, so the
+  gate stays visibly open rather than disappearing.
+- Launch readiness is a single percentage over every criterion from Discover to Launch, and the Run plan lists the
+  six things blocking launch at any moment.
+- Unclaimed board work is routed to exactly one seat — the seat that owns the stage — never suggested to everybody.
+
+### Where it lives
+
+| Piece | File |
+| --- | --- |
+| Gate rules, evaluation, lanes, readiness, rhythm | `lib/plan.ts` |
+| Seed criteria + role labels | `lib/defaults.ts` (`GATE_SEED`, `ROLE_LABELS`) |
+| Server loader shared by the plan and the stage guard | `lib/planServer.ts` |
+| Plan API (read for all, tick/date for editors) | `app/api/plan/route.ts` |
+| Run plan UI | `components/PlanView.tsx` |
+| Gate editor (owner, no code) | `components/AdminConsole.tsx` → Lifecycle → *Gate criteria* |
+| Due dates on the board | `components/Board.tsx`, `tasks.due_date` |
+| Date maths that does not break across timezones | `lib/dates.ts` |
+| Launch pack export | `app/api/export/route.ts` |
+
+### Honest limits of this pass
+
+- The gate is a **process** control, not a security control. Anyone with edit access can confirm a human criterion
+  or force an advance; the room records it, but nothing stops it.
+- Dates are per task. There is no dependency graph, no capacity planning and no forecast — the plan says what is
+  late, not what will slip.
+- Custom stages added through the console have no seeded gate until the owner writes one; the plan shows them as
+  open rather than hiding them.
+- Notifications are still in-room only (polling every 14s). Nothing emails or pings anyone yet.

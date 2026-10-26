@@ -38,6 +38,7 @@ export async function POST(req: Request) {
     position: Number(body.position) || 0,
     enabled: body.enabled !== false,
     checklist: Array.isArray(body.checklist) ? body.checklist.map((c: unknown) => String(c).slice(0, 200)) : undefined,
+    gate: Array.isArray(body.gate) ? body.gate.slice(0, 12) : undefined,
   });
   return NextResponse.json({ stage, stages: await listStages(false) });
 }

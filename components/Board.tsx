@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, GripVertical, ChevronRight, User, Info } from 'lucide-react';
+import { Plus, Trash2, GripVertical, ChevronRight, User, Info, CalendarDays } from 'lucide-react';
 import type { Member, Stage, StageKey, Task, TaskStatus } from '@/lib/types';
 import { del, patch, post } from '@/lib/client';
+import { dueWords, isOverdue, isoDate, todayISO } from '@/lib/dates';
 import { Avatar, Pill, Spinner } from './ui';
 
 const COLUMNS: { key: TaskStatus; label: string; tone: string }[] = [
@@ -36,7 +37,7 @@ export default function Board({
 }) {
   const [scope, setScope] = useState<'stage' | 'all'>('stage');
   const [adding, setAdding] = useState<TaskStatus | null>(null);
-  const [draft, setDraft] = useState({ title: '', owner: '', priority: 'P1', stage_key: stageKey });
+  const [draft, setDraft] = useState({ title: '', owner: '', priority: 'P1', stage_key: stageKey, due: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -67,6 +68,24 @@ export default function Board({
     }
   };
 
+  /** Due dates are what make a board a plan. Anyone can promise a date. */
+  const setDue = async (task: Task, due: string) => {
+    onTasks(tasks.map((t) => (t.id === task.id ? { ...t, due_date: due || null } : t)));
+    try {
+      const res = await patch<{ tasks: Task[] }>('/api/tasks', { code, id: task.id, due_date: due || null });
+      onTasks(res.tasks);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
+  const dueMeta = (task: Task) => {
+    const words = dueWords(task.due_date, task.status === 'done');
+    if (!words) return null;
+    const tone = words.tone === 'late' ? 'text-rose' : words.tone === 'soon' ? 'text-amber-800' : 'text-slate-500';
+    return { text: words.text, tone };
+  };
+
   const nextStatus = (s: TaskStatus): TaskStatus =>
     s === 'todo' ? 'doing' : s === 'doing' ? 'review' : s === 'review' ? 'done' : 'todo';
 
@@ -82,9 +101,10 @@ export default function Board({
         owner: draft.owner || null,
         priority: draft.priority,
         stage_key: draft.stage_key,
+        due_date: draft.due || null,
       });
       onTasks(res.tasks);
-      setDraft({ title: '', owner: '', priority: 'P1', stage_key: stageKey });
+      setDraft({ title: '', owner: '', priority: 'P1', stage_key: stageKey, due: '' });
       setAdding(null);
     } catch (e) {
       setError((e as Error).message);
@@ -105,6 +125,8 @@ export default function Board({
 
   const total = shown.length;
   const done = shown.filter((t) => t.status === 'done').length;
+  const today = todayISO();
+  const overdue = shown.filter((t) => t.status !== 'done' && isOverdue(t.due_date, today)).length;
 
   return (
     <div>
@@ -118,6 +140,7 @@ export default function Board({
           </button>
         </div>
         <div className="ml-auto flex items-center gap-2 text-[12px] text-slate-500">
+          {overdue > 0 && <span className="text-rose">{overdue} overdue</span>}
           <span>{done}/{total} done</span>
           <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
             <div className="h-full rounded-full bg-mint transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
@@ -195,6 +218,25 @@ export default function Board({
                           >
                             <User className="h-2.5 w-2.5" />
                           </button>
+                          {(() => {
+                            const due = dueMeta(t);
+                            return (
+                              <label
+                                className={`inline-flex cursor-pointer items-center gap-0.5 rounded px-1 py-0.5 text-[11px] ${due ? due.tone : 'text-slate-500 opacity-0 group-hover:opacity-100'}`}
+                                title={t.due_date ? `Due ${isoDate(t.due_date)} — click to change` : 'Set a due date'}
+                              >
+                                <CalendarDays className="h-2.5 w-2.5" />
+                                {due?.text ?? 'date'}
+                                <input
+                                  type="date"
+                                  value={isoDate(t.due_date) ?? ''}
+                                  onChange={(e) => setDue(t, e.target.value)}
+                                  className="w-0 border-0 p-0 opacity-0"
+                                  tabIndex={-1}
+                                />
+                              </label>
+                            );
+                          })()}
                         </div>
                       </div>
                       <div className="flex flex-col items-center gap-0.5">
@@ -252,6 +294,13 @@ export default function Board({
                     <button type="button" className="btn-primary flex-1 px-2 py-1 text-[12px]" onClick={() => add(col.key)} disabled={busy}>
                       {busy ? <Spinner className="h-3 w-3" /> : <Plus className="h-3 w-3" />} Add
                     </button>
+                    <input
+                      type="date"
+                      className="field h-8 flex-1 py-0 text-[12px]"
+                      value={draft.due}
+                      onChange={(e) => setDraft({ ...draft, due: e.target.value })}
+                      title="Due date (optional)"
+                    />
                     <button type="button" className="btn-subtle px-2 py-1 text-[12px]" onClick={() => setAdding(null)}>Cancel</button>
                   </div>
                 </div>
