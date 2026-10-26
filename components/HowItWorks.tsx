@@ -80,7 +80,7 @@ export default function HowItWorks({
               type="button"
               onClick={() => setStep(i)}
               className={`rounded-xl border p-3 text-left transition ${
-                step === i ? 'border-slate-300 bg-white shadow-card' : 'border-slate-200 bg-white hover:border-slate-300'
+                step === i ? 'border-slate-900 bg-white shadow-card' : 'border-slate-900/30 bg-white/70 hover:border-slate-900'
               }`}
             >
               <s.icon className={`h-4 w-4 ${s.tone}`} />
@@ -90,7 +90,7 @@ export default function HowItWorks({
           ))}
         </div>
 
-        <div className="border-t border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="border-t border-slate-900/20 bg-white/60 px-4 py-3">
           <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
             <Users className="h-3 w-3" /> Your next click
           </div>

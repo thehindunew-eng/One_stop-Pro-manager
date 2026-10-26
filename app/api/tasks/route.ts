@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { guard, isGuard, bad } from '@/lib/api';
 import { createTask, deleteTask, listTasks, updateTask } from '@/lib/repo';
 
+/** Accepts YYYY-MM-DD or null; anything else is treated as "no date". */
+function normaliseDate(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : null;
+}
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +33,7 @@ export async function POST(req: Request) {
     owner: body.owner ?? g.user.name,
     priority: ['P0', 'P1', 'P2'].includes(body.priority) ? body.priority : 'P1',
     points: Number(body.points) || 3,
+    due_date: normaliseDate(body.due_date),
   });
   return NextResponse.json({ tasks: await listTasks(g.project.id) });
 }
@@ -44,6 +52,7 @@ export async function PATCH(req: Request) {
     points: body.points,
     position: body.position,
     stage_key: body.stage_key,
+    due_date: body.due_date === undefined ? undefined : normaliseDate(body.due_date),
   });
   return NextResponse.json({ tasks: await listTasks(g.project.id) });
 }

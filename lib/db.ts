@@ -250,6 +250,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   priority text DEFAULT 'P1',
   points integer DEFAULT 3,
   position integer DEFAULT 0,
+  due_date date,
   created_at timestamptz DEFAULT now()
 );
 
@@ -275,7 +276,8 @@ CREATE TABLE IF NOT EXISTS stages (
   color text DEFAULT '#6366f1',
   position integer DEFAULT 0,
   enabled boolean DEFAULT true,
-  checklist jsonb DEFAULT '[]'::jsonb
+  checklist jsonb DEFAULT '[]'::jsonb,
+  gate jsonb DEFAULT '[]'::jsonb
 );
 
 CREATE TABLE IF NOT EXISTS tool_stacks (
@@ -288,6 +290,35 @@ CREATE TABLE IF NOT EXISTS tool_stacks (
   updated_at timestamptz DEFAULT now(),
   PRIMARY KEY (project_id, tool_id)
 );
+
+CREATE TABLE IF NOT EXISTS credentials (
+  id text PRIMARY KEY,
+  project_id text NOT NULL,
+  user_id text NOT NULL,
+  provider text NOT NULL,
+  label text DEFAULT '',
+  secret text NOT NULL,
+  meta jsonb DEFAULT '{}'::jsonb,
+  status text DEFAULT 'unverified',
+  detail text DEFAULT '',
+  last_checked timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE (project_id, user_id, provider)
+);
+
+CREATE TABLE IF NOT EXISTS task_notes (
+  id text PRIMARY KEY,
+  project_id text NOT NULL,
+  task_id text NOT NULL,
+  user_id text,
+  author text NOT NULL,
+  kind text DEFAULT 'note',
+  content text DEFAULT '',
+  url text DEFAULT '',
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS task_notes_task_idx ON task_notes (task_id, created_at);
 
 CREATE TABLE IF NOT EXISTS app_settings (
   key text PRIMARY KEY,
@@ -346,7 +377,12 @@ async function migrate(): Promise<void> {
     'ALTER TABLE members ADD COLUMN IF NOT EXISTS last_seen timestamptz DEFAULT now()',
     'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS points integer DEFAULT 3',
     'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS position integer DEFAULT 0',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date date',
+    'ALTER TABLE stages ADD COLUMN IF NOT EXISTS gate jsonb DEFAULT \'{}\'::jsonb',
     'ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS updated_by text',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS repo text',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS branch text',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS pr_url text',
   ];
   for (const statement of statements) {
     try {

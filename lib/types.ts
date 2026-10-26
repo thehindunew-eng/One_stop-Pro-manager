@@ -157,7 +157,72 @@ export interface Task {
   priority: 'P0' | 'P1' | 'P2';
   points: number;
   position: number;
+  /** ISO date (YYYY-MM-DD) the team promised this by. Null = not scheduled. */
+  due_date: string | null;
+  /** Where the work is happening: repo (owner/name), branch, pull request. */
+  repo?: string | null;
+  branch?: string | null;
+  pr_url?: string | null;
   created_at: string;
+}
+
+export type CredentialProvider =
+  | 'github'
+  | 'vercel'
+  | 'neon'
+  | 'figma'
+  | 'notion'
+  | 'openai'
+  | 'anthropic'
+  | 'gemini'
+  | 'groq'
+  | 'supabase'
+  | 'custom';
+
+export type CredentialStatus = 'connected' | 'unverified' | 'error' | 'revoked';
+
+/** What the browser is allowed to see. The secret never leaves the server. */
+export interface CredentialView {
+  id: string;
+  user_id: string;
+  user_name: string;
+  provider: CredentialProvider;
+  label: string;
+  /** `•••• 1234` for the owner, empty for everyone else. */
+  hint: string;
+  status: CredentialStatus;
+  detail: string;
+  last_checked: string | null;
+  updated_at: string;
+  mine: boolean;
+}
+
+export interface TaskNote {
+  id: string;
+  project_id: string;
+  task_id: string;
+  author: string;
+  user_id: string | null;
+  kind: 'note' | 'commit' | 'link' | 'blocker' | 'status';
+  content: string;
+  url: string;
+  created_at: string;
+}
+
+/** One row of the live board the owner watches: who is doing what, right now. */
+export interface BuildStatus {
+  user_id: string;
+  name: string;
+  role: Role;
+  last_seen: string | null;
+  online: boolean;
+  open: number;
+  overdue: number;
+  in_progress: { id: string; title: string; stage: string; branch?: string | null } | null;
+  next_due: string | null;
+  credentials: number;
+  notes_this_week: number;
+  last_note: { content: string; at: string; task: string } | null;
 }
 
 export interface Tool {
@@ -183,6 +248,8 @@ export interface Stage {
   position: number;
   enabled: boolean;
   checklist: string[];
+  /** Exit criteria for this stage. Owner-editable; falls back to GATE_SEED. */
+  gate?: unknown[];
 }
 
 export interface WorkspaceState {

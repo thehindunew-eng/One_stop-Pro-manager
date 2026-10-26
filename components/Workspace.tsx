@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowRight, Bell, Check, ChevronDown, CircleHelp, Download, KeyRound, LayoutDashboard, LogOut, MessagesSquare,
-  Share2, ShieldCheck, Sparkles, Target, Users, Zap, X,
+  ArrowRight, Bell, Check, ChevronDown, CircleHelp, Download, Flag, KeyRound, LayoutDashboard, LogOut, MessagesSquare,
+  Share2, ShieldCheck, Sparkles, Target, Terminal, Users, Zap, X,
 } from 'lucide-react';
 import type { Artifact, Message, ProblemStatement, Project, Signal, StageKey, Task, WorkspaceState } from '@/lib/types';
-import { api, post, setAuthToken } from '@/lib/client';
+import { api, patch, post, setAuthToken } from '@/lib/client';
 import { Avatar, CopyButton, Pill, Spinner, StageIcon, ToolIcon, Wordmark } from './ui';
+import PlanView from './PlanView';
+import BuildView from './BuildView';
 import MeetingRoom from './MeetingRoom';
 import StageView from './StageView';
 import SignalRail from './SignalRail';
@@ -17,7 +19,7 @@ import MyWork from './MyWork';
 import HowItWorks from './HowItWorks';
 import { ProblemModal, ProblemPanel } from './ProblemPanel';
 
-type View = 'meeting' | 'stage';
+type View = 'meeting' | 'stage' | 'plan' | 'build';
 
 export default function Workspace({
   initialState,
@@ -123,6 +125,31 @@ export default function Workspace({
 
   const appendMessage = (m: Message) => setState((s) => ({ ...s, messages: [...s.messages, m] }));
 
+  /**
+   * From the run plan: take an unowned task, or jump to the board where it lives.
+   * Claiming is a normal member action — no owner rights needed.
+   */
+  const claimTask = useCallback(
+    async (id: string) => {
+      const task = tasks.find((t) => t.id === id);
+      if (!task) return;
+      if (task.owner && task.owner !== me.name) {
+        setToast(`“${task.title}” is ${task.owner}'s. Opening the board so you can talk about it.`);
+        setStageKey(task.stage_key);
+        setView('stage');
+        return;
+      }
+      try {
+        const res = await patch<{ tasks: Task[] }>('/api/tasks', { code: project.code, id, owner: me.name });
+        setState((s) => ({ ...s, tasks: res.tasks }));
+        setToast(task.status === 'todo' ? `Taken: ${task.title}` : `Assigned to you: ${task.title}`);
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    },
+    [me.name, project.code, tasks],
+  );
+
   const nextTasks = useMemo(
     () => tasks.filter((t) => t.status !== 'done').sort((a, b) => (a.priority === b.priority ? 0 : a.priority < b.priority ? -1 : 1)),
     [tasks],
@@ -150,7 +177,7 @@ export default function Workspace({
   return (
     <div className="app-bg flex h-[100dvh] flex-col overflow-hidden">
       {/* top bar */}
-      <header className="z-30 border-b border-slate-200 bg-white">
+      <header className="glass-bar z-30">
         <div className="flex h-14 items-center gap-3 px-4">
           <Link href="/" className="shrink-0" title="Home">
             <Wordmark compact />
@@ -178,7 +205,7 @@ export default function Workspace({
             <p className="truncate text-[12px] text-slate-500">{project.tagline || 'One room, one thread, one launch.'}</p>
           </div>
 
-          <div className="hidden items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5 md:flex">
+          <div className="well hidden items-center gap-1 rounded-lg p-0.5 md:flex">
             <button
               type="button"
               onClick={() => setView('meeting')}
@@ -192,6 +219,22 @@ export default function Workspace({
               className={`tab ${view === 'stage' ? 'tab-active' : ''}`}
             >
               <LayoutDashboard className="h-3.5 w-3.5" /> Lifecycle
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('plan')}
+              className={`tab ${view === 'plan' ? 'tab-active' : ''}`}
+              title="Gates, owners and the next step for every seat"
+            >
+              <Flag className="h-3.5 w-3.5" /> Run plan
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('build')}
+              className={`tab ${view === 'build' ? 'tab-active' : ''}`}
+              title="Attach your credentials, start branches, log work, see live status"
+            >
+              <Terminal className="h-3.5 w-3.5" /> Build
             </button>
           </div>
 
@@ -325,6 +368,12 @@ export default function Workspace({
           <button type="button" onClick={() => setView('stage')} className={`tab ${view === 'stage' ? 'tab-active' : ''}`}>
             <LayoutDashboard className="h-3.5 w-3.5" /> Lifecycle
           </button>
+          <button type="button" onClick={() => setView('plan')} className={`tab ${view === 'plan' ? 'tab-active' : ''}`}>
+            <Flag className="h-3.5 w-3.5" /> Plan
+          </button>
+          <button type="button" onClick={() => setView('build')} className={`tab ${view === 'build' ? 'tab-active' : ''}`}>
+            <Terminal className="h-3.5 w-3.5" /> Build
+          </button>
           <button type="button" onClick={() => setMobileContext(true)} className="tab ml-auto">
             <Target className="h-3.5 w-3.5" /> Problem
           </button>
@@ -402,10 +451,33 @@ export default function Workspace({
               onOpenProblem={() => setProblemOpen(true)}
             />
           )}
+          {view === 'build' && (
+            <BuildView
+              code={project.code}
+              me={me}
+              stageNames={Object.fromEntries(stages.map((s) => [s.key, s.name]))}
+              onToast={(message) => setToast(message)}
+            />
+          )}
+          {view === 'plan' && (
+            <PlanView
+              code={project.code}
+              project={project}
+              stagesMeta={stages.map((s) => ({ key: s.key, name: s.name, icon: s.icon, color: s.color }))}
+              me={me}
+              onGotoStage={(key) => void selectStage(key)}
+              onOpenDoc={(kind) => {
+                setFocusDoc(kind);
+                setView('stage');
+              }}
+              onClaimTask={(id) => void claimTask(id)}
+              onRefreshRoom={() => void refresh()}
+            />
+          )}
         </main>
 
         {/* context rail */}
-        <aside className="hidden w-[320px] shrink-0 flex-col gap-3 overflow-y-auto border-l border-slate-200 bg-slate-50/40 p-3 xl:flex scroll-thin">
+        <aside className="glass-rail hidden w-[320px] shrink-0 flex-col gap-3 overflow-y-auto p-3 xl:flex scroll-thin">
           <MyWork
             code={project.code}
             project={project}
@@ -419,6 +491,7 @@ export default function Workspace({
             onTasks={(t) => setState((s) => ({ ...s, tasks: t }))}
             onGotoStage={(key) => void selectStage(key as StageKey)}
             onOpenProblem={() => setProblemOpen(true)}
+            onOpenPlan={() => setView('plan')}
           />
           <ProblemPanel
             code={project.code}
@@ -531,7 +604,7 @@ export default function Workspace({
       {/* mobile context drawer */}
       {mobileContext && (
         <div className="fixed inset-0 z-50 flex items-end bg-slate-900/40-sm xl:hidden" onClick={() => setMobileContext(false)}>
-          <div className="max-h-[85vh] w-full overflow-y-auto rounded-t-2xl border-t border-slate-200 bg-white p-3 scroll-thin" onClick={(e) => e.stopPropagation()}>
+          <div className="panel max-h-[85vh] w-full overflow-y-auto rounded-b-none p-3 scroll-thin" onClick={(e) => e.stopPropagation()}>
             <div className="mb-2 flex items-center gap-2">
               <span className="text-[12px] font-semibold text-slate-900">Room context</span>
               <button type="button" className="btn-subtle ml-auto p-1" onClick={() => setMobileContext(false)}>
@@ -557,6 +630,10 @@ export default function Workspace({
                 onOpenProblem={() => {
                   setMobileContext(false);
                   setProblemOpen(true);
+                }}
+                onOpenPlan={() => {
+                  setMobileContext(false);
+                  setView('plan');
                 }}
               />
               <ProblemPanel

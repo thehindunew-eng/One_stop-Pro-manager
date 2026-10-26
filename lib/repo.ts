@@ -15,6 +15,7 @@ import type {
   Stage,
   StageKey,
   Task,
+  TaskNote,
   Tool,
   ToolStack,
   User,
@@ -326,7 +327,19 @@ async function seedDemoProject(): Promise<void> {
     }
   }
 
-  await seedStageTasks(project.id, contactByRole);
+  await seedStageTasks(
+    project.id,
+    contactByRole,
+    undefined,
+    (stage, idx, status) => {
+      // Closed stages are dated in the past, the live stage this week, later
+      // stages further out — so the board reads like a plan, not a template.
+      const order = STAGE_SEED.findIndex((x) => x.key === stage);
+      if (status === 'done') return dayOffset(-21 + order * 2 + idx);
+      if (stage === 'discover') return dayOffset(1 + idx);
+      return dayOffset(2 + order * 3 + idx);
+    },
+  );
 
   await sql(
     `INSERT INTO messages (id, project_id, user_id, author, role, kind, content, meta)
@@ -343,6 +356,14 @@ async function seedDemoProject(): Promise<void> {
   );
 }
 
+
+/** YYYY-MM-DD, `offset` days from today. Used to seed a believable board. */
+function dayOffset(offset: number): string {
+  const d = new Date();
+  d.setUTCHours(12, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() + offset);
+  return d.toISOString().slice(0, 10);
+}
 
 /* ------------------------------------------------------------------ */
 /* the live workspace — the real product, real decisions               */
@@ -588,6 +609,11 @@ async function seedLiveProject(): Promise<void> {
     if (stage === 'build') return idx < 4 ? 'done' : idx === 4 ? 'doing' : 'todo';
     if (stage === 'test') return idx === 0 ? 'doing' : 'todo';
     return 'todo';
+  }, (stage, idx, status) => {
+    if (status === 'done') return dayOffset(-30 + STAGE_SEED.findIndex((x) => x.key === stage) * 2 + idx);
+    if (stage === 'test') return dayOffset(1 + idx);
+    if (stage === 'launch') return dayOffset(3 + idx);
+    return dayOffset(1 + idx);
   });
 
   await sql(
@@ -610,6 +636,7 @@ async function seedStageTasks(
   projectId: string,
   contacts?: Map<Role, User>,
   statusFor?: (stage: StageKey, index: number) => string,
+  dueFor?: (stage: StageKey, index: number, status: string) => string | null,
 ): Promise<void> {
   const ownerFor = (role: Role) => contacts?.get(role)?.name ?? null;
   const ownerByStage: Record<string, string | null> = {
@@ -634,8 +661,8 @@ async function seedStageTasks(
             ? 'doing'
             : 'todo';
       await sql(
-        `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position, due_date)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
         [
           newId('tsk'),
           projectId,
@@ -647,6 +674,7 @@ async function seedStageTasks(
           idx === 0 ? 'P0' : idx < 3 ? 'P1' : 'P2',
           [2, 3, 5][idx % 3],
           pos++,
+          dueFor ? dueFor(stage.key, idx, status) : null,
         ],
       );
     }
@@ -934,8 +962,18 @@ export async function setArtifactStatus(projectId: string, id: string, status: s
   ]);
 }
 
+/** Dates must reach the browser as plain YYYY-MM-DD, never a UTC timestamp. */
+export function tidyTask<T extends { due_date?: unknown }>(t: Task | T): Task {
+  const task = t as Task;
+  const due = task.due_date as unknown;
+  if (typeof due === 'string') task.due_date = due.slice(0, 10);
+  else if (due instanceof Date) task.due_date = due.toISOString().slice(0, 10);
+  return task;
+}
+
 export async function listTasks(projectId: string): Promise<Task[]> {
-  return sql<Task>('SELECT * FROM tasks WHERE project_id = $1 ORDER BY position ASC, created_at ASC', [projectId]);
+  const rows = await sql<Task>('SELECT * FROM tasks WHERE project_id = $1 ORDER BY position ASC, created_at ASC', [projectId]);
+  return rows.map(tidyTask);
 }
 
 export async function createTask(projectId: string, input: {
@@ -946,11 +984,12 @@ export async function createTask(projectId: string, input: {
   owner?: string | null;
   priority?: string;
   points?: number;
+  due_date?: string | null;
 }): Promise<Task> {
   const max = await sql<{ max: number | null }>('SELECT max(position) AS max FROM tasks WHERE project_id = $1', [projectId]);
   const rows = await sql<Task>(
-    `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+    `INSERT INTO tasks (id, project_id, title, detail, stage_key, status, owner, priority, points, position, due_date)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
     [
       newId('tsk'),
       projectId,
@@ -962,16 +1001,18 @@ export async function createTask(projectId: string, input: {
       input.priority ?? 'P1',
       input.points ?? 3,
       (max[0]?.max ?? 0) + 1,
+      input.due_date ?? null,
     ],
   );
-  return rows[0];
+  return tidyTask(rows[0]);
 }
 
 export async function updateTask(projectId: string, id: string, patch: Partial<Task>): Promise<void> {
   const current = (await sql<Task>('SELECT * FROM tasks WHERE project_id = $1 AND id = $2', [projectId, id]))[0];
   if (!current) return;
   await sql(
-    `UPDATE tasks SET title=$3, detail=$4, status=$5, owner=$6, priority=$7, points=$8, position=$9, stage_key=$10
+    `UPDATE tasks SET title=$3, detail=$4, status=$5, owner=$6, priority=$7, points=$8, position=$9, stage_key=$10,
+       due_date=$11, repo=$12, branch=$13, pr_url=$14
      WHERE project_id=$1 AND id=$2`,
     [
       projectId,
@@ -984,6 +1025,10 @@ export async function updateTask(projectId: string, id: string, patch: Partial<T
       patch.points ?? current.points,
       patch.position ?? current.position,
       patch.stage_key ?? current.stage_key,
+      patch.due_date === undefined ? current.due_date : patch.due_date,
+      patch.repo === undefined ? current.repo ?? null : patch.repo,
+      patch.branch === undefined ? current.branch ?? null : patch.branch,
+      patch.pr_url === undefined ? current.pr_url ?? null : patch.pr_url,
     ],
   );
 }
@@ -1084,7 +1129,8 @@ export async function saveStage(input: Partial<Stage> & { key: string; name: str
        color = COALESCE($5, color),
        position = COALESCE($6, position),
        enabled = COALESCE($7, enabled),
-       checklist = COALESCE($8::jsonb, checklist)
+       checklist = COALESCE($8::jsonb, checklist),
+       gate = COALESCE($9::jsonb, gate)
      WHERE key = $1 RETURNING *`,
     [
       input.key,
@@ -1095,6 +1141,7 @@ export async function saveStage(input: Partial<Stage> & { key: string; name: str
       input.position ?? null,
       input.enabled ?? null,
       input.checklist ? asJson(input.checklist) : null,
+      input.gate ? asJson(input.gate) : null,
     ],
   );
   return rows[0];
@@ -1157,4 +1204,117 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function createUser(input: { name: string; email?: string | null; role?: Role; isAdmin?: boolean }): Promise<User> {
   return upsertUser(input);
+}
+
+/* ------------------------------------------------------------------ */
+/* credentials — encrypted, per member                                */
+/* ------------------------------------------------------------------ */
+
+export interface CredentialRow {
+  id: string;
+  project_id: string;
+  user_id: string;
+  provider: string;
+  label: string;
+  secret: string;
+  meta: Record<string, unknown>;
+  status: string;
+  detail: string;
+  last_checked: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listCredentialRows(projectId: string): Promise<CredentialRow[]> {
+  return sql<CredentialRow>('SELECT * FROM credentials WHERE project_id = $1 ORDER BY updated_at DESC', [projectId]);
+}
+
+export async function getCredential(
+  projectId: string,
+  userId: string,
+  provider: string,
+): Promise<CredentialRow | null> {
+  const rows = await sql<CredentialRow>(
+    'SELECT * FROM credentials WHERE project_id = $1 AND user_id = $2 AND provider = $3',
+    [projectId, userId, provider],
+  );
+  return rows[0] ?? null;
+}
+
+export async function saveCredential(input: {
+  projectId: string;
+  userId: string;
+  provider: string;
+  label: string;
+  sealed: string;
+  meta?: Record<string, unknown>;
+  status: string;
+  detail: string;
+}): Promise<void> {
+  await sql(
+    `INSERT INTO credentials (id, project_id, user_id, provider, label, secret, meta, status, detail, last_checked, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,now(),now())
+     ON CONFLICT (project_id, user_id, provider)
+     DO UPDATE SET label = $5, secret = $6, meta = $7::jsonb, status = $8, detail = $9, last_checked = now(), updated_at = now()`,
+    [
+      newId('cred'),
+      input.projectId,
+      input.userId,
+      input.provider,
+      input.label.slice(0, 80),
+      input.sealed,
+      asJson(input.meta ?? {}),
+      input.status,
+      input.detail.slice(0, 300),
+    ],
+  );
+}
+
+export async function deleteCredential(projectId: string, userId: string, provider: string): Promise<void> {
+  await sql('DELETE FROM credentials WHERE project_id = $1 AND user_id = $2 AND provider = $3', [
+    projectId,
+    userId,
+    provider,
+  ]);
+}
+
+/* ------------------------------------------------------------------ */
+/* task notes — the build log                                         */
+/* ------------------------------------------------------------------ */
+
+export async function listTaskNotes(projectId: string, limit = 200): Promise<TaskNote[]> {
+  return sql<TaskNote>(
+    'SELECT * FROM task_notes WHERE project_id = $1 ORDER BY created_at DESC LIMIT $2',
+    [projectId, limit],
+  );
+}
+
+export async function addTaskNote(input: {
+  projectId: string;
+  taskId: string;
+  userId: string | null;
+  author: string;
+  kind: string;
+  content: string;
+  url?: string;
+}): Promise<TaskNote> {
+  const rows = await sql<TaskNote>(
+    `INSERT INTO task_notes (id, project_id, task_id, user_id, author, kind, content, url)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+    [
+      newId('note'),
+      input.projectId,
+      input.taskId,
+      input.userId,
+      input.author,
+      input.kind,
+      input.content.slice(0, 2000),
+      (input.url ?? '').slice(0, 500),
+    ],
+  );
+  return rows[0];
+}
+
+export async function deleteTaskNote(projectId: string, id: string): Promise<void> {
+  await sql('DELETE FROM task_notes WHERE project_id = $1 AND id = $2', [projectId, id]);
 }

@@ -204,6 +204,29 @@ export const ARTIFACT_BLUEPRINTS: Record<
   ],
 };
 
+/**
+ * A stage exit criterion. Machine-checkable kinds read the room; `manual` is a
+ * confirmation only the team can give. Shared by the seed and the editor.
+ */
+export type GateRuleSeed =
+  | { kind: 'problem_approved'; label?: string }
+  | { kind: 'evidence'; min: number; label?: string }
+  | { kind: 'decisions'; min: number; label?: string }
+  | { kind: 'artifact'; ref: string; level?: 'filled' | 'ready'; label?: string }
+  | { kind: 'tasks'; minPct: number; label?: string }
+  | { kind: 'owners'; min: number; label?: string }
+  | { kind: 'tools'; min: number; label?: string }
+  | { kind: 'manual'; id: string; label: string };
+
+export const ROLE_LABELS: Record<string, string> = {
+  pm: 'Product Manager',
+  design: 'Product Designer',
+  eng: 'Engineer',
+  qa: 'QA / Tester',
+  growth: 'Growth / Marketing',
+  member: 'Team Member',
+};
+
 export const ROLES: { key: string; label: string; blurb: string }[] = [
   { key: 'pm', label: 'Product Manager', blurb: 'Owns the problem, scope and launch' },
   { key: 'design', label: 'Product Designer', blurb: 'Flows, interface and usability' },
@@ -392,3 +415,88 @@ export function stageAccent(hex: string | undefined | null): string {
   const key = hex.toLowerCase();
   return MUTED_STAGE_COLORS[key] ?? key;
 }
+
+/**
+ * Exit criteria per stage — what "this stage is actually finished" means.
+ *
+ * Machine-checkable rules read the room (approved problem, document state, board
+ * progress, accepted decisions, tools in use). `manual` rules are the things only
+ * the team can confirm, and they are ticked in the Run plan view.
+ *
+ * The owner can rewrite these from the owner console; rooms keep them in
+ * stages.gate, and this seed is only the default for a stage that has none.
+ */
+/** kind → human title, so gate criteria read like a sentence. */
+export const DOC_TITLES: Record<string, string> = Object.values(ARTIFACT_BLUEPRINTS)
+  .flat()
+  .reduce<Record<string, string>>((acc, d) => {
+    acc[d.kind] = d.title;
+    return acc;
+  }, {});
+
+export const GATE_SEED: Record<StageKey, GateRuleSeed[]> = {
+  discover: [
+    { kind: 'problem_approved' },
+    { kind: 'evidence', min: 3, label: 'At least 3 pieces of real evidence sit under the problem' },
+    { kind: 'artifact', ref: 'problem_canvas', level: 'filled' },
+    { kind: 'artifact', ref: 'research_plan', level: 'filled' },
+    { kind: 'manual', id: 'discover.calls', label: 'Three real user conversations happened (notes in the room)' },
+    { kind: 'manual', id: 'discover.signoff', label: 'The team agrees this problem is worth building now' },
+  ],
+  define: [
+    { kind: 'artifact', ref: 'prd', level: 'ready' },
+    { kind: 'artifact', ref: 'personas', level: 'filled' },
+    { kind: 'artifact', ref: 'mvp_scope', level: 'ready' },
+    { kind: 'artifact', ref: 'roadmap', level: 'filled' },
+    { kind: 'artifact', ref: 'risk_register', level: 'filled' },
+    { kind: 'decisions', min: 2, label: 'Two decisions are recorded (scope, metric or non-goals)' },
+    { kind: 'manual', id: 'define.signoff', label: 'Written sign-off from design, engineering and QA' },
+  ],
+  ideate: [
+    { kind: 'artifact', ref: 'concepts', level: 'filled' },
+    { kind: 'artifact', ref: 'solution_brief', level: 'ready' },
+    { kind: 'owners', min: 2, label: 'Design and engineering both shaped the shortlist' },
+    { kind: 'manual', id: 'ideate.review', label: 'The team picked one direction and wrote down why the others lost' },
+  ],
+  design: [
+    { kind: 'artifact', ref: 'ux_flows', level: 'ready' },
+    { kind: 'artifact', ref: 'design_system', level: 'filled' },
+    { kind: 'artifact', ref: 'landing_wireframe', level: 'filled' },
+    { kind: 'tasks', minPct: 60, label: '60% of the design board is done' },
+    { kind: 'manual', id: 'design.review', label: 'A clickable walkthrough was reviewed by engineering and QA' },
+  ],
+  architect: [
+    { kind: 'artifact', ref: 'tech_stack', level: 'ready' },
+    { kind: 'artifact', ref: 'data_model', level: 'ready' },
+    { kind: 'artifact', ref: 'api_spec', level: 'ready' },
+    { kind: 'manual', id: 'architect.adr', label: 'One architecture decision is written with the option it beat' },
+  ],
+  build: [
+    { kind: 'tasks', minPct: 70, label: '70% of the build board is done' },
+    { kind: 'artifact', ref: 'repo_plan', level: 'filled' },
+    { kind: 'artifact', ref: 'engineering_standards', level: 'filled' },
+    { kind: 'manual', id: 'build.repo', label: 'Repo is wired: CI green, one review rule, main always deployable' },
+    { kind: 'manual', id: 'build.staging', label: 'A staging URL is reachable and the happy path works there' },
+  ],
+  test: [
+    { kind: 'artifact', ref: 'test_plan', level: 'filled' },
+    { kind: 'artifact', ref: 'qa_checklist', level: 'ready' },
+    { kind: 'tasks', minPct: 85, label: '85% of the test board is done' },
+    { kind: 'manual', id: 'test.p0', label: 'Zero open P0 bugs; known issues are written down' },
+  ],
+  launch: [
+    { kind: 'artifact', ref: 'launch_checklist', level: 'ready' },
+    { kind: 'artifact', ref: 'landing_copy', level: 'ready' },
+    { kind: 'artifact', ref: 'pricing', level: 'filled' },
+    { kind: 'artifact', ref: 'release_notes', level: 'filled' },
+    { kind: 'tools', min: 1, label: 'At least one tool is marked “in use” so the team knows where work lives' },
+    { kind: 'manual', id: 'launch.deployed', label: 'Deployed to production on the real domain' },
+    { kind: 'manual', id: 'launch.announced', label: 'Announcement sent and the first 5 users invited' },
+  ],
+  grow: [
+    { kind: 'artifact', ref: 'metrics_plan', level: 'filled' },
+    { kind: 'artifact', ref: 'feedback_loop', level: 'filled' },
+    { kind: 'manual', id: 'grow.read', label: 'Week-1 numbers were read against the targets in the metrics plan' },
+    { kind: 'manual', id: 'grow.next', label: 'The next bet is written in the decision log with a threshold' },
+  ],
+};

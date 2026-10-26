@@ -70,7 +70,7 @@ export default function JoinForm({
 
   return (
     <div className="app-bg min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="glass-bar">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <Link href="/"><Wordmark /></Link>
           <Link href="/" className="btn-subtle text-[13px]">← Back to overview</Link>
@@ -96,7 +96,7 @@ export default function JoinForm({
               { icon: ShieldCheck, title: 'Owner keeps control', body: 'Amar can edit stages, tools and access from inside the platform.' },
             ].map((f) => (
               <div key={f.title} className="panel-flat flex items-start gap-3 p-3.5">
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-900/20 bg-white/60 text-slate-600">
                   <f.icon className="h-4 w-4" />
                 </div>
                 <div>
@@ -124,7 +124,7 @@ export default function JoinForm({
         </div>
 
         <div className="panel p-5 lg:p-6">
-          <div className="mb-5 flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-0.5">
+          <div className="well mb-5 flex items-center gap-1 rounded-lg p-0.5">
             <button
               type="button"
               onClick={() => setMode('join')}
@@ -168,7 +168,7 @@ export default function JoinForm({
               <div>
                 <label className="label" htmlFor="code">Room link code</label>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2.5 text-[12px] text-slate-500">/room/</span>
+                  <span className="rounded-lg border border-slate-900/20 bg-white/60 px-2.5 py-2.5 text-[12px] text-slate-500">/room/</span>
                   <input id="code" className="field" value={code} onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="studio" required />
                 </div>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-slate-500">
@@ -196,7 +196,7 @@ export default function JoinForm({
               </div>
             )}
 
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="rounded-xl border border-slate-900/20 bg-white/60 p-3">
               <button
                 type="button"
                 onClick={() => setShowOwner((v) => !v)}

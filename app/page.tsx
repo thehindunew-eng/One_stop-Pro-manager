@@ -26,7 +26,7 @@ export default function LandingPage() {
   return (
     <main className="app-bg min-h-screen">
       {/* nav */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90-sm">
+      <header className="glass-bar sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5">
           <Wordmark />
           <div className="flex items-center gap-1.5">
@@ -46,7 +46,7 @@ export default function LandingPage() {
         <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-16 md:pt-24">
           <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_.95fr]">
             <div className="animate-fade-up">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[12px] font-medium text-slate-600">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-slate-900/25 bg-white/75 px-2.5 py-1 text-[12px] font-medium text-slate-600">
                 <Sparkles className="h-3.5 w-3.5" />
                 Meeting IDE · AI problem extraction · 9 stages to launch
               </div>
@@ -95,7 +95,7 @@ export default function LandingPage() {
                     ['Rohan', 'eng', 'Scope arrives as vibes. We rework 30% of every sprint.'],
                     ['Priya', 'design', "I'm in four tools before I draw one screen."],
                   ].map(([name, role, text]) => (
-                    <div key={name} className="rounded-xl border border-slate-200 bg-slate-50 p-2.5">
+                    <div key={name} className="rounded-xl border border-slate-900/20 bg-white/60 p-2.5">
                       <div className="mb-1 flex items-center gap-1.5 text-[12px] font-medium text-slate-500">
                         <span className="text-slate-800">{name}</span>
                         <span className="rounded bg-slate-100 px-1 py-px text-[11px] uppercase tracking-wider text-slate-500">{role}</span>
@@ -135,7 +135,7 @@ export default function LandingPage() {
                     ['Tools', String(toolCount)],
                     ['Stages', '9'],
                   ].map(([k, v]) => (
-                    <div key={k} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                    <div key={k} className="rounded-lg border border-slate-900/20 bg-white/60 px-2.5 py-2">
                       <div className="text-[16px] font-semibold text-slate-900">{v}</div>
                       <div className="text-[11px] uppercase tracking-[.08em] text-slate-500">{k}</div>
                     </div>
@@ -148,7 +148,7 @@ export default function LandingPage() {
       </section>
 
       {/* problem engine */}
-      <section className="border-t border-slate-200 bg-white py-16">
+      <section className="border-t border-slate-900/10 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-10 max-w-2xl">
             <Pill tone="cyan"><Wand2 className="h-3 w-3" /> The problem engine</Pill>
@@ -229,7 +229,7 @@ export default function LandingPage() {
       </section>
 
       {/* tool wall */}
-      <section id="tools" className="border-t border-slate-200 bg-white py-16">
+      <section id="tools" className="border-t border-slate-900/10 py-16">
         <div className="mx-auto max-w-7xl px-5">
           <div className="mb-9 max-w-2xl">
             <Pill tone="mint"><Blocks className="h-3 w-3" /> {toolCount}+ free tools</Pill>
@@ -293,7 +293,7 @@ export default function LandingPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               {ROLES.map((r) => (
                 <div key={r.key} className="panel-flat card-hover flex items-start gap-3 p-3.5">
-                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 bg-slate-50 text-slate-600">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-900/20 bg-white/60 text-slate-600">
                     <Braces className="h-4 w-4" />
                   </div>
                   <div>
@@ -308,7 +308,7 @@ export default function LandingPage() {
       </section>
 
       {/* owner console + deploy */}
-      <section id="owner" className="border-t border-slate-200 bg-white py-16">
+      <section id="owner" className="border-t border-slate-900/10 py-16">
         <div className="mx-auto grid max-w-7xl gap-4 px-5 lg:grid-cols-2">
           <div className="panel relative overflow-hidden p-6">
             <Pill tone="amber"><ShieldCheck className="h-3 w-3" /> Owner access</Pill>

@@ -36,7 +36,7 @@ export default async function SetupPage() {
 
   return (
     <main className="app-bg min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
+      <header className="glass-bar">
         <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-5">
           <Link href="/" className="btn-subtle px-2 py-1.5" title="Back to the overview">
             <ArrowLeft className="h-3.5 w-3.5" /> Overview
@@ -82,7 +82,7 @@ export default async function SetupPage() {
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="mt-4 rounded-xl border border-slate-900/25 bg-white/75 p-4">
           <div className="flex items-center gap-2 text-[13px] font-semibold text-slate-900">
             <CheckCircle2 className="h-4 w-4 text-mint" /> Works with zero setup
           </div>
@@ -165,7 +165,7 @@ export default async function SetupPage() {
           );
         })}
 
-        <div className="mt-7 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="mt-7 rounded-xl border border-slate-900/25 bg-white/75 p-4">
           <h2 className="flex items-center gap-2 text-[13px] font-semibold text-slate-900">
             <ShieldCheck className="h-4 w-4 text-mint" /> What we never ask you for
           </h2>

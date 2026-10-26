@@ -107,9 +107,11 @@ export function ToolIcon({
         borderRadius: rounded,
         fontSize: Math.max(10, size * 0.36),
         letterSpacing: '-0.01em',
-        background: tint(`#${safe}`, 0.9),
-        borderColor: tint(`#${safe}`, 0.75),
-        color: darken(`#${safe}`, 0.35),
+        /* Glass tile: the brand tint stays, the black hairline keeps it in the system. */
+        background: `linear-gradient(160deg, rgba(255,255,255,.92), ${tint(`#${safe}`, 0.82)})`,
+        borderColor: 'rgba(17,24,39,.85)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.9)',
+        color: darken(`#${safe}`, 0.4),
       }}
       title={name}
       aria-hidden
@@ -121,7 +123,8 @@ export function ToolIcon({
 
 /* ------------------------------- people --------------------------------- */
 
-const AVATAR_COLORS = ['#4338ca', '#0f766e', '#b45309', '#9d174d', '#5b21b6', '#334155'];
+/* Monochrome on purpose: the chrome is grey, so people are graphite, not confetti. */
+const AVATAR_COLORS = ['#2b3442', '#3f4a5a', '#545f70', '#1f2733', '#37414f', '#46525f'];
 
 export function Avatar({ name, size = 26 }: { name: string; size?: number; accent?: string }) {
   const initials = name
@@ -159,17 +162,18 @@ export function Pill({
   tone?: 'slate' | 'mint' | 'amber' | 'rose' | 'electric' | 'cyan';
   className?: string;
 }) {
+  /* One glass chip; the tone is carried by the text colour, not a coloured fill. */
   const tones: Record<string, string> = {
-    slate: 'bg-slate-100 text-slate-600',
-    mint: 'bg-emerald-50 text-emerald-700',
-    amber: 'bg-amber-50 text-amber-800',
-    rose: 'bg-rose-50 text-rose-700',
-    electric: 'bg-indigo-50 text-indigo-700',
-    cyan: 'bg-cyan-50 text-cyan-800',
+    slate: 'text-slate-600',
+    mint: 'text-emerald-700',
+    amber: 'text-amber-800',
+    rose: 'text-rose-700',
+    electric: 'text-slate-900',
+    cyan: 'text-cyan-800',
   };
   return (
     <span
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[12px] font-medium leading-4 ${tones[tone]} ${className}`}
+      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-slate-900/40 bg-white/75 px-1.5 py-0.5 text-[12px] font-medium leading-4 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] ${tones[tone]} ${className}`}
     >
       {children}
     </span>
@@ -353,7 +357,7 @@ export function Markdown({ text, className = '' }: { text: string; className?: s
               {it.task && (
                 <span
                   className={`mt-[3px] grid h-[15px] w-[15px] shrink-0 place-items-center rounded-[4px] border ${
-                    it.checked ? 'border-emerald-500 bg-emerald-100 text-emerald-600' : 'border-slate-300 bg-white'
+                    it.checked ? 'border-emerald-500 bg-emerald-100 text-emerald-600' : 'border-slate-900/40 bg-white/80'
                   }`}
                 >
                   {it.checked && <Check className="h-3 w-3" />}
