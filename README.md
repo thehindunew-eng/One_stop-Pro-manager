@@ -9,23 +9,24 @@ stages, tools and copy from inside the app — no redeploy, no code.
 
 ---
 
-## Visual system (v2)
+## Visual system (v3) — grey-and-white liquid glass
 
-The first release looked like a template: gradients, glow, nine shades of micro-type. This release rebuilt the
-foundations rather than restyling pages one by one.
+The look is now **opaque glass panels on a grey canvas, every panel framed by a 1px black hairline**. It replaced the
+flat white cards of v2 at the owner's request: the chrome should feel like physical glass sheets, not a web template.
 
 | Layer | Decision |
 | --- | --- |
 | Typeface | **Inter Variable**, self-hosted through `@fontsource-variable/inter` and loaded in `app/layout.tsx`. No Google Fonts request, no fallback to Segoe UI. |
-| Type scale | Six steps only: 11 / 12 / 13 / 14 / 16 / 20 / 24 / 30px (`tailwind.config.ts`). Nothing renders below 11px; body copy is 13–14px with 1.5–1.7 line height. |
-| Colour | One accent (indigo `#4338ca`), one neutral ramp, and three semantic colours used only for meaning (emerald = done, amber = attention, rose = risk). Stage colours are muted to the same family; bright legacy hexes stored in Postgres are mapped at render time by `stageAccent()` in `lib/defaults.ts`. |
-| Surfaces | Flat canvas `#f7f8fa`, white cards, 1px `#e4e7ec` borders, one hairline shadow (`shadow-card`). No radial washes, no backdrop blur, no glows. |
-| Marks | The logo, tool tiles and avatars are flat: a solid indigo square with an “M” mark, tinted initials for tools, solid circles for people. |
-| Components | `app/globals.css` defines the primitives — `.panel`, `.panel-flat`, `.btn*`, `.chip`, `.field`, `.label`, `.tab`, `.section-label`, `.tnum` — so a new screen inherits the system instead of inventing one. |
+| Type scale | Eight steps only: 11 / 12 / 13 / 14 / 16 / 20 / 24 / 30px (`tailwind.config.ts`). Nothing renders below 11px; body copy is 13–14px with 1.5–1.7 line height. |
+| Colour | Monochrome chrome: grey canvas `#e8eaee` with two soft white light sources, ink `#0b0f17`, and **one black hairline `#111827`** around every glass surface. The accent is graphite (`electric` now resolves to ink), and three semantic colours are reserved for meaning (emerald = done, amber = attention, rose = risk). |
+| Glass | `.panel` / `.glass` share one recipe: a white-to-grey translucent gradient, `backdrop-filter: blur(22px) saturate(135%)`, an inset top highlight and one soft shadow — **opaque enough to keep 11px text legible**. `.panel-flat`, `.glass-card`, `.well`, `.glass-bar` and `.glass-rail` are the same idea at lighter weights for nested surfaces, chrome and the context rail. |
+| Without blur | `@supports not (backdrop-filter: …)` falls back to a near-opaque white so old browsers never get mush. |
+| Marks | Tool tiles are glass squares with a brand-tinted gradient and the black hairline; avatars are graphite, not confetti — the chrome is grey, so people are grey. |
+| Components | `app/globals.css` defines the primitives — `.panel`, `.glass-card`, `.well`, `.btn*`, `.chip`, `.field`, `.label`, `.tab`, `.section-label`, `.tnum`. A new screen inherits the system instead of inventing one. |
 | Motion | One 4px fade-up and a soft pulse for live indicators. `prefers-reduced-motion` disables both. |
 
-If you add UI, use the primitives and the scale above. Hard-coded `text-[9.5px]` or `bg-gradient-to-*` is treated as
-a regression.
+If you add UI, use the primitives and the scale above. Hard-coded `text-[9.5px]`, a coloured glow or a panel without
+the black hairline is treated as a regression.
 
 ---
 
@@ -43,11 +44,35 @@ a regression.
 | **Prime** — an agent you can ask about scope, risk, metrics, stack; always ends with one next action | `Ask Prime` |
 | **Local AI** — any Ollama model (qwen3, llama3.1, qwen2.5-coder…), switchable from the owner console, plus optional `nomic-embed-text` document ranking | `/room/<code>/admin` → Workspace |
 | Owner console — edit stages, icons, colours, checklists; add/retire tools; manage team roles; workspace identity | `/room/<code>/admin` |
+| **Build room** — each member attaches their own GitHub / Vercel / database / model credentials (encrypted, write-only), picks a repo, creates the branch for a task with their own token, links the PR and logs progress | `Build` tab |
+| **Live status** — every seat: online now, the task in hand, open/late counts, notes this week, access attached. The owner sees the same table in the console | `Build` → *Live status*, `/room/<code>/admin` → *Live* |
 | **Run plan** — launch readiness, the blocking list, a lane per seat with its next actions, and the gate checklist for every stage | `Run plan` tab |
 | **Stage gates** — a stage is finished when its exit criteria are met, not when the board looks busy. Advancing early asks, then records the override | `Lifecycle` → *Advance* |
 | **Due dates** — per-task dates on the board, overdue counts, "3d late" on your own work | `Board`, `My work` |
 | Export the whole room as a **team launch pack** (Markdown) — who does what next, launch readiness, stage gates, board with dates, every document | profile menu → *Download launch pack* |
 | Share by link, role-aware seats, live presence, 14s auto-refresh | Header |
+
+### Bring your own access (Build room)
+
+The room is not a meeting tool that stops at the plan — it is where the work happens.
+
+- **Credentials belong to the person, not the platform.** A member attaches a GitHub token, a Vercel token, a database
+  connection string or a model key under `Build → Connections`. Each secret is sealed with **AES-256-GCM** in
+  `lib/vault.ts` and **never returned to a browser** — not to the member who typed it, not to the owner, not in an
+  export. The API returns `•••• 1234`, a status and a timestamp.
+- **Living credentials are verified, not assumed.** A GitHub token is checked against `api.github.com/user` and shows
+  the signed-in login; Vercel against its user endpoint. Everything else is stored and honestly marked *unverified*.
+- **Then you build from the task.** Pick the repo once; on any of your tasks press *Create* and the room creates the
+  branch with **your** token, links it to the task, and gives you the compare link for the pull request. No platform
+  token, no shared account, no OAuth app to register.
+- **The work log is the status.** Notes, "pushed", links, blockers go on the task and into the room feed, so the board
+  says what is really happening instead of what was hoped for.
+- **The owner watches live, without reading secrets.** `Admin → Live` shows every seat: online in the last five
+  minutes, the task in hand and its branch, open and late counts, notes this week, and who has attached access
+  (status only). Members see the same table — status is not a secret, access is.
+
+Honest limit: the room does not execute code. Running arbitrary build commands on a serverless platform would be a
+security disaster; the repo, CI and Vercel do the running, and the room keeps the thread between task, branch and PR.
 
 ### The run plan — how the team actually ships
 
@@ -287,6 +312,8 @@ mutation, parameterised SQL only, no API keys exposed to the browser.
 | POST · DELETE | `/api/admin/tools` | Tool catalogue |
 | POST | `/api/admin/stages` | Stage editing / creation |
 | POST | `/api/admin/team` | Members and roles |
+| GET · POST · DELETE | `/api/credentials?code=` | Attach, rotate or remove a member credential (write-only; masked reads) |
+| GET · POST | `/api/build?code=` | Build room: my GitHub repos, task branches/PRs, work log, live status; create a branch, link a PR, log work |
 | GET · POST | `/api/plan?code=` | The run plan for the room; `action:'gate'` ticks a manual criterion, `action:'launch_date'` sets the date |
 | GET | `/api/export?code=` | Download the team launch pack (Markdown) |
 | GET | `/api/health` | Database, rooms, catalogue and AI engine status |

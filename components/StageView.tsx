@@ -189,7 +189,7 @@ export default function StageView({
                 onClick={() => onStage(s.key)}
                 className={`group flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
                   active
-                    ? 'border-slate-300 bg-white'
+                    ? 'border-slate-900/40 bg-white/80'
                     : 'border-transparent hover:border-slate-200 hover:bg-slate-100/70'
                 }`}
                 title={`${s.name} — ${p}% complete`}
@@ -361,7 +361,7 @@ export default function StageView({
               </div>
 
               {problem && (
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                <div className="rounded-xl border border-slate-900/20 bg-white/60 p-3.5">
                   <div className="mb-1 text-[11px] font-semibold uppercase tracking-[.08em] text-electric">
                     Building against
                   </div>

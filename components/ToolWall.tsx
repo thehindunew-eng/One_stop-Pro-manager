@@ -10,7 +10,7 @@ import { del, hostFromUrl, patch, post, safeHref } from '@/lib/client';
 import { Pill, Spinner, ToolIcon } from './ui';
 
 const STATUS: Record<StackStatus, { label: string; blurb: string; tone: string; dot: string }> = {
-  planned: { label: 'Planned', blurb: 'We intend to use it', tone: 'border-slate-300 bg-white text-slate-600', dot: '#667085' },
+  planned: { label: 'Planned', blurb: 'We intend to use it', tone: 'border-slate-900/40 bg-white/80 text-slate-600', dot: '#667085' },
   trial: { label: 'Trial', blurb: 'Someone is testing it', tone: 'border-amber-300 bg-amber-50 text-amber-800', dot: '#b45309' },
   using: { label: 'In use', blurb: 'This is our live tool', tone: 'border-emerald-300 bg-emerald-50 text-emerald-800', dot: '#047857' },
   parked: { label: 'Parked', blurb: 'Not for this product', tone: 'border-slate-200 bg-slate-100 text-slate-500', dot: '#98a2b3' },
@@ -280,11 +280,11 @@ export default function ToolWall({
               <p className="text-[13px] leading-relaxed text-slate-600">{active.description}</p>
 
               <div className="grid gap-2 sm:grid-cols-2">
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div className="rounded-lg border border-slate-900/20 bg-white/60 px-2.5 py-2">
                   <div className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Free tier</div>
                   <div className="text-[12px] font-medium text-slate-800">{active.free_tier || 'Free to start'}</div>
                 </div>
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
+                <div className="rounded-lg border border-slate-900/20 bg-white/60 px-2.5 py-2">
                   <div className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">Used in stages</div>
                   <div className="text-[12px] font-medium text-slate-800">
                     {active.stages.map((k) => stages.find((s) => s.key === k)?.name ?? k).slice(0, 3).join(', ')}
@@ -305,7 +305,7 @@ export default function ToolWall({
                         type="button"
                         onClick={() => setDraft({ ...draft, status: key })}
                         className={`rounded-lg border px-2 py-1.5 text-[12px] font-medium transition ${
-                          on ? conf.tone : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'
+                          on ? conf.tone : 'border-slate-900/25 bg-white/75 text-slate-500 hover:border-slate-900/70'
                         }`}
                         title={conf.blurb}
                       >
@@ -355,7 +355,7 @@ export default function ToolWall({
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 bg-slate-50/70 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2 border-t border-slate-900/20 bg-white/5570 px-4 py-3">
               <button type="button" className="btn-primary px-3 py-2 text-[12px]" onClick={save} disabled={busy !== null}>
                 {busy === 'save' ? <Spinner className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />} Save
               </button>

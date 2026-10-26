@@ -255,7 +255,7 @@ export default function MyWork({
         <button
           type="button"
           onClick={onOpenPlan}
-          className="mb-2.5 flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-left transition hover:border-electric/40"
+          className="mb-2.5 flex w-full items-center gap-2 rounded-lg border border-slate-900/20 bg-white/60 px-2.5 py-1.5 text-left transition hover:border-electric/40"
         >
           <Gauge className="h-3.5 w-3.5 shrink-0 text-electric" />
           <span className="min-w-0 flex-1 text-[12px] leading-snug text-slate-600">
@@ -276,7 +276,7 @@ export default function MyWork({
             className={`w-full rounded-lg border px-2.5 py-2 text-left transition ${
               m.tone === 'primary'
                 ? 'border-slate-300 bg-slate-50 hover:border-electric/50'
-                : 'border-slate-200 bg-white hover:border-slate-300'
+                : 'border-slate-900/25 bg-white/75 hover:border-slate-900/70'
             }`}
           >
             <div className="flex items-center gap-1.5">
@@ -325,7 +325,7 @@ export default function MyWork({
       )}
 
       {!!unassigned.length && (
-        <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5">
+        <div className="mt-2 rounded-lg border border-slate-900/20 bg-white/60 px-2 py-1.5">
           <div className="text-[12px] text-slate-500">
             <Users2 className="mr-1 inline h-2.5 w-2.5" />
             {unassigned.length} unclaimed task{unassigned.length === 1 ? '' : 's'} in the room

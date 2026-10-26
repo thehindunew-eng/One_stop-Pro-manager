@@ -83,7 +83,7 @@ export default function RoomGate({
         </div>
 
         <div className="panel overflow-hidden">
-          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+          <div className="border-b border-slate-900/20 bg-white/60 px-5 py-4">
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-mint/50" />
@@ -127,7 +127,7 @@ export default function RoomGate({
               </div>
             </div>
 
-            <details className="mb-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <details className="mb-3 rounded-lg border border-slate-900/20 bg-white/60 px-3 py-2">
               <summary className="flex cursor-pointer items-center gap-1.5 text-[12px] text-slate-500">
                 <Lock className="h-3 w-3 text-amber" /> Owner passcode <span className="text-slate-500">(only if this is your workspace)</span>
               </summary>

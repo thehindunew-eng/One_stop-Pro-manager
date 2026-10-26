@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, Check, Copy, Plus, Save, ShieldCheck, Sliders, Sparkles, Trash2, Users, Wand2, Wrench, X,
+  Activity, ArrowLeft, Check, Copy, Plus, Save, ShieldCheck, Sliders, Sparkles, Trash2, Users, Wand2, Wrench, X,
 } from 'lucide-react';
 import type { Member, Stage, Tool, WorkspaceState, StageKey } from '@/lib/types';
 import { api, del, patch, post, setAuthToken } from '@/lib/client';
 import { stageAccent } from '@/lib/defaults';
 import { defaultGate, describeRule, gateFor, type GateRule } from '@/lib/plan';
+import LiveStatus from './LiveStatus';
 import { Avatar, Pill, StageIcon, STAGE_ICONS, Spinner, ToolIcon, Wordmark } from './ui';
 import LocalAI from './LocalAI';
 
@@ -20,7 +21,7 @@ const CATEGORIES = [
   'Testing & QA', 'Analytics & Feedback', 'Growth & Launch', 'Project Management', 'Automation',
 ];
 
-type Tab = 'stages' | 'tools' | 'team' | 'engine';
+type Tab = 'stages' | 'tools' | 'team' | 'live' | 'engine';
 
 export default function AdminConsole({
   initialState,
@@ -208,12 +209,13 @@ export default function AdminConsole({
     { key: 'stages', label: 'Lifecycle', icon: Sliders },
     { key: 'tools', label: 'Tools', icon: Wrench },
     { key: 'team', label: 'Team', icon: Users },
+    { key: 'live', label: 'Live', icon: Activity },
     { key: 'engine', label: 'Workspace', icon: Sparkles },
   ];
 
   return (
     <div className="app-bg min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+      <header className="glass-bar sticky top-0 z-30">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <Wordmark compact />
           <div className="h-6 w-px bg-slate-200" />
@@ -337,7 +339,7 @@ export default function AdminConsole({
                           }
                         />
                       </div>
-                    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
+                    <div className="mt-3 rounded-lg border border-slate-900/20 bg-white/5560 p-3">
                       <div className="mb-1.5 flex flex-wrap items-center gap-2">
                         <span className="text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
                           Gate criteria — what “done” means
@@ -512,7 +514,7 @@ export default function AdminConsole({
                               : [...(newTool.stages ?? []), s.key],
                           })
                         }
-                        className={`rounded-full border px-2 py-0.5 text-[12px] ${on ? 'border-electric bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                        className={`rounded-full border px-2 py-0.5 text-[12px] ${on ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
                       >
                         {s.name}
                       </button>
@@ -583,7 +585,7 @@ export default function AdminConsole({
                                   },
                                 }))
                               }
-                              className={`rounded-full border px-1.5 py-0.5 text-[12px] ${on ? 'border-electric bg-indigo-50 text-indigo-700' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                              className={`rounded-full border px-1.5 py-0.5 text-[12px] ${on ? 'border-slate-900 bg-white text-slate-900' : 'border-slate-200 text-slate-500 hover:bg-slate-50'}`}
                             >
                               {s.name}
                             </button>
@@ -597,9 +599,26 @@ export default function AdminConsole({
           </div>
         )}
 
+        {tab === 'live' && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-[18px] font-semibold text-slate-900">What the team is doing</h2>
+              <p className="text-[12px] text-slate-500">
+                Live view of every seat: the task in hand, what is late, who is online, and who has attached access.
+                Secrets are never shown here — only whether an account is connected and verified.
+              </p>
+            </div>
+            <LiveStatus
+              code={code}
+              stageNames={Object.fromEntries(state.stages.map((s) => [s.key, s.name]))}
+              owner
+            />
+          </div>
+        )}
+
         {tab === 'team' && (
           <div className="space-y-4">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] leading-relaxed text-slate-600">
+            <div className="rounded-lg border border-slate-900/20 bg-white/60 px-3 py-2 text-[13px] leading-relaxed text-slate-600">
               Roles decide the playbook and the default owner for each stage. Membership is the only permission that
               exists today: everyone in the room can edit documents, tasks, signals and the tool wall — the owner
               console is the one restricted area.

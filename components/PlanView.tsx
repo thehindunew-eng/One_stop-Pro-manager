@@ -234,7 +234,7 @@ export default function PlanView({
               )}
             </div>
 
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <div className="rounded-lg border border-slate-900/20 bg-white/60 p-3">
               <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
                 <AlertTriangle className="h-3 w-3 text-amber" /> What is blocking launch
               </div>
@@ -379,7 +379,7 @@ export default function PlanView({
               return (
                 <details key={s.key} className="group px-4 py-2.5" open={isCurrent}>
                   <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2">
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-slate-200 bg-slate-50 text-slate-600">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-slate-900/20 bg-white/60 text-slate-600">
                       <StageIcon name={meta?.icon ?? 'Compass'} className="h-3.5 w-3.5" />
                     </span>
                     <span className="text-[13px] font-semibold text-slate-900">{s.name}</span>

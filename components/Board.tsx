@@ -131,7 +131,7 @@ export default function Board({
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+        <div className="well flex items-center gap-1 rounded-lg p-0.5">
           <button type="button" onClick={() => setScope('stage')} className={`rounded-md px-2.5 py-1.5 text-[12px] font-medium ${scope === 'stage' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
             This stage
           </button>
@@ -156,7 +156,7 @@ export default function Board({
           return (
             <div
               key={col.key}
-              className="flex min-h-[160px] flex-col rounded-xl border border-slate-200 bg-slate-50/70 p-2"
+              className="well flex min-h-[160px] flex-col rounded-xl p-2"
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => {
                 const t = tasks.find((x) => x.id === dragging);
@@ -177,7 +177,7 @@ export default function Board({
                     draggable
                     onDragStart={() => setDragging(t.id)}
                     onDragEnd={() => setDragging(null)}
-                    className={`group cursor-grab rounded-lg border border-slate-200 bg-white p-2.5 shadow-card transition hover:border-slate-300 active:cursor-grabbing ${
+                    className={`glass-card group cursor-grab p-2.5 transition active:cursor-grabbing ${
                       dragging === t.id ? 'opacity-40' : ''
                     } ${t.status === 'done' ? 'opacity-70' : ''}`}
                   >
@@ -265,7 +265,7 @@ export default function Board({
               </div>
 
               {adding === col.key ? (
-                <div className="mt-2 space-y-1.5 rounded-lg border border-electric/30 bg-slate-50 p-2">
+                <div className="mt-2 space-y-1.5 rounded-lg border border-slate-900/30 bg-white/70 p-2">
                   <input
                     autoFocus
                     className="field px-2 py-1.5 text-[12px]"
@@ -311,7 +311,7 @@ export default function Board({
                     setAdding(col.key);
                     setDraft((d) => ({ ...d, stage_key: stageKey }));
                   }}
-                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[12px] text-slate-500 transition hover:border-slate-300 hover:text-slate-500"
+                  className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-slate-200 py-1.5 text-[12px] text-slate-500 transition hover:border-slate-900/70 hover:text-slate-500"
                 >
                   <Plus className="h-3 w-3" /> Add task
                 </button>

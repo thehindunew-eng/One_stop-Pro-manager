@@ -301,3 +301,48 @@ things software genuinely cannot know.
 - Custom stages added through the console have no seeded gate until the owner writes one; the plan shows them as
   open rather than hiding them.
 - Notifications are still in-room only (polling every 14s). Nothing emails or pings anyone yet.
+
+## 10. Build room, member credentials, and the glass reset (this pass)
+
+Two requests in one: stop being only a meeting room, and restyle the chrome. Both are implemented; the honest limits
+are at the bottom.
+
+### The Build room
+
+A stage plan is not a product. The room now carries the actual work:
+
+| Capability | Where | Notes |
+| --- | --- | --- |
+| Attach your own credentials | `Build` → *Connections* | GitHub, Vercel, Neon, Figma, Supabase, OpenAI / Anthropic / Gemini / Groq, or a custom secret |
+| Encrypted at rest | `lib/vault.ts` | AES-256-GCM, key from `CREDENTIAL_SECRET` → `AUTH_SECRET` → `DATABASE_URL`; a documented development default is used only when none is set, and the UI says so |
+| Write-only from the browser | `GET /api/credentials` | Returns `•••• 1234`, status, timestamp. The decrypted value never leaves the server — that is enforced by the response shape, not by convention |
+| Live verification where possible | `checkCredential()` | GitHub (`api.github.com/user`) and Vercel (`api.vercel.com/v2/user`) are checked; everything else is marked *unverified* rather than pretending |
+| Branch per task | `POST /api/build` `create_branch` | Uses the **caller's** token, from the repo's default branch, with the task's name sanitised into a branch name; re-running is idempotent |
+| Pull request link | `set_pr` | Stores the PR URL and moves the task to *review*; a compare link is generated from the branch |
+| Work log | `task_notes` | note / pushed / link / blocked / status, on the task and in the room transcript, so status is written down instead of asked for |
+| Live status for the owner | `Admin → Live`, `Build → Live status` | Online in the last 5 minutes, task in hand + branch, open/late counts, notes this week, access attached (count only) |
+
+Permissions, verified by request: a member can log work on their own task (200) but not edit someone else's (403);
+a member cannot see other people's credentials (empty list, `canAdmin: false`); a member cannot delete another
+person's credential (403); the owner can revoke anyone's (200). No response anywhere contains the plaintext secret.
+
+### The visual reset
+
+Grey-and-white liquid glass: `--glass-fill` (white → grey translucent gradient), `blur(22px) saturate(135%)`, an
+inset top highlight, one soft shadow, and a **1px `#111827` hairline around every panel, card, button, field, tab and
+chip**. The accent colour is gone from the chrome — `electric` now resolves to ink — and only semantic emerald /
+amber / rose remain, carrying meaning rather than decoration. Avatars are graphite; tool tiles keep a brand tint
+inside a glass tile so the wall stays scannable. Everything is documented in README → *Visual system (v3)*.
+
+### Honest limits of this pass
+
+- **The room does not run code.** No containers, no `npm install`, no logs. Branch, PR and work log are real; the
+  execution happens in GitHub Actions and Vercel. Running arbitrary commands on a serverless host would hand any
+  member the platform's own environment.
+- **GitHub is the only provider with a write action.** Vercel and the rest are stored and verified but not used to
+  deploy yet; that is the obvious next step.
+- **Credential checks need outbound HTTPS** from the deployment. In this sandbox Node's TLS store cannot reach
+  `api.github.com`, so the success path was verified against `scripts/fake-github.cjs` with `GITHUB_API_BASE`; with a
+  real token on a normal host the same calls hit GitHub.
+- **A development-default vault key is visible in the UI.** Set `CREDENTIAL_SECRET` before the team stores tokens.
+- **Polished, not audited.** No rate limit on credential writes beyond the shared limiter, and no rotation reminders.

@@ -11,27 +11,41 @@
     'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  --canvas: #f7f8fa;
-  --paper: #ffffff;
-  --sunken: #f1f3f7;
+  /* Grey and white, one black hairline. No colour anywhere in the chrome. */
+  --canvas: #e8eaee;
+  --paper: rgba(255, 255, 255, 0.74);
+  --paper-solid: #fbfcfd;
+  --sunken: rgba(240, 242, 245, 0.72);
 
-  --line: #e4e7ec;
-  --line-strong: #d0d5dd;
+  --edge: #111827;
+  --line: #c7cdd6;
+  --line-soft: #dde1e7;
 
-  --ink: #101828;
-  --body: #344054;
-  --muted: #667085;
-  --faint: #98a2b3;
+  --ink: #0b0f17;
+  --body: #2b3240;
+  --muted: #56606e;
+  --faint: #8a94a3;
 
-  --accent: #4338ca;
-  --accent-hover: #3730a3;
-  --accent-soft: #eef0fe;
+  --accent: #111827;
+  --accent-hover: #000000;
+  --accent-soft: rgba(17, 24, 39, 0.06);
 
-  --ok: #047857;
-  --warn: #b45309;
-  --danger: #be123c;
+  --ok: #046c4e;
+  --warn: #9a5b09;
+  --danger: #b21e3f;
 
-  --radius: 10px;
+  --radius: 12px;
+
+  /* One recipe for every glass surface, so panels never drift apart. */
+  --glass-fill: linear-gradient(
+    158deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.74) 46%,
+    rgba(243, 245, 248, 0.66) 100%
+  );
+  --glass-blur: blur(22px) saturate(135%);
+  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(17, 24, 39, 0.05),
+    0 14px 30px -22px rgba(11, 15, 23, 0.55);
 }
 
 * {
@@ -43,7 +57,11 @@ html {
 }
 
 body {
-  background: var(--canvas);
+  background-color: var(--canvas);
+  background-image: radial-gradient(1000px 560px at 8% -12%, #ffffff 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(860px 520px at 102% -6%, #f4f6f9 0%, rgba(244, 246, 249, 0) 58%),
+    linear-gradient(180deg, #eceef2 0%, #e4e7ec 100%);
+  background-attachment: fixed;
   color: var(--body);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -62,8 +80,8 @@ h4 {
 }
 
 ::selection {
-  background: #dfe1fd;
-  color: #1e1b4b;
+  background: rgba(17, 24, 39, 0.14);
+  color: #0b0f17;
 }
 
 :focus-visible {
@@ -71,9 +89,13 @@ h4 {
   outline-offset: 2px;
 }
 
-/* Flat canvas. Depth comes from borders, never from background gradients. */
+/* The canvas: soft grey light behind the glass, never a coloured wash. */
 .app-bg {
-  background: var(--canvas);
+  background-color: var(--canvas);
+  background-image: radial-gradient(1000px 560px at 8% -12%, #ffffff 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(860px 520px at 102% -6%, #f4f6f9 0%, rgba(244, 246, 249, 0) 58%),
+    linear-gradient(180deg, #eceef2 0%, #e4e7ec 100%);
+  background-attachment: fixed;
 }
 
 .grid-lines {
@@ -88,17 +110,78 @@ h4 {
 /* ------------------------------------------------------------------------- */
 
 @layer components {
-  .panel {
-    @apply rounded-xl border border-slate-200 bg-white;
-    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  /*
+   * Glass. Opaque enough to stay readable at 11px, blurred at the edges so it
+   * reads as a physical sheet over the grey canvas, and always framed by a
+   * 1px black hairline — that outline is what keeps it professional rather
+   * than decorative.
+   */
+  .glass {
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--edge);
+    box-shadow: var(--glass-shadow);
   }
 
+  .panel {
+    @apply rounded-2xl;
+    background: var(--glass-fill);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--edge);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Frosted but lighter — for surfaces inside a panel. */
   .panel-flat {
-    @apply rounded-lg border border-slate-200 bg-white;
+    @apply rounded-xl;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(248, 249, 251, 0.72));
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
+    backdrop-filter: blur(14px) saturate(120%);
+    border: 1px solid rgba(17, 24, 39, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* Cards and rows that sit on top of a glass panel. */
+  .glass-card {
+    @apply rounded-xl;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(247, 248, 251, 0.8));
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 1px 0 #fff, 0 6px 16px -14px rgba(11, 15, 23, 0.6);
+  }
+
+  /* A recessed well: board columns, quote blocks, read-only strips. */
+  .well {
+    @apply rounded-xl;
+    background: rgba(238, 240, 244, 0.6);
+    border: 1px solid rgba(17, 24, 39, 0.16);
+    box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.05);
+  }
+
+  /* Sticky chrome: the header of a room or the owner console. */
+  .glass-bar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(250, 251, 252, 0.7) 100%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid var(--edge);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 8px 20px -18px rgba(11, 15, 23, 0.55);
+  }
+
+  .glass-rail {
+    background: linear-gradient(180deg, rgba(252, 253, 254, 0.72), rgba(244, 246, 249, 0.6));
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+    backdrop-filter: blur(18px) saturate(130%);
+    border-left: 1px solid rgba(17, 24, 39, 0.5);
   }
 
   .card-hover {
-    @apply transition-colors duration-150 hover:border-slate-300;
+    @apply transition-colors duration-150;
+  }
+  .card-hover:hover {
+    border-color: #000;
   }
 
   .section-label {
@@ -106,39 +189,82 @@ h4 {
   }
 
   .btn {
-    @apply inline-flex h-9 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3
-      text-[13px] font-medium leading-none transition-colors
+    @apply inline-flex h-9 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3
+      text-[13px] font-medium leading-none transition
       disabled:pointer-events-none disabled:opacity-50;
   }
 
+  /* Primary: a black key on a glass page. */
   .btn-primary {
-    @apply btn bg-electric text-white hover:bg-electric-700;
+    @apply btn text-white;
+    background: linear-gradient(180deg, #262f3d 0%, #0b0f17 100%);
+    border: 1px solid #000;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 18px -14px rgba(11, 15, 23, 0.9);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(180deg, #323c4b 0%, #141a24 100%);
   }
 
   .btn-ghost {
-    @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900;
+    @apply btn text-slate-800;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(246, 247, 250, 0.78));
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 1px 0 #fff, 0 4px 12px -12px rgba(11, 15, 23, 0.7);
+  }
+  .btn-ghost:hover {
+    background: linear-gradient(180deg, #ffffff, #f1f3f7);
+    box-shadow: inset 0 1px 0 #fff, 0 6px 16px -12px rgba(11, 15, 23, 0.8);
   }
 
   .btn-subtle {
-    @apply btn text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    @apply btn text-slate-600 hover:text-slate-900;
+  }
+  .btn-subtle:hover {
+    background: rgba(17, 24, 39, 0.06);
   }
 
   .btn-danger {
-    @apply btn border border-rose-200 bg-white text-rose hover:bg-rose-50;
+    @apply btn text-rose;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(253, 244, 246, 0.8));
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 1px 0 #fff;
+  }
+  .btn-danger:hover {
+    background: #fdf2f4;
   }
 
   .btn-mint {
-    @apply btn border border-emerald-200 bg-white text-mint hover:bg-emerald-50;
+    @apply btn text-mint;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(244, 251, 248, 0.8));
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 1px 0 #fff;
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1
-      text-xs font-medium text-slate-600;
+    @apply inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-slate-700;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(17, 24, 39, 0.45);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
   .field {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[13px] text-slate-900
-      placeholder:text-slate-400 focus:border-electric focus:outline-none focus:ring-[3px] focus:ring-electric/15;
+    @apply w-full rounded-xl px-3 py-2 text-[13px] text-slate-900 placeholder:text-slate-400;
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.06), inset 0 1px 0 #fff;
+    transition: box-shadow 140ms ease, background 140ms ease;
+  }
+  .field:focus,
+  .field:focus-visible {
+    outline: none;
+    background: #ffffff;
+    border-color: #000;
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12), inset 0 1px 0 #fff;
+  }
+  .field::placeholder {
+    color: #98a2b3;
   }
 
   .label {
@@ -146,32 +272,55 @@ h4 {
   }
 
   .tab {
-    @apply inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-[13px] font-medium text-slate-600
-      transition-colors hover:bg-slate-100 hover:text-slate-900;
+    @apply inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-slate-600 transition;
+    border: 1px solid transparent;
+  }
+  .tab:hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: var(--ink);
   }
 
   .tab-active {
-    @apply bg-white text-slate-900 shadow-card ring-1 ring-slate-200;
+    @apply text-slate-900;
+    background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 100%);
+    border: 1px solid var(--edge);
+    box-shadow: inset 0 1px 0 #fff, 0 6px 14px -12px rgba(11, 15, 23, 0.8);
+  }
+
+  .tab-active:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #f2f4f7 100%);
   }
 
   .link {
-    @apply text-electric underline decoration-electric/30 underline-offset-2 hover:decoration-electric;
+    @apply text-slate-900 underline decoration-slate-400 underline-offset-2 hover:decoration-slate-900;
   }
 
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: #cbd2dc transparent;
+    scrollbar-color: #b6bec9 transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background: #cbd2dc;
+    background: #b6bec9;
     border-radius: 999px;
   }
   .scroll-thin::-webkit-scrollbar-track {
     background: transparent;
+  }
+}
+
+/* Browsers without backdrop-filter get the opaque version rather than mush. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .panel,
+  .glass,
+  .glass-card,
+  .panel-flat,
+  .glass-bar,
+  .glass-rail {
+    background: rgba(255, 255, 255, 0.97);
   }
 }
 

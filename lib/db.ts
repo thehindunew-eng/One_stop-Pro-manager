@@ -291,6 +291,35 @@ CREATE TABLE IF NOT EXISTS tool_stacks (
   PRIMARY KEY (project_id, tool_id)
 );
 
+CREATE TABLE IF NOT EXISTS credentials (
+  id text PRIMARY KEY,
+  project_id text NOT NULL,
+  user_id text NOT NULL,
+  provider text NOT NULL,
+  label text DEFAULT '',
+  secret text NOT NULL,
+  meta jsonb DEFAULT '{}'::jsonb,
+  status text DEFAULT 'unverified',
+  detail text DEFAULT '',
+  last_checked timestamptz,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now(),
+  UNIQUE (project_id, user_id, provider)
+);
+
+CREATE TABLE IF NOT EXISTS task_notes (
+  id text PRIMARY KEY,
+  project_id text NOT NULL,
+  task_id text NOT NULL,
+  user_id text,
+  author text NOT NULL,
+  kind text DEFAULT 'note',
+  content text DEFAULT '',
+  url text DEFAULT '',
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS task_notes_task_idx ON task_notes (task_id, created_at);
+
 CREATE TABLE IF NOT EXISTS app_settings (
   key text PRIMARY KEY,
   value jsonb NOT NULL,
@@ -351,6 +380,9 @@ async function migrate(): Promise<void> {
     'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date date',
     'ALTER TABLE stages ADD COLUMN IF NOT EXISTS gate jsonb DEFAULT \'{}\'::jsonb',
     'ALTER TABLE artifacts ADD COLUMN IF NOT EXISTS updated_by text',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS repo text',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS branch text',
+    'ALTER TABLE tasks ADD COLUMN IF NOT EXISTS pr_url text',
   ];
   for (const statement of statements) {
     try {

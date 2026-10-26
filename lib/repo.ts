@@ -15,6 +15,7 @@ import type {
   Stage,
   StageKey,
   Task,
+  TaskNote,
   Tool,
   ToolStack,
   User,
@@ -1011,7 +1012,7 @@ export async function updateTask(projectId: string, id: string, patch: Partial<T
   if (!current) return;
   await sql(
     `UPDATE tasks SET title=$3, detail=$4, status=$5, owner=$6, priority=$7, points=$8, position=$9, stage_key=$10,
-       due_date=$11
+       due_date=$11, repo=$12, branch=$13, pr_url=$14
      WHERE project_id=$1 AND id=$2`,
     [
       projectId,
@@ -1025,6 +1026,9 @@ export async function updateTask(projectId: string, id: string, patch: Partial<T
       patch.position ?? current.position,
       patch.stage_key ?? current.stage_key,
       patch.due_date === undefined ? current.due_date : patch.due_date,
+      patch.repo === undefined ? current.repo ?? null : patch.repo,
+      patch.branch === undefined ? current.branch ?? null : patch.branch,
+      patch.pr_url === undefined ? current.pr_url ?? null : patch.pr_url,
     ],
   );
 }
@@ -1200,4 +1204,117 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 
 export async function createUser(input: { name: string; email?: string | null; role?: Role; isAdmin?: boolean }): Promise<User> {
   return upsertUser(input);
+}
+
+/* ------------------------------------------------------------------ */
+/* credentials — encrypted, per member                                */
+/* ------------------------------------------------------------------ */
+
+export interface CredentialRow {
+  id: string;
+  project_id: string;
+  user_id: string;
+  provider: string;
+  label: string;
+  secret: string;
+  meta: Record<string, unknown>;
+  status: string;
+  detail: string;
+  last_checked: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listCredentialRows(projectId: string): Promise<CredentialRow[]> {
+  return sql<CredentialRow>('SELECT * FROM credentials WHERE project_id = $1 ORDER BY updated_at DESC', [projectId]);
+}
+
+export async function getCredential(
+  projectId: string,
+  userId: string,
+  provider: string,
+): Promise<CredentialRow | null> {
+  const rows = await sql<CredentialRow>(
+    'SELECT * FROM credentials WHERE project_id = $1 AND user_id = $2 AND provider = $3',
+    [projectId, userId, provider],
+  );
+  return rows[0] ?? null;
+}
+
+export async function saveCredential(input: {
+  projectId: string;
+  userId: string;
+  provider: string;
+  label: string;
+  sealed: string;
+  meta?: Record<string, unknown>;
+  status: string;
+  detail: string;
+}): Promise<void> {
+  await sql(
+    `INSERT INTO credentials (id, project_id, user_id, provider, label, secret, meta, status, detail, last_checked, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,now(),now())
+     ON CONFLICT (project_id, user_id, provider)
+     DO UPDATE SET label = $5, secret = $6, meta = $7::jsonb, status = $8, detail = $9, last_checked = now(), updated_at = now()`,
+    [
+      newId('cred'),
+      input.projectId,
+      input.userId,
+      input.provider,
+      input.label.slice(0, 80),
+      input.sealed,
+      asJson(input.meta ?? {}),
+      input.status,
+      input.detail.slice(0, 300),
+    ],
+  );
+}
+
+export async function deleteCredential(projectId: string, userId: string, provider: string): Promise<void> {
+  await sql('DELETE FROM credentials WHERE project_id = $1 AND user_id = $2 AND provider = $3', [
+    projectId,
+    userId,
+    provider,
+  ]);
+}
+
+/* ------------------------------------------------------------------ */
+/* task notes — the build log                                         */
+/* ------------------------------------------------------------------ */
+
+export async function listTaskNotes(projectId: string, limit = 200): Promise<TaskNote[]> {
+  return sql<TaskNote>(
+    'SELECT * FROM task_notes WHERE project_id = $1 ORDER BY created_at DESC LIMIT $2',
+    [projectId, limit],
+  );
+}
+
+export async function addTaskNote(input: {
+  projectId: string;
+  taskId: string;
+  userId: string | null;
+  author: string;
+  kind: string;
+  content: string;
+  url?: string;
+}): Promise<TaskNote> {
+  const rows = await sql<TaskNote>(
+    `INSERT INTO task_notes (id, project_id, task_id, user_id, author, kind, content, url)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
+    [
+      newId('note'),
+      input.projectId,
+      input.taskId,
+      input.userId,
+      input.author,
+      input.kind,
+      input.content.slice(0, 2000),
+      (input.url ?? '').slice(0, 500),
+    ],
+  );
+  return rows[0];
+}
+
+export async function deleteTaskNote(projectId: string, id: string): Promise<void> {
+  await sql('DELETE FROM task_notes WHERE project_id = $1 AND id = $2', [projectId, id]);
 }

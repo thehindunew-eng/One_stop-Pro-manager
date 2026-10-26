@@ -152,7 +152,7 @@ export default function LocalAI({
       )}
 
       {state && !state.reachable && (
-        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-[12px] leading-relaxed text-slate-600">
+        <div className="mt-3 rounded-lg border border-slate-900/20 bg-white/60 p-3 text-[12px] leading-relaxed text-slate-600">
           <div className="font-medium text-slate-800">No Ollama server at {state.baseUrl}</div>
           <ol className="mt-1.5 list-decimal space-y-0.5 pl-4">
             <li>Install Ollama and start it: <code className="rounded bg-white px-1">ollama serve</code></li>

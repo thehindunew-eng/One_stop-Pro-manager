@@ -157,7 +157,7 @@ export default function DocView({
                 className={`min-w-[200px] shrink-0 rounded-xl border p-2.5 text-left transition lg:min-w-0 ${
                   selected
                     ? 'border-slate-300 bg-slate-50'
-                    : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100/70'
+                    : 'border-slate-900/20 bg-white/60 hover:border-slate-900/70 hover:bg-slate-100/70'
                 }`}
               >
                 <div className="flex items-center justify-between gap-1">
@@ -267,7 +267,7 @@ export default function DocView({
                         className={`rounded-full border px-2.5 py-1 text-[12px] font-medium capitalize transition ${
                           active.status === s
                             ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                            : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300'
+                            : 'border-slate-900/20 bg-white/60 text-slate-500 hover:border-slate-900/70'
                         }`}
                       >
                         {s}

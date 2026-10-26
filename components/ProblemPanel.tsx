@@ -197,7 +197,7 @@ export function ProblemModal({
         <div className="scroll-thin max-h-[70vh] overflow-y-auto p-4">
           {error && <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose">{error}</div>}
 
-          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] text-slate-500">
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-900/20 bg-white/60 px-3 py-2 text-[12px] text-slate-500">
             <span className="font-semibold uppercase tracking-[0.12em] text-slate-500">How I read the room</span>
             <span>{signals.filter((s) => s.type === 'pain').length} pains</span>
             <span>·</span>
@@ -282,7 +282,7 @@ export function ProblemModal({
               <div className="label">History</div>
               <div className="space-y-1.5">
                 {draft.history.map((h, idx) => (
-                  <div key={idx} className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-[12px] text-slate-500">
+                  <div key={idx} className="rounded-lg border border-slate-900/20 bg-white/60 px-2.5 py-2 text-[12px] text-slate-500">
                     <div className="mb-0.5 text-[11px] uppercase tracking-wider text-slate-500">
                       {new Date(h.at).toLocaleString()} · {h.by}
                     </div>

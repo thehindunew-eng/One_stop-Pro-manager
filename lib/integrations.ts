@@ -1,5 +1,6 @@
 import { effectiveAIConfig, listLocalModels, ollamaBaseUrl, DEFAULT_OLLAMA_MODEL } from './ai';
 import { sessionSecretStatus, usingDefaultPasscode } from './auth';
+import { vaultKeyStatus } from './vault';
 
 export type IntegrationNeed = 'required' | 'recommended' | 'optional';
 export type IntegrationState = 'on' | 'off' | 'fallback';
@@ -171,6 +172,24 @@ export async function integrations(): Promise<Integration[]> {
       ],
     },
     {
+      id: 'vault',
+      name: 'Member credentials vault',
+      category: 'Security',
+      need: 'recommended',
+      state: vaultKeyStatus().strong ? 'on' : 'off',
+      variable: 'CREDENTIAL_SECRET (or AUTH_SECRET)',
+      without:
+        'Team credentials are still encrypted, but the key is derived from the development default. Anyone with the database and this repository could decrypt them — do not let the team attach real tokens yet.',
+      withIt:
+        'Every member token (GitHub, Vercel, database, model keys) is sealed with AES-256-GCM under a key only you control, and is never sent back to a browser.',
+      docs: 'https://nextjs.org/docs/app/building-your-application/configuring/environment-variables',
+      how: [
+        'Generate a long random string and set it as CREDENTIAL_SECRET in the deployment.',
+        'Rotating it invalidates stored credentials — everyone re-attaches their tokens once.',
+        'Secrets are write-only from the browser: the API returns a masked tail, never the value.',
+      ],
+    },
+    {
       id: 'tools',
       name: 'Tool accounts (Figma, Notion, Linear…)',
       category: 'Team tools',
@@ -179,7 +198,7 @@ export async function integrations(): Promise<Integration[]> {
       variable: 'no keys needed',
       without: '—',
       withIt:
-        'Every tool on the wall opens in its own tab with your team. The platform stores the link you paste, never your credentials, so there is no OAuth app to register.',
+        'Every tool on the wall opens in its own tab. If a member attaches a token under Build → Connections, the platform can act with it (create a branch, list repos) — otherwise you just link the workspace URL.',
       how: [
         'Open the Tools tab in any stage.',
         'Pick a tool, set your status (planned / trial / in use / parked).',

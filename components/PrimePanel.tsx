@@ -228,7 +228,7 @@ export default function PrimePanel({
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/35-sm" onClick={onClose}>
       <aside
-        className="flex h-full w-full max-w-[480px] flex-col border-l border-slate-200 bg-white shadow-panel"
+        className="glass-rail flex h-full w-full max-w-[480px] flex-col shadow-panel"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-3">
@@ -255,14 +255,14 @@ export default function PrimePanel({
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-50 px-3 py-1.5">
+        <div className="flex flex-wrap items-center gap-1 border-b border-slate-900/20 bg-white/60 px-3 py-1.5">
           <span className="mr-1 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[.08em] text-slate-500">
             <Target className="h-3 w-3 text-electric" /> Prime can see
           </span>
           {contextChips(context).map((c) => (
             <span
               key={c}
-              className="rounded-full border border-slate-200 bg-white px-1.5 py-0.5 text-[12px] text-slate-500"
+              className="rounded-full border border-slate-900/40 bg-white/80 px-1.5 py-0.5 text-[12px] text-slate-500"
             >
               {c}
             </span>
@@ -275,8 +275,8 @@ export default function PrimePanel({
               <div
                 className={`max-w-[94%] rounded-xl border px-3 py-2 ${
                   t.role === 'you'
-                    ? 'border-slate-200 bg-slate-50 text-[13px] text-slate-800'
-                    : 'border-slate-200 bg-white shadow-card'
+                    ? 'border-slate-900/20 bg-white/60 text-[13px] text-slate-800'
+                    : 'border-slate-900/25 bg-white/75 shadow-card'
                 }`}
               >
                 {t.role === 'prime' ? (
@@ -293,7 +293,7 @@ export default function PrimePanel({
                               key={`${a.kind}-${k}`}
                               type="button"
                               onClick={() => runAction(a, i * 10 + k)}
-                              className="group inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-left text-[12px] font-medium text-slate-600 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
+                              className="group inline-flex items-center gap-1 rounded-lg border border-slate-900/20 bg-white/60 px-2 py-1 text-left text-[12px] font-medium text-slate-600 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
                               title={a.hint}
                             >
                               {a.kind === 'doc' ? (
@@ -374,7 +374,7 @@ export default function PrimePanel({
               <button
                 key={q}
                 type="button"
-                className="rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-[12px] text-slate-500 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
+                className="rounded-full border border-slate-900/20 bg-white/60 px-2 py-1 text-[12px] text-slate-500 transition hover:border-electric/40 hover:bg-white hover:text-slate-900"
                 onClick={() => ask(q)}
               >
                 {q}
@@ -384,7 +384,7 @@ export default function PrimePanel({
         </div>
 
         <div className="border-t border-slate-200 p-3">
-          <div className="flex items-end gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2 focus-within:border-electric/50">
+          <div className="flex items-end gap-2 rounded-xl border border-slate-900/20 bg-white/60 p-2 focus-within:border-electric/50">
             <textarea
               className="scroll-thin max-h-28 flex-1 resize-none bg-transparent px-1 py-1 text-[13px] text-slate-800 placeholder:text-slate-500 focus:outline-none"
               rows={1}

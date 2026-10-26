@@ -8,7 +8,8 @@
     "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "next lint",
     "test:ollama": "node scripts/fake-ollama.cjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:github": "node scripts/fake-github.cjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",

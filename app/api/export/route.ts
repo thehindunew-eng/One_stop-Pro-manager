@@ -168,6 +168,22 @@ export async function GET(req: Request) {
     push('');
   }
 
+  /* ------------------------------------------------------- where the work lives */
+  const built = tasks.filter((t) => t.branch || t.pr_url || t.repo);
+  if (built.length) {
+    push('## Where the work lives');
+    push('');
+    push('Straight from the Build room: the repo, the branch and the pull request attached to each task.');
+    push('');
+    push('| Task | Repo | Branch | PR |');
+    push('| --- | --- | --- | --- |');
+    for (const t of built.slice(0, 40)) {
+      push(`| ${t.title} | ${t.repo ? `\`${t.repo}\`` : '—'} | ${t.branch ? `\`${t.branch}\`` : '—'} | ${t.pr_url ? `[open](${t.pr_url})` : '—'} |`);
+    }
+    if (built.length > 40) push(`| _and ${built.length - 40} more_ | | | |`);
+    push('');
+  }
+
   /* ---------------------------------------------------------- stage by stage */
   push('## Stage by stage');
   push('');
@@ -191,11 +207,19 @@ export async function GET(req: Request) {
     if (stageTasks.length) {
       push('**Board**');
       push('');
-      push('| Done | Task | Owner | Priority | Due | Status |');
-      push('| --- | --- | --- | --- | --- | --- |');
+      push('| Done | Task | Owner | Priority | Due | Status | Where the work is |');
+      push('| --- | --- | --- | --- | --- | --- | --- |');
       for (const t of stageTasks) {
+        /* Branch and PR come from the Build room — the pack should point at the code. */
+        const work = [
+          t.repo ? `\`${t.repo}\`` : '',
+          t.branch ? `\`${t.branch}\`` : '',
+          t.pr_url ? `[PR](${t.pr_url})` : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
         push(
-          `| ${t.status === 'done' ? 'x' : ''} | ${t.title} | ${t.owner ?? '_unowned_'} | ${t.priority} | ${t.due_date ? shortDate(t.due_date) : '—'} | ${t.status} |`,
+          `| ${t.status === 'done' ? 'x' : ''} | ${t.title} | ${t.owner ?? '_unowned_'} | ${t.priority} | ${t.due_date ? shortDate(t.due_date) : '—'} | ${t.status} | ${work || '—'} |`,
         );
       }
       push('');

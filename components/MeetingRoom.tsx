@@ -187,7 +187,7 @@ export default function MeetingRoom({
           <button
             type="button"
             onClick={onOpenProblem}
-            className="group relative w-full overflow-hidden rounded-lg border border-slate-200 bg-white p-3.5 text-left shadow-card transition hover:border-slate-300"
+            className="glass-card group relative w-full overflow-hidden p-3.5 text-left transition"
           >
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <Pill tone="electric"><Wand2 className="h-3 w-3" /> Working problem statement</Pill>
@@ -253,12 +253,12 @@ export default function MeetingRoom({
                 <div
                   className={`whitespace-pre-wrap rounded-xl border px-3 py-2 text-[13px] leading-relaxed ${
                     isPrime
-                      ? 'border-slate-200 bg-slate-50 text-slate-700'
+                      ? 'border-slate-900/20 bg-white/60 text-slate-700'
                       : m.kind === 'decision'
                         ? 'border-mint/20 bg-emerald-50 text-slate-700'
                         : m.kind === 'idea'
                           ? 'border-amber/20 bg-amber/[0.06] text-slate-700'
-                          : 'border-slate-200 bg-slate-50 text-slate-700'
+                          : 'border-slate-900/20 bg-white/60 text-slate-700'
                   }`}
                 >
                   {m.content}
@@ -269,7 +269,7 @@ export default function MeetingRoom({
         })}
         {!real.length && (
           <div className="panel-flat p-5 text-center">
-            <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600">
+            <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl border border-slate-900/20 bg-white/60 text-slate-600">
               <AudioLines className="h-5 w-5" />
             </div>
             <h3 className="text-[13px] font-semibold text-slate-900">Start the conversation</h3>
@@ -287,7 +287,7 @@ export default function MeetingRoom({
                   key={p}
                   type="button"
                   onClick={() => setText(`${p} `)}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[12px] text-slate-500 transition hover:border-electric/40 hover:text-slate-900"
+                  className="rounded-full border border-slate-900/20 bg-white/60 px-2.5 py-1 text-[12px] text-slate-500 transition hover:border-electric/40 hover:text-slate-900"
                 >
                   {p}
                 </button>
@@ -317,7 +317,7 @@ export default function MeetingRoom({
       {/* composer */}
       <div className="border-t border-slate-200 p-3">
         {error && <div className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[12px] text-rose">{error}</div>}
-        <div className="rounded-xl border border-slate-200 bg-slate-50 focus-within:border-electric/50">
+        <div className="rounded-xl border border-slate-900/20 bg-white/60 focus-within:border-electric/50">
           <textarea
             className="scroll-thin max-h-40 w-full resize-none bg-transparent px-3.5 pb-1 pt-3 text-[13px] leading-relaxed text-slate-800 placeholder:text-slate-500 focus:outline-none"
             rows={2}
