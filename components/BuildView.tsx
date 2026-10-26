@@ -46,10 +46,21 @@ interface Repo {
   pushed_at: string | null;
 }
 
+interface Commit {
+  sha: string;
+  short: string;
+  message: string;
+  author: string | null;
+  date: string | null;
+  url: string;
+}
+
 interface BuildData {
   github: { connected: true; login: string; repos: Repo[] } | { connected: false; reason: string };
   tasks: BuildTask[];
   notes: TaskNote[];
+  commits: Commit[];
+  commitsRepo: string;
   status: StatusRow[];
   me: { id: string; name: string; role: string; canEdit: boolean; canAdmin: boolean };
 }
@@ -117,7 +128,9 @@ export default function BuildView({
       if (!quiet) setLoading(true);
       try {
         const [b, c] = await Promise.all([
-          api<BuildData>(`/api/build?code=${encodeURIComponent(code)}`),
+          api<BuildData>(
+            `/api/build?code=${encodeURIComponent(code)}${repo ? `&repo=${encodeURIComponent(repo)}` : ''}`,
+          ),
           api<CredData>(`/api/credentials?code=${encodeURIComponent(code)}`),
         ]);
         setBuild(b);
@@ -139,7 +152,8 @@ export default function BuildView({
         setLoading(false);
       }
     },
-    [code, repo],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [code],
   );
 
   useEffect(() => {
@@ -221,6 +235,19 @@ export default function BuildView({
       },
       'Work log updated',
     );
+
+  useEffect(() => {
+    if (!repo) return;
+    let alive = true;
+    api<BuildData>(`/api/build?code=${encodeURIComponent(code)}&repo=${encodeURIComponent(repo)}`)
+      .then((next) => {
+        if (alive) setBuild((prev) => (prev ? { ...prev, commits: next.commits, commitsRepo: next.commitsRepo } : prev));
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [code, repo]);
 
   const connectedGithub = build?.github.connected ? build.github : null;
   const notesByTask = useMemo(() => {
@@ -502,6 +529,34 @@ export default function BuildView({
               })}
             </div>
           </div>
+
+          {!!(build?.commits ?? []).length && (
+            <div className="panel overflow-hidden">
+              <div className="flex flex-wrap items-center gap-2 border-b border-slate-900/15 px-4 py-2.5">
+                <GitBranch className="h-3.5 w-3.5 text-slate-700" />
+                <h3 className="text-[14px] font-semibold text-slate-900">Recent commits</h3>
+                <span className="font-mono text-[11px] text-slate-500">{build?.commitsRepo}</span>
+                <span className="text-[12px] text-slate-500">read from GitHub — nobody types these in</span>
+              </div>
+              <div className="divide-y divide-slate-900/10">
+                {(build?.commits ?? []).map((c) => (
+                  <a
+                    key={c.sha}
+                    href={c.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="flex items-center gap-2 px-4 py-1.5 text-[12px] hover:bg-white/60"
+                  >
+                    <span className="font-mono text-[11px] text-slate-500">{c.short}</span>
+                    <span className="min-w-0 flex-1 truncate text-slate-800">{c.message}</span>
+                    <span className="text-slate-500">{c.author ?? ''}</span>
+                    <span className="text-slate-500">{c.date ? ago(c.date) : ''}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0 text-slate-400" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* recent activity */}
           <div className="panel overflow-hidden">

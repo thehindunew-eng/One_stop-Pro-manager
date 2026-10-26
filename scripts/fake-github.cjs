@@ -93,6 +93,33 @@ http
       return undefined;
     }
 
+    if (/^\/repos\/[\w.-]+\/[\w.-]+\/commits$/.test(path) && req.method === 'GET') {
+      return send(
+        res,
+        200,
+        [
+          {
+            sha: 'b7c1d2e3f4a5968778695a4b3c2d1e0f12345678',
+            commit: {
+              message: 'fix(auth): refresh token no longer 401s\n\nAlso adds the missing test.',
+              author: { name: 'Amar Tripathi', date: new Date(Date.now() - 3600_000).toISOString() },
+            },
+            html_url: 'https://github.com/onestop/checkout-web/commit/b7c1d2e',
+            author: { login: 'amar-dev' },
+          },
+          {
+            sha: 'a1b2c3d4e5f60718293a4b5c6d7e8f9012345678',
+            commit: {
+              message: 'feat(checkout): one-page flow behind a flag',
+              author: { name: 'Priya Nair', date: new Date(Date.now() - 86400_000).toISOString() },
+            },
+            html_url: 'https://github.com/onestop/checkout-web/commit/a1b2c3d',
+            author: { login: 'priya' },
+          },
+        ],
+      );
+    }
+
     if (/^\/repos\/[\w.-]+\/[\w.-]+\/branches$/.test(path)) {
       return send(res, 200, branches.map((name) => ({ name })));
     }

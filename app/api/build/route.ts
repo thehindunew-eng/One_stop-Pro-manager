@@ -11,7 +11,7 @@ import {
   listTasks,
   updateTask,
 } from '@/lib/repo';
-import { compareUrl, createBranch, GitHubError, repos, tokenFrom, account } from '@/lib/github';
+import { account, commits, compareUrl, createBranch, GitHubError, repos, tokenFrom } from '@/lib/github';
 import { isOverdue, todayISO } from '@/lib/dates';
 import type { BuildStatus } from '@/lib/types';
 
@@ -34,7 +34,9 @@ export const dynamic = 'force-dynamic';
 const ONLINE_MS = 5 * 60_000;
 
 export async function GET(req: Request) {
-  const code = new URL(req.url).searchParams.get('code') ?? '';
+  const url = new URL(req.url);
+  const code = url.searchParams.get('code') ?? '';
+  const repoParam = url.searchParams.get('repo') ?? '';
   const g = await guard(code);
   if (!isGuard(g)) return g;
 
@@ -59,6 +61,18 @@ export async function GET(req: Request) {
       githubState = { connected: true, login: me.login, repos: list };
     } catch (err) {
       githubState = { connected: false, reason: (err as Error).message };
+    }
+  }
+
+  /* Recent commits for the repo the member is working in, when GitHub is live. */
+  let feed: Awaited<ReturnType<typeof commits>> = [];
+  let feedRepo = '';
+  if (github && /^[\w.-]+\/[\w.-]+$/.test(repoParam)) {
+    try {
+      feed = await commits(tokenFrom(github), repoParam, 12);
+      feedRepo = repoParam;
+    } catch {
+      feed = [];
     }
   }
 
@@ -116,6 +130,8 @@ export async function GET(req: Request) {
       pr_url: t.pr_url ?? null,
     })),
     notes,
+    commits: feed,
+    commitsRepo: feedRepo,
     status,
     me: { id: g.user.id, name: g.user.name, role: g.user.role, canEdit: g.access.canEdit, canAdmin: g.access.canAdmin },
   });

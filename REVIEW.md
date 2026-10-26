@@ -319,6 +319,7 @@ A stage plan is not a product. The room now carries the actual work:
 | Live verification where possible | `checkCredential()` | GitHub (`api.github.com/user`) and Vercel (`api.vercel.com/v2/user`) are checked; everything else is marked *unverified* rather than pretending |
 | Branch per task | `POST /api/build` `create_branch` | Uses the **caller's** token, from the repo's default branch, with the task's name sanitised into a branch name; re-running is idempotent |
 | Pull request link | `set_pr` | Stores the PR URL and moves the task to *review*; a compare link is generated from the branch |
+| Recent commits | `GET /api/build?repo=` | Read from GitHub with the member's token; the room never invents activity |
 | Work log | `task_notes` | note / pushed / link / blocked / status, on the task and in the room transcript, so status is written down instead of asked for |
 | Live status for the owner | `Admin → Live`, `Build → Live status` | Online in the last 5 minutes, task in hand + branch, open/late counts, notes this week, access attached (count only) |
 

@@ -137,6 +137,28 @@ export async function createBranch(
   }
 }
 
+export interface Commit {
+  sha: string;
+  short: string;
+  message: string;
+  author: string | null;
+  date: string | null;
+  url: string;
+}
+
+/** The last few commits on a repo — the only honest activity feed there is. */
+export async function commits(token: string, repo: string, limit = 12): Promise<Commit[]> {
+  const rows = await call<any[]>(token, `/repos/${repo}/commits?per_page=${Math.min(limit, 30)}`);
+  return rows.map((c) => ({
+    sha: c.sha,
+    short: String(c.sha ?? '').slice(0, 7),
+    message: String(c.commit?.message ?? '').split('\n')[0].slice(0, 140),
+    author: c.commit?.author?.name ?? c.author?.login ?? null,
+    date: c.commit?.author?.date ?? null,
+    url: c.html_url ?? '',
+  }));
+}
+
 /** The pull-request page GitHub itself uses, so no extra write scope is needed. */
 export function compareUrl(repo: string, base: string, branch: string): string {
   return `https://github.com/${repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(branch)}?expand=1`;

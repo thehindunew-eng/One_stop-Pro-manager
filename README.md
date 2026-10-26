@@ -65,6 +65,8 @@ The room is not a meeting tool that stops at the plan — it is where the work h
 - **Then you build from the task.** Pick the repo once; on any of your tasks press *Create* and the room creates the
   branch with **your** token, links it to the task, and gives you the compare link for the pull request. No platform
   token, no shared account, no OAuth app to register.
+- **The repo tells its own story.** When a repo is selected the Build room reads the last commits straight from GitHub,
+  so the team sees real activity beside the work log — no one types a commit message in by hand.
 - **The work log is the status.** Notes, "pushed", links, blockers go on the task and into the room feed, so the board
   says what is really happening instead of what was hoped for.
 - **The owner watches live, without reading secrets.** `Admin → Live` shows every seat: online in the last five
